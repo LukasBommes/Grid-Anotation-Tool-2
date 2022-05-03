@@ -20,8 +20,7 @@ class Project(Base):
 class Image(Base):
     __tablename__ = "images"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    #filepath = Column
+    name = Column(String, unique=True)
     project_id = Column(Integer, ForeignKey("projects.id"))
 
     project = relationship("Project", back_populates="images")

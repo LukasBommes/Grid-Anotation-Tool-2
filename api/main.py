@@ -1,10 +1,13 @@
+import uuid
+import os
+
 from datetime import datetime
 from typing import List
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from . import config, models, schemas
 from .database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
@@ -19,7 +22,7 @@ def get_db():
         yield db
     finally:
         db.close()
-        
+
 
 ##########################################################################################
 #
@@ -120,3 +123,60 @@ def delete_image(image_id: int, db: Session = Depends(get_db)):
         db.delete(db_image)
         db.commit()
     return db_image
+
+
+##########################################################################################
+#
+# File Upload API
+#
+##########################################################################################
+
+def save_file(filename, data):
+    with open(filename, 'wb') as f:
+        f.write(data)
+
+
+# TODO:
+# - delete event to delete files upon deletion of DB entry
+# - write tests for this method
+@app.post("/project123/{project_id}/images/", response_model=List[schemas.Image])
+def create_image_file(project_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
+    db_project = db.query(models.Project).get(project_id)
+    if not db_project:
+        raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
+    else:
+        filenames = []
+        db_images = []
+        for file in files:
+            # upload file to MEDIA_ROOT
+            _, filext = os.path.splitext(file.filename)
+            filename = os.path.join(config.MEDIA_ROOT, f"{str(uuid.uuid4())}{filext}")
+            filenames.append(filename)
+            contents = file.file.read()
+            save_file(filename, contents)
+
+            # add DB entry with file path
+            db_image = models.Image(name=filename, project_id=project_id)
+            db.add(db_image)
+            db.commit()
+            db.refresh(db_image)
+            db_images.append(db_image)
+    return db_images
+
+
+
+# @app.get("/")
+# async def main():
+#     content = """
+# <body>
+# <form action="/files/" enctype="multipart/form-data" method="post">
+# <input name="files" type="file" multiple>
+# <input type="submit">
+# </form>
+# <form action="/uploadfiles/" enctype="multipart/form-data" method="post">
+# <input name="files" type="file" multiple>
+# <input type="submit">
+# </form>
+# </body>
+#     """
+#     return HTMLResponse(content=content)
