@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException, File, UploadFile
+from sqlalchemy import event
 from sqlalchemy.orm import Session
 
 from . import config, models, schemas
@@ -136,8 +137,12 @@ def save_file(filename, data):
         f.write(data)
 
 
+def delete_image(filename):
+    if os.path.exists(filename):
+        os.remove(filename)
+
+
 # TODO:
-# - delete event to delete files upon deletion of DB entry
 # - write tests for this method
 @app.post("/project123/{project_id}/images/", response_model=List[schemas.Image])
 def create_image_file(project_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
@@ -162,6 +167,31 @@ def create_image_file(project_id: int, files: List[UploadFile] = File(...), db: 
             db.refresh(db_image)
             db_images.append(db_image)
     return db_images
+
+
+images_to_delete = []
+
+@event.listens_for(models.Image, 'after_delete')
+def receive_after_delete(mapper, connection, target):
+    """Register which image files must be deleted."""
+    global images_to_delete
+    images_to_delete.append(target.name)
+
+
+@event.listens_for(Session, 'after_commit')
+def receive_after_commit(session):
+    """Delete registered image files."""
+    global images_to_delete
+    for image_name in images_to_delete:
+        delete_image(image_name)
+    images_to_delete = []
+
+
+@event.listens_for(Session, 'after_rollback')
+def receive_after_rollback(session):
+    """Deregister image files."""
+    global images_to_delete
+    images_to_delete = []
 
 
 

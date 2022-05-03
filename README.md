@@ -12,6 +12,8 @@ Grid-Annotation-Tool-v3$ uvicorn api.main:app --reload
 
 ### Run Tests
 
+Activate virtual environment.
+
 ```
 Grid-Annotation-Tool-v3/api/tests$ pytest
 ```
