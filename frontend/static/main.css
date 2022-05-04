@@ -1,0 +1,79 @@
+html  {
+  min-height: 100%;
+  position: relative;
+  font-family: sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#controls {
+  position: absolute;
+  z-index: 1;
+  padding: 10px;
+  background-color: white;
+}
+
+#current_image {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  width: 100%;
+  min-height: 100%;
+  background-color: #0a172b; /* forest green: #102f00 */
+}
+
+#images_selection {
+  width: 100%;
+}
+
+.btn-group {
+  padding-top: 10px;
+}
+
+.btn-group button {
+  display: block;
+  background-color: #173346;
+  border: 1px solid #0a172b;
+  color: white;
+  padding: 10px 24px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-group button:not(:last-child) {
+  border-bottom: none;
+}
+
+.btn-group .btn-active {
+  background-color: #186fab;
+}
+
+#pv_module_details {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid black;
+}
+
+#output_module_id {
+  margin-bottom: 10px;
+}
+
+#div_module_partially_visible {
+  margin-top: 10px;
+}
+
+#fieldset_module_partially_visible {
+  border: none;
+}
+
+#fieldset_module_defects {
+  margin-top: 10px;
+  border: 1px solid;
+}
