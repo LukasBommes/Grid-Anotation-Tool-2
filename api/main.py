@@ -7,6 +7,7 @@ from typing import List
 from fastapi import Depends, FastAPI, HTTPException, File, UploadFile
 from sqlalchemy import event
 from sqlalchemy.orm import Session
+from fastapi.middleware.cors import CORSMiddleware
 
 from . import config, models, schemas
 from .database import SessionLocal, engine
@@ -14,6 +15,15 @@ from .database import SessionLocal, engine
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+# to fix CORS access error
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=config.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # Dependency

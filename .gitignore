@@ -4,3 +4,4 @@ __pycache__
 env
 images/
 api/tests/images/
+example_images/

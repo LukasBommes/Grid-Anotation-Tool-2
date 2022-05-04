@@ -6,7 +6,7 @@ import {
   Link as RouterLink
 } from 'react-router-dom';
 import './App.css';
-import AppBar from './components/AppBar.js';
+import ButtonAppBar from './components/AppBar.js';
 import Projects from './components/Projects.js';
 import Editor from './components/Editor.js';
 
@@ -17,7 +17,7 @@ class App extends React.Component {
     return (
       <div className="App">
         <Router>
-          <AppBar />
+          <ButtonAppBar />
 
           <Routes>
             <Route element={<Projects />} path="/projects" />
