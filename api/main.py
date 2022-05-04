@@ -88,17 +88,17 @@ def update_project(project_id: int, project: schemas.ProjectCreate, db: Session 
 ##########################################################################################
 
 
-@app.post("/project/{project_id}/images/", response_model=schemas.Image)
-def create_image(project_id: int, image: schemas.ImageCreate, db: Session = Depends(get_db)):
-    db_project = db.query(models.Project).get(project_id)
-    if not db_project:
-        raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
-    else:
-        db_image = models.Image(**image.dict(), project_id=project_id)
-        db.add(db_image)
-        db.commit()
-        db.refresh(db_image)
-    return db_image
+# @app.post("/project/{project_id}/images/", response_model=schemas.Image)
+# def create_image(project_id: int, image: schemas.ImageCreate, db: Session = Depends(get_db)):
+#     db_project = db.query(models.Project).get(project_id)
+#     if not db_project:
+#         raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
+#     else:
+#         db_image = models.Image(**image.dict(), project_id=project_id)
+#         db.add(db_image)
+#         db.commit()
+#         db.refresh(db_image)
+#     return db_image
 
 
 @app.get("/project/{project_id}/images/", response_model=List[schemas.Image])
@@ -144,8 +144,8 @@ def delete_image(filename):
 
 # TODO:
 # - write tests for this method
-@app.post("/project123/{project_id}/images/", response_model=List[schemas.Image])
-def create_image_file(project_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
+@app.post("/project/{project_id}/images/", response_model=List[schemas.Image])
+def create_image(project_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
     db_project = db.query(models.Project).get(project_id)
     if not db_project:
         raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")

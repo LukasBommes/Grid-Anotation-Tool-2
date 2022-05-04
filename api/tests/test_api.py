@@ -1,3 +1,8 @@
+import os
+import glob
+import shutil
+
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -185,32 +190,54 @@ def test_try_update_non_existing_project():
 ##########################################################################################
 
 
-def create_image(project_id, name="Name"):
-    """Helper function to create and evaluate an image."""
-    response = client.post(
-        f"/project/{project_id}/images/",
-        headers={"Content-Type": "application/json", "accept": "application/json"},
-        json={"name": name},
-    )
+def create_images(project_id):
+    """Helper function to upload and evaluate two images."""
+    # clear image upload directory
+    try:
+        shutil.rmtree("images")
+    except FileNotFoundError:
+        pass
+    os.makedirs("images", exist_ok=True)
+
+    # upload files
+    filenames = ["test_image_1.jpg", "test_image_2.jpg"]
+    with open(filenames[0], "rb") as f1, open(filenames[1], "rb") as f2:
+        files = [
+            ("files", (filenames[0], f1, "image/jpeg")),
+            ("files", (filenames[1], f2, "image/jpeg"))
+        ]
+        response = client.post(f"/project/{project_id}/images/", files=files)
+
+    # confirm files are uploaded to images directory
+    assert len(glob.glob(os.path.join("images", "*.jpg"))) == 2
+
     assert response.status_code == 200, response.text
     data = response.json()
-    assert data["name"] == name
-    assert set(data.keys()) == set(["name", "id", "project_id"])
-    image_id = data["id"]
-    return image_id, name
+    assert len(data) == 2
+    assert set(data[0].keys()) == set(["name", "id", "project_id"])
+    assert set(data[1].keys()) == set(["name", "id", "project_id"])
+    assert data[0]["project_id"] == project_id
+    assert data[1]["project_id"] == project_id
+    return [data[0]["id"], data[0]["name"], data[1]["id"], data[1]["name"]]
+
+
+def load_files(filenames):
+    for name in filenames:
+        with open(f"{name}", "rb") as f:
+            pass
 
 
 def test_create_and_get_images():
     # create project
     project_id, _, _ = create_project()
-    image_id, name = create_image(project_id, name="Imagename")
+    image_id1, name1, image_id2, name2 = create_images(project_id)
 
     # get image by image id
-    response = client.get(f"/image/{image_id}")
+    response = client.get(f"/image/{image_id1}")
     assert response.status_code == 200, response.text
     data = response.json()
-    assert data["name"] == name
-    assert data["id"] == image_id
+    assert data["name"] == name1
+    assert data["id"] == image_id1
     assert set(data.keys()) == set(["name", "id", "project_id"])
 
     # get images by project id
@@ -218,10 +245,13 @@ def test_create_and_get_images():
     assert response.status_code == 200, response.text
     data = response.json()
     assert type(data) == list
-    assert len(data) == 1
-    assert data[0]["id"] == image_id
-    assert data[0]["name"] == name
+    assert len(data) == 2
+    assert data[0]["id"] == image_id1
+    assert data[1]["id"] == image_id2
+    assert data[0]["name"] == name1
+    assert data[1]["name"] == name2
     assert set(data[0].keys()) == set(["name", "id", "project_id"])
+    assert set(data[1].keys()) == set(["name", "id", "project_id"])
 
 
 def test_try_get_non_existing_image():
@@ -232,26 +262,38 @@ def test_try_get_non_existing_image():
 
 def test_try_create_image_non_existing_project():
     project_id = -1
-    response = client.post(
-        f"/project/{project_id}/images/",
-        headers={"Content-Type": "application/json", "accept": "application/json"},
-        json={"name": "Name"},
-    )
+    filenames = ["test_image_1.jpg", "test_image_2.jpg"]
+    with open(filenames[0], "rb") as f1, open(filenames[1], "rb") as f2:
+        files = [
+            ("files", (filenames[0], f1, "image/jpeg")),
+            ("files", (filenames[1], f2, "image/jpeg"))
+        ]
+        response = client.post(f"/project/{project_id}/images/", files=files)
     assert response.status_code == 404, response.text
+
+
+def test_try_create_empty_images_list():
+    project_id, _, _ = create_project()
+    response = client.post(f"/project/{project_id}/images/", files=[])
+    assert response.status_code == 422, response.text
 
 
 def test_create_and_delete_image():
     project_id, _, _ = create_project()
-    image_id, name = create_image(project_id)
+    image_id1, name1, image_id2, name2 = create_images(project_id)
 
-    # delete image
-    response = client.delete(f"/image/{image_id}")
-    data = response.json()
-    assert response.status_code == 200, response.text
-    assert data["name"] == name
-    assert data["project_id"] == project_id
-    assert data["id"] == image_id
-    assert set(data.keys()) == set(["name", "id", "project_id"])
+    # make sure files are in images folder
+    load_files([name1, name2])
+
+    # delete images
+    for image_id, name in zip([image_id1, image_id2], [name1, name2]):
+        response = client.delete(f"/image/{image_id}")
+        data = response.json()
+        assert response.status_code == 200, response.text
+        assert data["name"] == name
+        assert data["project_id"] == project_id
+        assert data["id"] == image_id
+        assert set(data.keys()) == set(["name", "id", "project_id"])
 
     # make sure the image with this image_id has been deleted
     response = client.get(f"/project/{project_id}/images")
@@ -259,8 +301,14 @@ def test_create_and_delete_image():
     data = response.json()
     assert data == []
 
-    response = client.get(f"/image/{image_id}")
-    assert response.status_code == 404, response.text
+    for image_id in [image_id1, image_id2]:
+        response = client.get(f"/image/{image_id}")
+        assert response.status_code == 404, response.text
+
+    # make sure image files are deleted as well
+    assert len(glob.glob(os.path.join("images", "*.jpg"))) == 0
+    with pytest.raises(FileNotFoundError):
+        load_files([name1, name2])
 
 
 def test_try_delete_non_existing_image():
@@ -271,9 +319,8 @@ def test_try_delete_non_existing_image():
 
 def test_delete_project_cascade_images():
     """Test if deleting a project also deletes associated images."""
-    project_id, name, description = create_project()
-    image_id1, name1 = create_image(project_id)
-    image_id2, name2 = create_image(project_id)
+    project_id, _, _ = create_project()
+    image_id1, name1, image_id2, name2 = create_images(project_id)
 
     # check if images exist
     response = client.get(f"/image/{image_id1}")
@@ -300,6 +347,9 @@ def test_delete_project_cascade_images():
     response = client.get(f"/image/{image_id2}")
     assert response.status_code == 404, response.text
 
+    # make sure image files are deleted as well
+    with pytest.raises(FileNotFoundError):
+        load_files([name1, name2])
 
 
     
