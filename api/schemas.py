@@ -1,7 +1,22 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Json
+
+
+class AnnotatioBase(BaseModel):
+    data: Json
+
+
+class AnnotationCreate(AnnotatioBase):
+    pass
+
+
+class Annotation(AnnotatioBase):
+    id: int
+
+    class Config:
+        orm_mode = True
 
 
 class ImageBase(BaseModel):

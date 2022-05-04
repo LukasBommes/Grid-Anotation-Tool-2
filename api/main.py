@@ -123,13 +123,7 @@ def delete_image(image_id: int, db: Session = Depends(get_db)):
     return db_image
 
 
-##########################################################################################
-#
-# File Upload API
-#
-##########################################################################################
-
-def save_file(filename, data):
+def save_image(filename, data):
     with open(filename, 'wb') as f:
         f.write(data)
 
@@ -153,16 +147,28 @@ def create_image(project_id: int, files: List[UploadFile] = File(...), db: Sessi
             filename = os.path.join(config.MEDIA_ROOT, f"{str(uuid.uuid4())}{filext}")
             filenames.append(filename)
             contents = file.file.read()
-            save_file(filename, contents)
+            save_image(filename, contents)
 
-            # add DB entry with file path
+            # add image DB entry
             db_image = models.Image(name=filename, project_id=project_id)
             db.add(db_image)
             db.commit()
+
+            # add annotation DB entry
+            db_annotation = models.Annotation(id=db_image.id)
+            db.add(db_annotation)
+            db.commit()
+
             db.refresh(db_image)
             db_images.append(db_image)
     return db_images
 
+
+##########################################################################################
+#
+# Hooks for automatic deletion of attached image files
+#
+##########################################################################################
 
 images_to_delete = []
 
@@ -187,3 +193,31 @@ def receive_after_rollback(session):
     """Deregister image files."""
     global images_to_delete
     images_to_delete = []
+
+
+##########################################################################################
+#
+# Annotation API
+#
+##########################################################################################
+
+# TODO: extend tests to check for annotations
+@app.get("/annotation/{image_id}", response_model=schemas.Annotation)
+def get_annotation(image_id: int, db: Session = Depends(get_db)):
+    db_annotation = db.query(models.Annotation).get(image_id)
+    if not db_annotation:
+        raise HTTPException(status_code=404, detail=f"Annotation with id {image_id} not found")
+    return db_annotation
+
+
+@app.put("/annotation/{image_id}", response_model=schemas.Annotation)
+def update_annotation(image_id: int, annotation: schemas.AnnotationCreate, db: Session = Depends(get_db)):
+    db_annotation_query = db.query(models.Annotation).filter(models.Annotation.id == image_id)
+    db_annotation = db_annotation_query.first()
+    if not db_annotation:
+        raise HTTPException(status_code=404, detail=f"Annotation with id {image_id} not found")
+    else:
+        annotation_dict = annotation.dict()
+        db_annotation_query.update(annotation_dict, synchronize_session=False)
+        db.commit()
+    return db_annotation
