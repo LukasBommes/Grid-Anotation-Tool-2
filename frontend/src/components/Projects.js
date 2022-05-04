@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
+import { makeStyles, Theme } from "@mui/styles";
 import {
     Link as RouterLink
   } from 'react-router-dom';
@@ -30,24 +31,25 @@ import DeleteAlert from './DeleteAlert';
 import { APIURL } from '../config.js'
 
 
-const styles = {
+const useStyles = makeStyles((theme: Theme) => ({
     backdrop: {
         zIndex: 1,
         color: '#fff',
     },
-    root: {
-        height: 0,
-        flexGrow: 1,
-    },
+    // root: {
+    //     height: 0,
+    //     flexGrow: 1,
+    // },
     fab: {
-        position: 'fixed',
-        bottom: "24px",
-        right: "24px",
+        position: 'fixed !important',
+        bottom: 24,
+        right: 24,
     },
-};
+}));
 
 
-export default function Projects() {    
+export default function Projects() {
+    const classes = useStyles();    
     const [projectList, setProjectList] = useState([]);
     const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
     const [deleteProject, setDeleteProject] = useState(null);
@@ -88,8 +90,8 @@ export default function Projects() {
     });
 
     return (
-        <div style={styles.root}>
-            <Fab color="primary" aria-label="add" style={styles.fab}>
+        <div className={classes.root}>
+            <Fab color="primary" aria-label="add" className={classes.fab}>
                 <AddIcon />
             </Fab>
             <List dense={true} subheader=

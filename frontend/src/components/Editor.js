@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
+import { makeStyles, Theme } from "@mui/styles";
 import axios from 'axios';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-
+import Drawer from '@mui/material/Drawer';
+import Divider from '@mui/material/Divider';
 import grey from '@mui/material/colors/grey';
 import Paper from '@mui/material/Paper';
 import Container from '@mui/material/Container';
@@ -29,8 +31,31 @@ import { APIURL } from '../config.js'
 // - get list of images by project id
 // - populate image selection list
 
+const drawerWidth = 400;
 
-const styles = {
+const useStyles = makeStyles((theme: Theme) => ({
+    // root: {
+    //     flexGrow: 1,
+    //     height: "100%",
+    // },
+    drawer: {
+        width: drawerWidth,
+        flexShrink: 0,
+    },
+    drawerPaper: {
+        width: drawerWidth,
+    },
+    drawerContainer: {
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        paddingTop: "64px",
+    },
+    content: {
+        flexGrow: 1,
+        height: "100%",
+        marginLeft: drawerWidth,
+    },
     imageList: {
       minHeight: "150px",
       maxHeight: "150px",
@@ -53,11 +78,11 @@ const styles = {
       minWidth: 0,
       padding: "3px",
     }
-};
+}));
 
 
 export default function Editor() {
-
+    const classes = useStyles();
     const [imageList, setImageList] = useState([]);
     const [selectedImageId, setSelectedImageId] = useState([]);
 
@@ -92,61 +117,79 @@ export default function Editor() {
     });
 
     return (
-        <div className="imageList">
-            <List dense={true} subheader=
-            <ListSubheader disableGutters={true}>
-                <Paper elevation={0} className="listSubheader">
-                Images
-                <ListItemSecondaryAction>
-                    <Tooltip title="Create New Video Group">
-                    <Button
-                        className="addButton"
-                        variant="contained"
-                        disableElevation
-                        aria-label="create new video group"
-                    >
-                        <AddIcon />
-                    </Button>
-                    </Tooltip>
-                </ListItemSecondaryAction>
-                </Paper>
-            </ListSubheader>
+        <div className={classes.root}>
+            <Drawer
+            className={classes.drawer}
+            variant="permanent"
+            classes={{
+                paper: classes.drawerPaper,
+            }}
             >
-            {imageList.map((image) => {
-                const statusIcon = <CheckIcon className="checkIcon" />;
-                const statusIndicator = <Typography variant="body2" color="textSecondary">
-                                    Not annotated
-                                  </Typography>;
-                const className = (image.id === selectedImageId ? "selectedListItem" : "");
+                <div className={classes.drawerContainer}>
 
-                return (
-                    <ListItem button
-                    key={image.id}
-                    className={`videogroupListItem ${className}`}
-                    onClick={() => handleImageSelection(image.id)}
-                    >
-                        <ListItemIcon>
-                            {statusIcon}
-                        </ListItemIcon>
-                        <ListItemText
-                            primary=<div>
-                            {image.name.slice(7, 15)}
-                            {statusIndicator}
-                            </div>
-                        />
-                        <ListItemSecondaryAction>
-                            <Tooltip title="Delete">
-                            <IconButton edge="end" aria-label="delete"
-                                onClick={() => deleteImage(image)}
-                            >
-                                <DeleteIcon />
-                            </IconButton>
-                            </Tooltip>
-                        </ListItemSecondaryAction>
-                    </ListItem>
-                );
-            })}
-            </List>
+                    <div className={classes.imageList}>
+                        <List dense={true} subheader=
+                        <ListSubheader disableGutters={true}>
+                            <Paper elevation={0} className={classes.listSubheader}>
+                            Images
+                            <ListItemSecondaryAction>
+                                <Tooltip title="Create New Video Group">
+                                <Button
+                                    className={classes.addButton}
+                                    variant="contained"
+                                    disableElevation
+                                    aria-label="create new video group"
+                                >
+                                    <AddIcon />
+                                </Button>
+                                </Tooltip>
+                            </ListItemSecondaryAction>
+                            </Paper>
+                        </ListSubheader>
+                        >
+                        {imageList.map((image) => {
+                            const statusIcon = <CheckIcon className={classes.checkIcon} />;
+                            const statusIndicator = <Typography variant="body2" color="textSecondary">
+                                                Not annotated
+                                            </Typography>;
+                            const className = (image.id === selectedImageId ? `${classes.selectedListItem}` : "");
+
+                            return (
+                                <ListItem button
+                                key={image.id}
+                                className={`videogroupListItem ${className}`}
+                                onClick={() => handleImageSelection(image.id)}
+                                >
+                                    <ListItemIcon>
+                                        {statusIcon}
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={image.name.slice(7, 15)}
+                                    />
+                                    <ListItemSecondaryAction>
+                                        <Tooltip title="Delete">
+                                        <IconButton edge="end" aria-label="delete"
+                                            onClick={() => deleteImage(image)}
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                        </Tooltip>
+                                    </ListItemSecondaryAction>
+                                </ListItem>
+                            );
+                        })}
+                        </List>
+                    </div>
+
+                    <Divider />
+
+                </div>
+
+            </Drawer>
+
+            <main className={classes.content}>
+
+            </main>
         </div>
     );
 }
