@@ -21,7 +21,7 @@ class App extends React.Component {
 
           <Routes>
             <Route element={<Projects />} path="/projects" />
-            {/*<Route element={<Editor />} path="/editor" />*/}
+            <Route element={<Editor />} path="/editor" />
           </Routes>
         </Router>
       </div>
