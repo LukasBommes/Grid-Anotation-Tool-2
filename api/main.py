@@ -88,19 +88,6 @@ def update_project(project_id: int, project: schemas.ProjectCreate, db: Session 
 ##########################################################################################
 
 
-# @app.post("/project/{project_id}/images/", response_model=schemas.Image)
-# def create_image(project_id: int, image: schemas.ImageCreate, db: Session = Depends(get_db)):
-#     db_project = db.query(models.Project).get(project_id)
-#     if not db_project:
-#         raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
-#     else:
-#         db_image = models.Image(**image.dict(), project_id=project_id)
-#         db.add(db_image)
-#         db.commit()
-#         db.refresh(db_image)
-#     return db_image
-
-
 @app.get("/project/{project_id}/images/", response_model=List[schemas.Image])
 def get_images(project_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     images = db.query(models.Image).filter(models.Image.project_id == project_id).offset(skip).limit(limit).all()
@@ -142,8 +129,6 @@ def delete_image(filename):
         os.remove(filename)
 
 
-# TODO:
-# - write tests for this method
 @app.post("/project/{project_id}/images/", response_model=List[schemas.Image])
 def create_image(project_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
     db_project = db.query(models.Project).get(project_id)
@@ -192,21 +177,3 @@ def receive_after_rollback(session):
     """Deregister image files."""
     global images_to_delete
     images_to_delete = []
-
-
-
-# @app.get("/")
-# async def main():
-#     content = """
-# <body>
-# <form action="/files/" enctype="multipart/form-data" method="post">
-# <input name="files" type="file" multiple>
-# <input type="submit">
-# </form>
-# <form action="/uploadfiles/" enctype="multipart/form-data" method="post">
-# <input name="files" type="file" multiple>
-# <input type="submit">
-# </form>
-# </body>
-#     """
-#     return HTMLResponse(content=content)
