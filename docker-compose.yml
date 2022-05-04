@@ -1,9 +1,0 @@
-services:
-  php:
-    build:
-      context: .
-      dockerfile: php.dockerfile
-    volumes:
-      - ./frontend:/var/www/html
-    ports:
-      - "9999:80"
