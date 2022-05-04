@@ -59,7 +59,7 @@ def get_projects(skip: int = 0, limit: int = 100, db: Session = Depends(get_db))
 
 
 @app.get("/project/{project_id}", response_model=schemas.Project)
-def get_projects(project_id: int, db: Session = Depends(get_db)):
+def get_project(project_id: int, db: Session = Depends(get_db)):
     db_project = db.query(models.Project).get(project_id)
     if not db_project:
         raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")

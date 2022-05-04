@@ -12,9 +12,7 @@ class Project(Base):
     created = Column(DateTime)
     edited = Column(DateTime)
 
-    images = relationship(
-        "Image", back_populates="project", cascade="all, delete",
-    )
+    images = relationship("Image", backref="project", cascade="all, delete")
 
 
 class Image(Base):
@@ -22,5 +20,3 @@ class Image(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True)
     project_id = Column(Integer, ForeignKey("projects.id"))
-
-    project = relationship("Project", back_populates="images")
