@@ -211,7 +211,16 @@ def receive_after_rollback(session):
 #
 ##########################################################################################
 
-# TODO: extend tests to check for annotations
+
+@app.get("/annotation_ids/", response_model=List[int])
+def get_annotation_ids(db: Session = Depends(get_db)):
+    annotation_ids = []
+    db_annotations = db.query(models.Annotation).all()
+    for db_annotation in db_annotations:
+        annotation_ids.append(db_annotation.id)
+    return annotation_ids
+
+
 @app.get("/annotation/{image_id}", response_model=schemas.Annotation)
 def get_annotation(image_id: int, db: Session = Depends(get_db)):
     db_annotation = db.query(models.Annotation).get(image_id)

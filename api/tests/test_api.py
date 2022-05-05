@@ -19,9 +19,6 @@ engine = create_engine(
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-Base.metadata.create_all(bind=engine)
-
-
 def override_get_db():
     try:
         db = TestingSessionLocal()
@@ -33,6 +30,13 @@ def override_get_db():
 app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
+
+
+@pytest.fixture()
+def test_db():
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
 
 
 ##########################################################################################
@@ -70,7 +74,7 @@ def delete_project(project_id, name, description):
     assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
 
 
-def test_create_and_get_project():
+def test_create_and_get_project(test_db):
     project_id, name, description = create_project()
 
     # get projects
@@ -83,7 +87,7 @@ def test_create_and_get_project():
     assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
 
 
-def test_create_project_name_null():
+def test_create_project_name_null(test_db):
     response = client.post(
         "/projects/",
         headers={"Content-Type": "application/json", "accept": "application/json"},
@@ -92,17 +96,17 @@ def test_create_project_name_null():
     assert response.status_code == 422, response.text
 
 
-def test_create_project_description_null():
+def test_create_project_description_null(test_db):
     create_project(name="Name", description=None)
 
 
-def test_try_get_non_existing_project():
+def test_try_get_non_existing_project(test_db):
     project_id = -1
     response = client.get(f"/project/{project_id}")
     assert response.status_code == 404, response.text
 
 
-def test_create_and_delete_project():
+def test_create_and_delete_project(test_db):
     project_id, name, description = create_project()
 
     # delete project
@@ -119,13 +123,13 @@ def test_create_and_delete_project():
     assert response.status_code == 404
 
 
-def test_try_delete_non_existing_project():
+def test_try_delete_non_existing_project(test_db):
     project_id = -1
     response = client.delete(f"/project/{project_id}")
     assert response.status_code == 404
 
 
-def test_create_and_update_project():
+def test_create_and_update_project(test_db):
     project_id, _, _ = create_project()
 
     new_name = "Name 123"
@@ -145,7 +149,7 @@ def test_create_and_update_project():
     assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
 
 
-def test_create_and_update_project_name_null():
+def test_create_and_update_project_name_null(test_db):
     project_id, _, _ = create_project()
     response = client.put(
         f"/project/{project_id}",
@@ -155,7 +159,7 @@ def test_create_and_update_project_name_null():
     assert response.status_code == 422, response.text
 
 
-def test_create_and_update_project_description_null():
+def test_create_and_update_project_description_null(test_db):
     project_id, _, _ = create_project()
 
     new_name = "Name 123"
@@ -174,7 +178,7 @@ def test_create_and_update_project_description_null():
     assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
 
 
-def test_try_update_non_existing_project():
+def test_try_update_non_existing_project(test_db):
     project_id = -1
     response = client.put(
         f"/project/{project_id}",
@@ -229,7 +233,7 @@ def load_files(filenames):
             pass
 
 
-def test_create_and_get_images():
+def test_create_and_get_images(test_db):
     # create project
     project_id, _, _ = create_project()
     image_id1, name1, image_id2, name2 = create_images(project_id)
@@ -256,13 +260,13 @@ def test_create_and_get_images():
     assert set(data[1].keys()) == set(["name", "id", "project_id"])
 
 
-def test_try_get_non_existing_image():
+def test_try_get_non_existing_image(test_db):
     image_id = -1
     response = client.get(f"/image/{image_id}")
     assert response.status_code == 404
 
 
-def test_try_create_image_non_existing_project():
+def test_try_create_image_non_existing_project(test_db):
     project_id = -1
     filenames = ["test_image_1.jpg", "test_image_2.jpg"]
     with open(filenames[0], "rb") as f1, open(filenames[1], "rb") as f2:
@@ -274,13 +278,13 @@ def test_try_create_image_non_existing_project():
     assert response.status_code == 404, response.text
 
 
-def test_try_create_empty_images_list():
+def test_try_create_empty_images_list(test_db):
     project_id, _, _ = create_project()
     response = client.post(f"/project/{project_id}/images/", files=[])
     assert response.status_code == 422, response.text
 
 
-def test_create_and_delete_image():
+def test_create_and_delete_image(test_db):
     project_id, _, _ = create_project()
     image_id1, name1, image_id2, name2 = create_images(project_id)
 
@@ -313,13 +317,13 @@ def test_create_and_delete_image():
         load_files([name1, name2])
 
 
-def test_try_delete_non_existing_image():
+def test_try_delete_non_existing_image(test_db):
     image_id = -1
     response = client.delete(f"/image/{image_id}")
     assert response.status_code == 404, response.text
 
 
-def test_delete_project_deletes_images():
+def test_delete_project_deletes_images(test_db):
     """Test if deleting a project also deletes associated images."""
     project_id, _, _ = create_project()
     image_id1, name1, image_id2, name2 = create_images(project_id)
@@ -370,7 +374,7 @@ def confirm_anotation_exists(image_id):
     assert set(data.keys()) == set(["id", "data"])
 
 
-def test_create_image_creates_annotation():
+def test_create_image_creates_annotation(test_db):
     project_id, _, _ = create_project()
     image_id1, _, image_id2, _ = create_images(project_id)
 
@@ -378,7 +382,7 @@ def test_create_image_creates_annotation():
         confirm_anotation_exists(image_id)
 
 
-def test_delete_image_deletes_annotation():
+def test_delete_image_deletes_annotation(test_db):
     project_id, _, _ = create_project()
     image_id1, _, image_id2, _ = create_images(project_id)
 
@@ -395,7 +399,7 @@ def test_delete_image_deletes_annotation():
         assert response.status_code == 404, response.text
 
 
-def test_update_annotation():
+def test_update_annotation(test_db):
     project_id, _, _ = create_project()
     image_id1, _, image_id2, _ = create_images(project_id)
 
@@ -414,6 +418,22 @@ def test_update_annotation():
     assert data["id"] == image_id
     assert data["data"] == new_data
     assert set(data.keys()) == set(["id", "data"])
+
+
+def test_get_annotation_ids(test_db):
+    response = client.get(f"/annotation_ids/")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data == []
+
+    project_id, _, _ = create_project()
+    image_id1, _, image_id2, _ = create_images(project_id)
+
+    response = client.get(f"/annotation_ids/")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data == [image_id1, image_id2]
+
 
 
 

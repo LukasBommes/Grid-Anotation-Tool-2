@@ -30,10 +30,6 @@
   <svg id="current_image"></svg>
 
   <script>
-
-  // TODO:
-  // - search for all direct file accesses to static directory and replace with API access
-
   $(document).ready(function() {
     const API_URL = {{ api_url|tojson }};
     const project_id = {{ project_id|tojson }};
@@ -62,11 +58,6 @@
       );
     }
 
-    // helper to get filename from full path
-    /*function splitpath(path) {
-      return path.split('\\').pop().split('/').pop();
-    }*/
-
     // helper to remove extension from filename
     function splitext(filename) {
       return filename.split('.').slice(0, -1).join('.')
@@ -85,7 +76,7 @@
             "name": image.name
           })
         );
-        console.log(option);
+        option.id = splitext(image.name);
         images_selection.appendChild(option);
       });
     }
@@ -876,7 +867,7 @@
       };
 
       function saveAnnotationListener () {
-        console.log(this.responseText);
+        console.log("Annotations saved.")
         // TODO: in case of error show error message (flash)
       }
       var saveAnnotationReq = new XMLHttpRequest();
