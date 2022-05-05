@@ -11,11 +11,20 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # disable caching of static files
 app.config['API_URL'] = "http://localhost:8000"
 
 
-@app.route('/editor/<int:project_id>')
-def index(project_id):
+@app.route('/projects')
+def projects():
     """Main page for annotation of images"""
     return render_template(
-        'index.html',
+        'projects.html',
+        api_url=app.config['API_URL']
+    )
+
+
+@app.route('/editor/<int:project_id>')
+def editor(project_id):
+    """Main page for annotation of images"""
+    return render_template(
+        'editor.html',
         api_url=app.config['API_URL'],
         project_id=project_id
     )

@@ -217,7 +217,8 @@ def get_annotation_ids(db: Session = Depends(get_db)):
     annotation_ids = []
     db_annotations = db.query(models.Annotation).all()
     for db_annotation in db_annotations:
-        annotation_ids.append(db_annotation.id)
+        if len(db_annotation.data):
+            annotation_ids.append(db_annotation.id)
     return annotation_ids
 
 
