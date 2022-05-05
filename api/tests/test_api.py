@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from .. import config
 from ..database import Base
 from ..main import app, get_db
 
@@ -223,7 +224,8 @@ def create_images(project_id):
 
 def load_files(filenames):
     for name in filenames:
-        with open(f"{name}", "rb") as f:
+        filepath = os.path.join(config.MEDIA_ROOT, name)
+        with open(filepath, "rb") as f:
             pass
 
 

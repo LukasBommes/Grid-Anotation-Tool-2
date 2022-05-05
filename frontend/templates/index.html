@@ -13,15 +13,7 @@
 <body>
   <div id="controls">
     <label for="images_selection">Select Image:</label>
-    <select name="images_selection" id="images_selection" size="15">
-      {%for i in range(0, images|length)%}
-        {%if images[i]["id"] in existing_annotations%}
-          <option value='{{ images[i]|tojson }}' style="background-color:#ebc334;" id='{{ images[i]["id"] }}'>{{ images[i]["id"][:7] }}</option>
-        {% else %}
-          <option value='{{ images[i]|tojson }}' id='{{ images[i]["id"] }}'>{{ images[i]["id"][:8] }}</option>
-        {% endif %}
-      {%endfor%}
-    </select>
+    <select name="images_selection" id="images_selection" size="15"></select>
 
     <div class="btn-group" id="drawing-actions">
       <button id='btn-draw-auxline' class="btn-active">Draw Auxilary Line</button>
@@ -39,7 +31,10 @@
 
   <script>
   $(document).ready(function() {
-    var selected_image = {"id": null, "filename": null};
+    const API_URL = {{ api_url|tojson }};
+    const project_id = {{ project_id|tojson }};
+
+    var selected_image = {"id": null, "name": null};  //previously: {"id":"58f634d7-1982-4c21-a54c-be7a5acf549f","filename":"58f634d7-1982-4c21-a54c-be7a5acf549f.jpg"}
     var img_width, img_height;
     var marker_mode = "auxline"
     var img_pos_x, img_pos_y;
@@ -63,12 +58,44 @@
       );
     }
 
+    // helper to get filename from full path
+    /*function splitpath(path) {
+      return path.split('\\').pop().split('/').pop();
+    }*/
+
+    // helper to remove extension from filename
+    function splitext(filename) {
+      return filename.split('.').slice(0, -1).join('.')
+    }
+
+    // load existing images and annotations and update list
+    // TODO: if image has an annotation, set option style background-color to #ebc334
+    function getImagesListener () {
+      var response = JSON.parse(this.responseText);
+      var images_selection = document.getElementById("images_selection");
+      response.foreach(function(image) {
+        var option = new Option(
+          splitext(image.name).slice(0, 8), 
+          JSON.stringify({
+            "id": image.id, 
+            "name": image.name
+          })
+        );
+        console.log(option);
+        images_selection.appendChild(option);
+      });      
+    }
+    var getImagesReq = new XMLHttpRequest();
+    getImagesReq.addEventListener("load", getImagesListener);
+    getImagesReq.open("GET", `${API_URL}/project/${project_id}/images/`);
+    getImagesReq.send();
+
     // saves annotation data to file
     function save() {
-      if (selected_image["filename"] != null && (pv_modules.length > 0 || corners.length > 0 ||
+      if (selected_image["name"] != null && (pv_modules.length > 0 || corners.length > 0 ||
           auxlines.length > 0 || auxcurves.length > 0)) {
         save_to_json();
-        $("#"+selected_image["id"]).css("background-color", "#ebc334");
+        $("#"+splitext(selected_image["name"])).css("background-color", "#ebc334");
       }
     }
 
@@ -91,7 +118,6 @@
       }
     };
 
-    //function change_image() {
     $("#images_selection").change(function() {
       // save annotations of previous image before changing the image
       save();
@@ -117,7 +143,7 @@
       selected_image = JSON.parse(document.getElementById("images_selection").value);
       svg.select("#g_element")
         .append('image')
-        .attr('xlink:href', "static/uploads/" + selected_image["filename"]);
+        .attr('href', `${API_URL}/image_file/${selected_image["id"]}`);
 
       // image zoom and translation
       var zoom_handler = d3.zoom()
@@ -142,7 +168,7 @@
         var initial_transform = d3.zoomIdentity.translate(img_offset_x, img_offset_y);
         svg.call(zoom_handler.transform, initial_transform);
       }
-      img.src = "static/uploads/" + selected_image["filename"];
+      img.src = `${API_URL}/image_file/${selected_image["id"]}`;
 
       // add lines connecting the center cursor with the nearest four corners
       for (var i = 0; i < 4; i++) {
@@ -183,8 +209,8 @@
           url: "/get_existing_annotations"
       }).done(function(res) {
           existing_annotations = res.existing_annotations;
-          if (existing_annotations.includes(selected_image["id"])) {
-            var json_path = "static/save/" + selected_image["id"] + ".json"
+          if (existing_annotations.includes(splitext(selected_image["name"]))) {
+            var json_path = "static/save/" + splitext(selected_image["name"]) + ".json"
             // load annotation data
             $.getJSON(json_path, function(json) {
                 corners = json.corners;
@@ -829,7 +855,7 @@
     // save annotations to JSON when changing the image
     function save_to_json() {
       json_data = JSON.stringify({
-          "image": selected_image["filename"],
+          "image": selected_image["name"],
           "grid_cells": pv_modules,
           "corners": corners,
           "auxlines": auxlines,

@@ -11,6 +11,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # disable caching of static files
 app.config['UPLOAD_PATH'] = 'uploads'
 app.config['ANNOTATION_PATH'] = 'annotations'
 app.config['SAVE_PATH'] = 'save'
+app.config['API_URL'] = "http://localhost:8000"
 
 def get_files():
     """Get files from upload and annotation folders"""
@@ -28,11 +29,14 @@ def get_files():
 def index(project_id):
     """Main page for annotation of images"""
     images, existing_annotations = get_files()
+    print(images, existing_annotations)
     return render_template(
         'index.html',
-        project_id=project_id,
-        images=images,
-        existing_annotations=existing_annotations)
+        api_url=app.config['API_URL'],
+        project_id=project_id
+        #images=images,
+        #existing_annotations=existing_annotations
+    )
 
 
 @app.route('/get_existing_annotations')
@@ -49,7 +53,7 @@ def create_annotation_data(save_data):
     """Returns the final annotation JSON which is a cleane dup version of the save JSON"""
     #annotation_data = save_data
     annotation_data = {}
-    annotation_data["image"] = copy.deepcopy(save_data["image"])
+    annotation_data["image"] = copy.deepcopy(save_data["image"])  # image contains the full filename, e.g. abcd-efg-hij.jpg
     annotation_data["grid_cells"] = copy.deepcopy(save_data["grid_cells"])
     # remove ids from corners in PV modules
     try:
@@ -67,7 +71,7 @@ def save_annotation():
     if request.method == 'POST':
         save_data = request.get_json()
         if save_data is not None:
-            image_name = os.path.splitext(save_data["image"])[0]
+            image_name = os.path.splitext(save_data["image"])[0]  # image contains the full filename, e.g. abcd-efg-hij.jpg
             print(f"Received annotation for {image_name}")
             with open(os.path.join(app.config['SAVE_PATH'], "{}.json".format(image_name)), "w") as json_file:
                 json.dump(save_data, json_file)

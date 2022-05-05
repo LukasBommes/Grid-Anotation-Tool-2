@@ -2,7 +2,7 @@
 
 source env/bin/activate
 
-### Run development server
+### Run backend API (development server)
 
 Activate virtual environment.
 
@@ -10,10 +10,18 @@ Activate virtual environment.
 Grid-Annotation-Tool-v3$ uvicorn api.main:app --reload
 ```
 
-### Run Tests
+### Run backend API Tests
 
 Activate virtual environment.
 
 ```
 Grid-Annotation-Tool-v3/api/tests$ pytest
+```
+
+### Run frontend (development server)
+
+Activate virtual environment.
+
+```
+Grid-Annotation-Tool-v3/frontend$ python main.py
 ```

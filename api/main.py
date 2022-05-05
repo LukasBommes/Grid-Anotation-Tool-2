@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException, File, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy import event
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
@@ -112,6 +113,15 @@ def get_image(image_id: int, db: Session = Depends(get_db)):
     return db_image
 
 
+@app.get("/image_file/{image_id}", response_class=FileResponse)
+def get_image_file(image_id: int, db: Session = Depends(get_db)):
+    db_image = db.query(models.Image).get(image_id)
+    if not db_image:
+        raise HTTPException(status_code=404, detail=f"Image with id {db_image} not found")
+    filepath = os.path.join(config.MEDIA_ROOT, db_image.name)
+    return filepath
+
+
 @app.delete("/image/{image_id}", response_model=schemas.Image)
 def delete_image(image_id: int, db: Session = Depends(get_db)):
     db_image = db.query(models.Image).get(image_id)
@@ -123,14 +133,16 @@ def delete_image(image_id: int, db: Session = Depends(get_db)):
     return db_image
 
 
-def save_image(filename, data):
-    with open(filename, 'wb') as f:
+def save_image(name, data):
+    filepath = os.path.join(config.MEDIA_ROOT, name)
+    with open(filepath, 'wb') as f:
         f.write(data)
 
 
-def delete_image(filename):
-    if os.path.exists(filename):
-        os.remove(filename)
+def delete_image(name):
+    filepath = os.path.join(config.MEDIA_ROOT, name)
+    if os.path.exists(filepath):
+        os.remove(filepath)
 
 
 @app.post("/project/{project_id}/images/", response_model=List[schemas.Image])
@@ -139,13 +151,11 @@ def create_image(project_id: int, files: List[UploadFile] = File(...), db: Sessi
     if not db_project:
         raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
     else:
-        filenames = []
         db_images = []
         for file in files:
             # upload file to MEDIA_ROOT
             _, filext = os.path.splitext(file.filename)
-            filename = os.path.join(config.MEDIA_ROOT, f"{str(uuid.uuid4())}{filext}")
-            filenames.append(filename)
+            filename = f"{str(uuid.uuid4())}{filext}"
             contents = file.file.read()
             save_image(filename, contents)
 

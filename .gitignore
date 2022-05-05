@@ -6,3 +6,6 @@ images/
 api/tests/images/
 example_images/
 old/
+frontend/annotations/
+frontend/save/
+frontend/uploads/
