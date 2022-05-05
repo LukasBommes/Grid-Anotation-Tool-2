@@ -317,7 +317,7 @@ def test_try_delete_non_existing_image():
     assert response.status_code == 404, response.text
 
 
-def test_delete_project_cascade_images():
+def test_delete_project_deletes_images():
     """Test if deleting a project also deletes associated images."""
     project_id, _, _ = create_project()
     image_id1, name1, image_id2, name2 = create_images(project_id)
@@ -352,4 +352,70 @@ def test_delete_project_cascade_images():
         load_files([name1, name2])
 
 
-    
+##########################################################################################
+#
+# Annotation API
+#
+##########################################################################################
+
+
+# check if create image also creates annotation with correct id and default values
+# check if deleting image also deletes annotation
+# test if update annotation correctly updates values
+
+def confirm_anotation_exists(image_id):
+    response = client.get(f"/annotation/{image_id}")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["id"] == image_id
+    assert data["data"] == {}
+    assert set(data.keys()) == set(["id", "data"])
+
+
+def test_create_image_creates_annotation():
+    project_id, _, _ = create_project()
+    image_id1, _, image_id2, _ = create_images(project_id)
+
+    for image_id in [image_id1, image_id2]:
+        confirm_anotation_exists(image_id)
+
+
+def test_delete_image_deletes_annotation():
+    project_id, _, _ = create_project()
+    image_id1, _, image_id2, _ = create_images(project_id)
+
+    for image_id in [image_id1, image_id2]:
+        confirm_anotation_exists(image_id)
+
+    for image_id in [image_id1, image_id2]:
+        # delete image
+        response = client.delete(f"/image/{image_id}")
+        assert response.status_code == 200, response.text
+
+        # make sure related annotation is deleted
+        response = client.get(f"/annotation/{image_id}")
+        assert response.status_code == 404, response.text
+
+
+def test_update_annotation():
+    project_id, _, _ = create_project()
+    image_id1, _, image_id2, _ = create_images(project_id)
+
+    for image_id in [image_id1, image_id2]:
+        confirm_anotation_exists(image_id)
+
+    # update annotation
+    new_data = {"image": "516ce9e2-fd78-4b0a-9d54-3cafc224a580.jpg", "grid_cells": [{"corners": [{"x": 628.1555178074648, "y": 555.6936223629666, "id": "dc75a572-a1f3-421c-8b27-a56c5ac6d48c"}, {"x": 506.7893166203104, "y": 556.3686265351816, "id": "90f40779-d3e3-47cf-bc9a-0eb950c89336"}, {"x": 507.3894038067126, "y": 582.0948804038808, "id": "3608bd12-4b9d-4897-b735-4b08937cdb7d"}, {"x": 628.6076629892434, "y": 581.461720391297, "id": "6ccdb989-5d92-4e5a-be68-676bfe6d9b14"}], "center": {"x": 567.7354753059328, "y": 568.9047124233315}, "id": "bd25ff5d-82c0-495d-a144-a6af298c0af2", "truncated": False}]}
+    response = client.put(
+        f"/annotation/{image_id}",
+        headers={"Content-Type": "application/json", "accept": "application/json"},
+        json={"data": new_data},
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["id"] == image_id
+    assert data["data"] == new_data
+    assert set(data.keys()) == set(["id", "data"])
+
+
+

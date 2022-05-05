@@ -27,4 +27,4 @@ class Image(Base):
 class Annotation(Base):
     __tablename__ = "annotations"
     id = Column(Integer, ForeignKey("images.id"), primary_key=True, index=True)
-    data = Column(JSON, default='{}')
+    data = Column(JSON, default={})

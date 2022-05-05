@@ -5,7 +5,7 @@ from pydantic import BaseModel, Json
 
 
 class AnnotatioBase(BaseModel):
-    data: Dict  # maybe needs to be Json
+    data: Dict
 
 
 class AnnotationCreate(AnnotatioBase):

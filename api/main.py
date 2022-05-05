@@ -210,6 +210,7 @@ def get_annotation(image_id: int, db: Session = Depends(get_db)):
     return db_annotation
 
 
+from fastapi.encoders import jsonable_encoder
 @app.put("/annotation/{image_id}", response_model=schemas.Annotation)
 def update_annotation(image_id: int, annotation: schemas.AnnotationCreate, db: Session = Depends(get_db)):
     db_annotation_query = db.query(models.Annotation).filter(models.Annotation.id == image_id)
@@ -220,4 +221,7 @@ def update_annotation(image_id: int, annotation: schemas.AnnotationCreate, db: S
         annotation_dict = annotation.dict()
         db_annotation_query.update(annotation_dict, synchronize_session=False)
         db.commit()
+        db.refresh(db_annotation)
+        db_annotation = jsonable_encoder(db_annotation)
+    print("db_annotation", db_annotation)
     return db_annotation
