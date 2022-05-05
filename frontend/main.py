@@ -34,8 +34,6 @@ def index(project_id):
         'index.html',
         api_url=app.config['API_URL'],
         project_id=project_id
-        #images=images,
-        #existing_annotations=existing_annotations
     )
 
 
@@ -48,37 +46,38 @@ def get_existing_annotations():
     })
 
 
-### receive annotations for image and store to json file
-def create_annotation_data(save_data):
-    """Returns the final annotation JSON which is a cleane dup version of the save JSON"""
-    #annotation_data = save_data
-    annotation_data = {}
-    annotation_data["image"] = copy.deepcopy(save_data["image"])  # image contains the full filename, e.g. abcd-efg-hij.jpg
-    annotation_data["grid_cells"] = copy.deepcopy(save_data["grid_cells"])
-    # remove ids from corners in PV modules
-    try:
-        for p in annotation_data["grid_cells"]:
-            corners = p["corners"]
-            for corner in corners:
-                del corner["id"]
-    except KeyError:
-        pass
-    return annotation_data
+# TODO: needed fo exporting function
+# ### receive annotations for image and store to json file
+# def create_annotation_data(save_data):
+#     """Returns the final annotation JSON which is a cleane dup version of the save JSON"""
+#     #annotation_data = save_data
+#     annotation_data = {}
+#     annotation_data["image"] = copy.deepcopy(save_data["image"])  # image contains the full filename, e.g. abcd-efg-hij.jpg
+#     annotation_data["grid_cells"] = copy.deepcopy(save_data["grid_cells"])
+#     # remove ids from corners in PV modules
+#     try:
+#         for p in annotation_data["grid_cells"]:
+#             corners = p["corners"]
+#             for corner in corners:
+#                 del corner["id"]
+#     except KeyError:
+#         pass
+#     return annotation_data
 
-@app.route('/save_annotation', methods=['POST'])
-def save_annotation():
-    """Endpoint to post annotation data to. This data gets stored in an annotation file"""
-    if request.method == 'POST':
-        save_data = request.get_json()
-        if save_data is not None:
-            image_name = os.path.splitext(save_data["image"])[0]  # image contains the full filename, e.g. abcd-efg-hij.jpg
-            print(f"Received annotation for {image_name}")
-            with open(os.path.join(app.config['SAVE_PATH'], "{}.json".format(image_name)), "w") as json_file:
-                json.dump(save_data, json_file)
-            annotation_data = create_annotation_data(save_data)
-            with open(os.path.join(app.config['ANNOTATION_PATH'], "{}.json".format(image_name)), "w") as json_file:
-                json.dump(annotation_data, json_file)
-    return redirect(url_for("index"))
+# @app.route('/save_annotation', methods=['POST'])
+# def save_annotation():
+#     """Endpoint to post annotation data to. This data gets stored in an annotation file"""
+#     if request.method == 'POST':
+#         save_data = request.get_json()
+#         if save_data is not None:
+#             image_name = os.path.splitext(save_data["image"])[0]  # image contains the full filename, e.g. abcd-efg-hij.jpg
+#             print(f"Received annotation for {image_name}")
+#             with open(os.path.join(app.config['SAVE_PATH'], "{}.json".format(image_name)), "w") as json_file:
+#                 json.dump(save_data, json_file)
+#             annotation_data = create_annotation_data(save_data)
+#             with open(os.path.join(app.config['ANNOTATION_PATH'], "{}.json".format(image_name)), "w") as json_file:
+#                 json.dump(annotation_data, json_file)
+#     return redirect(url_for("index"))
 
 
 if __name__ == "__main__":

@@ -30,6 +30,11 @@
   <svg id="current_image"></svg>
 
   <script>
+
+  // TODO:
+  // - update save_to_json
+  // - search for all direct file accesses to static directory and replace with API access
+
   $(document).ready(function() {
     const API_URL = {{ api_url|tojson }};
     const project_id = {{ project_id|tojson }};
@@ -83,7 +88,7 @@
         );
         console.log(option);
         images_selection.appendChild(option);
-      });      
+      });
     }
     var getImagesReq = new XMLHttpRequest();
     getImagesReq.addEventListener("load", getImagesListener);
@@ -94,7 +99,7 @@
     function save() {
       if (selected_image["name"] != null && (pv_modules.length > 0 || corners.length > 0 ||
           auxlines.length > 0 || auxcurves.length > 0)) {
-        save_to_json();
+        save_to_json(selected_image["id"]);
         $("#"+splitext(selected_image["name"])).css("background-color", "#ebc334");
       }
     }
@@ -853,23 +858,25 @@
     }
 
     // save annotations to JSON when changing the image
-    function save_to_json() {
-      json_data = JSON.stringify({
+    function save_to_json(image_id) {
+      var json_data = {
           "image": selected_image["name"],
           "grid_cells": pv_modules,
           "corners": corners,
           "auxlines": auxlines,
           "auxcurves": auxcurves,
           "prev_intersections": prev_intersections
-      });
-      $.ajax({
-        type: "POST",
-        contentType: "application/json;charset=utf-8",
-        url: "/save_annotation",
-        traditional: "true",
-        data: json_data,
-        dataType: "json"
-        });
+      };
+
+      function saveAnnotationListener () {
+        console.log(this.responseText);
+        // TODO: in case of error show error message (flash)
+      }
+      var saveAnnotationReq = new XMLHttpRequest();
+      saveAnnotationReq.addEventListener("load", getImagesListener);
+      saveAnnotationReq.open("PUT", `${API_URL}/annotation/${image_id}`, true);
+      saveAnnotationReq.setRequestHeader("Content-Type", "application/json");
+      saveAnnotationReq.send(JSON.stringify({"data": json_data}));
     }
   });
   </script>
