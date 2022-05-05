@@ -359,10 +359,6 @@ def test_delete_project_deletes_images():
 ##########################################################################################
 
 
-# check if create image also creates annotation with correct id and default values
-# check if deleting image also deletes annotation
-# test if update annotation correctly updates values
-
 def confirm_anotation_exists(image_id):
     response = client.get(f"/annotation/{image_id}")
     assert response.status_code == 200, response.text
