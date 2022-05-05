@@ -210,10 +210,15 @@
       // check if annotation exist for the selected image and load it
       function getAnnotationListener () {
         const response = JSON.parse(this.responseText);
-        console.log('data' in response);
         if (this.status == 200 && 'data' in response) {
-          if ('corners' in response.data) {
-            console.log(response.data);
+          var neededKeys = [
+            'corners', 
+            'grid_cells', 
+            'auxlines', 
+            'auxcurves', 
+            'prev_intersections'
+          ];
+          if (neededKeys.every(key => Object.keys(response.data).includes(key))) {
             corners = response.data.corners;
             pv_modules = response.data.grid_cells;
             auxlines = response.data.auxlines;
