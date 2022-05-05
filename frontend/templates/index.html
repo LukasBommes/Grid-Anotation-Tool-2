@@ -34,7 +34,8 @@
     const API_URL = {{ api_url|tojson }};
     const project_id = {{ project_id|tojson }};
 
-    var selected_image = {"id": null, "name": null};  //previously: {"id":"58f634d7-1982-4c21-a54c-be7a5acf549f","filename":"58f634d7-1982-4c21-a54c-be7a5acf549f.jpg"}
+    var selected_image = {"id": null, "name": null};
+    var existing_anotations = [];
     var img_width, img_height;
     var marker_mode = "auxline"
     var img_pos_x, img_pos_y;
@@ -63,27 +64,42 @@
       return filename.split('.').slice(0, -1).join('.')
     }
 
-    // load existing images and annotations and update list
-    // TODO: if image has an annotation, set option style background-color to #ebc334
-    function getImagesListener () {
-      var response = JSON.parse(this.responseText);
-      var images_selection = document.getElementById("images_selection");
-      response.foreach(function(image) {
-        var option = new Option(
-          splitext(image.name).slice(0, 8), 
-          JSON.stringify({
-            "id": image.id, 
-            "name": image.name
-          })
-        );
-        option.id = splitext(image.name);
-        images_selection.appendChild(option);
+    // determine which image is already annotated and color selection box background
+    function getAnnotationIds() {      
+      var getAnnotationIdsReq = new XMLHttpRequest();
+      getAnnotationIdsReq.addEventListener("load", function () {
+        existing_anotations = JSON.parse(this.responseText);
+        getImages();
       });
+      getAnnotationIdsReq.open("GET", `${API_URL}/annotation_ids/`);
+      getAnnotationIdsReq.send();
     }
-    var getImagesReq = new XMLHttpRequest();
-    getImagesReq.addEventListener("load", getImagesListener);
-    getImagesReq.open("GET", `${API_URL}/project/${project_id}/images/`);
-    getImagesReq.send();
+    getAnnotationIds();
+
+    // load existing images and annotations and update list
+    function getImages() {
+      var getImagesReq = new XMLHttpRequest();
+      getImagesReq.addEventListener("load", function () {
+        var response = JSON.parse(this.responseText);
+        var images_selection = document.getElementById("images_selection");
+        response.foreach(function(image) {
+          var option = new Option(
+            splitext(image.name).slice(0, 8), 
+            JSON.stringify({
+              "id": image.id, 
+              "name": image.name
+            })
+          );
+          option.id = splitext(image.name);
+          if (image.id in existing_anotations) {
+            option.style.backgroundColor = "#ebc334";
+          }
+          images_selection.appendChild(option);
+        });
+      });
+      getImagesReq.open("GET", `${API_URL}/project/${project_id}/images/`);
+      getImagesReq.send();
+    }
 
     // saves annotation data to file
     function save() {
@@ -866,12 +882,11 @@
           "prev_intersections": prev_intersections
       };
 
-      function saveAnnotationListener () {
+      var saveAnnotationReq = new XMLHttpRequest();
+      saveAnnotationReq.addEventListener("load", function () {
         console.log("Annotations saved.")
         // TODO: in case of error show error message (flash)
-      }
-      var saveAnnotationReq = new XMLHttpRequest();
-      saveAnnotationReq.addEventListener("load", saveAnnotationListener);
+      });
       saveAnnotationReq.open("PUT", `${API_URL}/annotation/${image_id}`, true);
       saveAnnotationReq.setRequestHeader("Content-Type", "application/json");
       saveAnnotationReq.send(JSON.stringify({"data": json_data}));
