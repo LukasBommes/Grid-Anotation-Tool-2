@@ -32,7 +32,6 @@
   <script>
 
   // TODO:
-  // - update save_to_json
   // - search for all direct file accesses to static directory and replace with API access
 
   $(document).ready(function() {
@@ -209,24 +208,27 @@
           .attr("id", "g_corners");
 
       // check if annotation exist for the selected image and load it
-      var existing_annotations;
-      $.ajax({
-          url: "/get_existing_annotations"
-      }).done(function(res) {
-          existing_annotations = res.existing_annotations;
-          if (existing_annotations.includes(splitext(selected_image["name"]))) {
-            var json_path = "static/save/" + splitext(selected_image["name"]) + ".json"
-            // load annotation data
-            $.getJSON(json_path, function(json) {
-                corners = json.corners;
-                pv_modules = json.grid_cells;
-                auxlines = json.auxlines;
-                auxcurves = json.auxcurves;
-                prev_intersections = json.prev_intersections;
-                draw();
-            });
+      function getAnnotationListener () {
+        const response = JSON.parse(this.responseText);
+        console.log('data' in response);
+        if (this.status == 200 && 'data' in response) {
+          if ('corners' in response.data) {
+            console.log(response.data);
+            corners = response.data.corners;
+            pv_modules = response.data.grid_cells;
+            auxlines = response.data.auxlines;
+            auxcurves = response.data.auxcurves;
+            prev_intersections = response.data.prev_intersections;
+            draw();
           }
-      });
+        }
+      }
+      if (selected_image["id"] !== null) {
+        var getAnnotationReq = new XMLHttpRequest();
+        getAnnotationReq.addEventListener("load", getAnnotationListener);
+        getAnnotationReq.open("GET", `${API_URL}/annotation/${selected_image["id"]}`);
+        getAnnotationReq.send();
+      }
     });
 
     svg = d3.select('svg');
@@ -873,7 +875,7 @@
         // TODO: in case of error show error message (flash)
       }
       var saveAnnotationReq = new XMLHttpRequest();
-      saveAnnotationReq.addEventListener("load", getImagesListener);
+      saveAnnotationReq.addEventListener("load", saveAnnotationListener);
       saveAnnotationReq.open("PUT", `${API_URL}/annotation/${image_id}`, true);
       saveAnnotationReq.setRequestHeader("Content-Type", "application/json");
       saveAnnotationReq.send(JSON.stringify({"data": json_data}));
