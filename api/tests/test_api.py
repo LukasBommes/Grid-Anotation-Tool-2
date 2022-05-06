@@ -429,10 +429,28 @@ def test_get_annotation_ids(test_db):
     project_id, _, _ = create_project()
     image_id1, _, image_id2, _ = create_images(project_id)
 
+    # since annotations are empty they should not be listed
     response = client.get(f"/annotation_ids/")
     assert response.status_code == 200, response.text
     data = response.json()
-    assert data == [image_id1, image_id2]
+    assert data == []
+
+    # update annotation
+    new_data = {"a": 1, "b": 2}
+    response = client.put(
+        f"/annotation/{image_id1}",
+        headers={"Content-Type": "application/json", "accept": "application/json"},
+        json={"data": new_data},
+    )
+    assert response.status_code == 200, response.text
+
+    # now the updated annotation should be listed
+    response = client.get(f"/annotation_ids/")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data == [image_id1]
+
+
 
 
 
