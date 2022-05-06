@@ -1,9 +1,5 @@
-import os
-import glob
-import json
-import copy
-from flask import Flask, request, redirect, render_template, url_for, jsonify
-from werkzeug.utils import secure_filename
+from flask import Flask, render_template
+
 
 app = Flask(__name__)
 app.secret_key = "fhuds87f§$%§$%kljelkljlflkwe%6ker52r:;G;hkjf2"
@@ -17,6 +13,27 @@ def projects():
     return render_template(
         'projects.html',
         api_url=app.config['API_URL']
+    )
+
+
+@app.route('/add')
+def add_project():
+    """Main page for annotation of images"""
+    return render_template(
+        'add_edit_project.html',
+        api_url=app.config['API_URL'],
+        mode="add"
+    )
+
+
+@app.route('/edit/<int:project_id>')
+def edit_project(project_id):
+    """Main page for annotation of images"""
+    return render_template(
+        'add_edit_project.html',
+        api_url=app.config['API_URL'],
+        project_id=project_id,
+        mode="edit"
     )
 
 

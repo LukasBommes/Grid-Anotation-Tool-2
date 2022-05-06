@@ -1,9 +1,37 @@
 {% extends "index.html" %}
 
 {% block head %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/projects.css') }}">
+{% endblock %}
+
+{% block appbar_buttons %}
+<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Annotation">
+    <div class="mdc-icon-button__ripple"></div>
+    file_download
+</button>
+<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Print this page">
+    <div class="mdc-icon-button__ripple"></div>
+    print
+</button>
 {% endblock %}
 
 {% block content %}
+<div class="mdc-layout-grid">
+    <div class="mdc-layout-grid__inner">
+        <div class="mdc-layout-grid__cell--span-2"></div>
+        <div class="mdc-layout-grid__cell--span-8">                                
+            <div class="mdc-elevation--z4">
+                <div class="main-container">
+                    <h1 class="mdc-typography--button">Projects</h1>
+
+
+
+                </div>
+            </div>
+        </div>
+        <div class="mdc-layout-grid__cell--span-2"></div>
+    </div>
+</div>
 {% endblock %}
 
 {% block script %}

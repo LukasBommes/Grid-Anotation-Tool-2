@@ -7,6 +7,13 @@
 <script type=text/javascript src="{{ url_for('static', filename='mousetrap-1.6.5.min.js') }}"></script>
 {% endblock %}
 
+{% block appbar_buttons %}
+<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Annotation">
+    <div class="mdc-icon-button__ripple"></div>
+    file_download
+</button>
+{% endblock %}
+
 {% block content %}
 <div id="controls">
     <label for="images_selection">Select Image:</label>
@@ -219,21 +226,21 @@
         getAnnotationReq.addEventListener("load", function() {
             const response = JSON.parse(this.responseText);
             if (this.status == 200 && 'data' in response) {
-            var neededKeys = [
-                'corners', 
-                'grid_cells', 
-                'auxlines', 
-                'auxcurves', 
-                'prev_intersections'
-            ];
-            if (neededKeys.every(key => Object.keys(response.data).includes(key))) {
-                corners = response.data.corners;
-                pv_modules = response.data.grid_cells;
-                auxlines = response.data.auxlines;
-                auxcurves = response.data.auxcurves;
-                prev_intersections = response.data.prev_intersections;
-                draw();
-            }
+                var neededKeys = [
+                    'corners', 
+                    'grid_cells', 
+                    'auxlines', 
+                    'auxcurves', 
+                    'prev_intersections'
+                ];
+                if (neededKeys.every(key => Object.keys(response.data).includes(key))) {
+                    corners = response.data.corners;
+                    pv_modules = response.data.grid_cells;
+                    auxlines = response.data.auxlines;
+                    auxcurves = response.data.auxcurves;
+                    prev_intersections = response.data.prev_intersections;
+                    draw();
+                }
             }
         });
         getAnnotationReq.open("GET", `${API_URL}/annotation/${selected_image["id"]}`);

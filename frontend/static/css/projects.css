@@ -1,0 +1,11 @@
+.main-container {
+    padding: 20px;
+}
+
+.main-container .form-row {
+    padding-top: 20px;
+}
+
+.main-container .form-row .mdc-text-field {
+    width: 100%;
+}

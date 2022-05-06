@@ -1,0 +1,221 @@
+{% extends "index.html" %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/projects.css') }}">
+{% endblock %}
+
+{% block appbar_buttons %}
+<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Annotation">
+    <div class="mdc-icon-button__ripple"></div>
+    file_download
+</button>
+<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Print this page">
+    <div class="mdc-icon-button__ripple"></div>
+    print
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="mdc-layout-grid">
+    <div class="mdc-layout-grid__inner">
+        <div class="mdc-layout-grid__cell--span-2"></div>
+        <div class="mdc-layout-grid__cell--span-8">                                
+            <div class="mdc-elevation--z4">
+                <div class="main-container">
+                    <h1 class="mdc-typography--button">New Project</h1>
+
+                    <!-- Name Textfield -->
+                    <div class="form-row">
+                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-name">
+                            <input class="mdc-text-field__input" id="text-field-name-input">
+                            <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__notch">
+                                    <label for="text-field-name-input" class="mdc-floating-label" id="text-field-name-label">Name</label>
+                                </div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description Textarea -->
+                    <div class="form-row">
+                        <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea" id="text-field-description">
+                            <span class="mdc-notched-outline">
+                            <span class="mdc-notched-outline__leading"></span>
+                            <div class="mdc-notched-outline__notch">
+                                <label for="text-field-description-input" class="mdc-floating-label" id="text-field-description-label">Description</label>
+                            </div>
+                            <span class="mdc-notched-outline__trailing"></span>
+                            </span>
+                            <span class="mdc-text-field__resizer">
+                            <textarea class="mdc-text-field__input" rows="4" cols="40" aria-label="Label" id="text-field-description-input"></textarea>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div class="form-row">
+                        <label for="img">Select image:</label>
+                        <input type="file" id="img" name="img" accept="image/*" multiple>
+
+                        <button class="mdc-button mdc-button--outlined mdc-button--icon-leading">
+                            <span class="mdc-button__ripple"></span>
+                            <span class="mdc-button__focus-ring"></span>
+                            <i class="material-icons mdc-button__icon" aria-hidden="true">upload</i>
+                            <span class="mdc-button__label">Upload Images</span>
+                        </button>
+                    </div>
+
+                    <!-- Image List -->
+                    <div class="form-row">
+                        <ul class="mdc-image-list my-image-list" id="images-list">
+                            <li class="mdc-image-list__item">
+                            <div class="mdc-image-list__image-aspect-container">
+                                <img class="mdc-image-list__image" src="#">
+                            </div>
+                            <div class="mdc-image-list__supporting">
+                                <span class="mdc-image-list__label">Images</span>
+                            </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="form-row">
+                    <button class="mdc-button mdc-button--raised">
+                        <span class="mdc-button__ripple"></span>
+                        <span class="mdc-button__focus-ring"></span>
+                        <span class="mdc-button__label">Cancel</span>
+                    </button>
+                    <button class="mdc-button mdc-button--raised mdc-button--icon-leading" onclick="createProjectButtonClicked(event)">
+                        <span class="mdc-button__ripple"></span>
+                        <span class="mdc-button__focus-ring"></span>
+                        <i class="material-icons mdc-button__icon" aria-hidden="true">
+                            save
+                        </i>
+                        <span class="mdc-button__label">Create Project</span>
+                    </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="mdc-layout-grid__cell--span-2"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    const API_URL = {{ api_url|tojson }};
+    const mode = {{ mode|tojson }};
+
+    function getProjectDataAndPopulateFields(project_id) {
+        var getProjectReq = new XMLHttpRequest();
+        getProjectReq.addEventListener("load", function () {
+            console.log("Project data loaded.")
+            console.log(this.responseText);
+            var response = JSON.parse(this.responseText);
+            var neededKeys = [
+                'name', 
+                'description', 
+                'images'
+            ];
+            if (neededKeys.every(key => Object.keys(response).includes(key))) {
+                setName(response.name);
+                setDescription(response.description);
+                setImages(response.images);
+            }
+        });
+        getProjectReq.open("GET", `${API_URL}/project/${project_id}`);
+        getProjectReq.send();
+    }
+
+    function setName(name) {
+        document.getElementById('text-field-name-input').value = name;
+        document.getElementById('text-field-name').classList.add("mdc-text-field--label-floating");
+        document.getElementById('text-field-name-label').classList.add("mdc-floating-label--float-above");
+    }
+
+    function setDescription(description) {
+        document.getElementById('text-field-description-input').value = description;
+        if (description.length) {
+            document.getElementById('text-field-description').classList.add("mdc-text-field--label-floating");
+            document.getElementById('text-field-description-label').classList.add("mdc-floating-label--float-above");
+        }
+    }
+
+    function setImages(images) {
+        //const image_ids = images.map(image => image.id);
+        // get images and build image list
+        images.forEach((image) => {
+            var getImageReq = new XMLHttpRequest();
+            getImageReq.addEventListener("load", function () {
+                var response = JSON.parse(this.responseText);
+                console.log(response);
+            });
+            getImageReq.open("GET", `${API_URL}/image_file/${image.id}`);
+            getImageReq.send();
+        });
+    }
+    
+    console.log(mode);
+    if (mode == "edit") {
+        const project_id = {{ project_id|tojson }};
+        getProjectDataAndPopulateFields(project_id);
+    }
+    else if (mode == "add") {
+
+    }
+    else {
+        console.log("Unknown mode. Must be either 'add' or 'edit'.")
+    }
+
+
+
+    // TODO:
+    // - upon "uploading images"
+    // - load images locally
+    // - place images in the preview list
+
+    // - upon clicking save button
+    //    -> read out data from all inputs (including the image list)
+    //    -> validate inputs
+    //    -> assemble json body
+    //    -> send POST request for project creation
+
+    function readDataFromFields() {
+
+    }
+
+    function validateFields() {
+
+    }
+
+    function assembleJson() {
+        var data = {"name": "Hallo Project", "description": "Nothing to say"};
+        return data;
+    }
+
+    function createProject(data) {
+        var saveAnnotationReq = new XMLHttpRequest();
+        saveAnnotationReq.addEventListener("load", function () {
+        console.log("Project created.")
+        // TODO: in case of error show error message (flash)
+
+        // TODO: send the request to create images that were uploaded to this project
+        });
+        saveAnnotationReq.open("POST", `${API_URL}/projects/`, true);
+        saveAnnotationReq.setRequestHeader("Content-Type", "application/json");
+        saveAnnotationReq.send(JSON.stringify(data));
+    }
+
+    function createProjectButtonClicked(event) {
+        //console.log(event);
+        //readDataFromFields();
+        const data = assembleJson();
+        createProject(data);
+    }
+</script>
+{% endblock %}
