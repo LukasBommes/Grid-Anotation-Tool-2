@@ -72,7 +72,7 @@
                         <ul class="mdc-image-list my-image-list" id="images-list">
                             <li class="mdc-image-list__item">
                             <div class="mdc-image-list__image-aspect-container">
-                                <img class="mdc-image-list__image" src="#">
+                                <img class="mdc-image-list__image" src="http://localhost:8000/image_file/1">
                             </div>
                             <div class="mdc-image-list__supporting">
                                 <span class="mdc-image-list__label">Images</span>
@@ -146,18 +146,46 @@
         }
     }
 
+    function htmlToElements(html) {
+        var template = document.createElement('template');
+        template.innerHTML = html;
+        return template.content.childNodes;
+    }
+
     function setImages(images) {
         //const image_ids = images.map(image => image.id);
         // get images and build image list
-        images.forEach((image) => {
+        /*images.forEach((image) => {
             var getImageReq = new XMLHttpRequest();
             getImageReq.addEventListener("load", function () {
+                console.log(this.responseText); // contains binary image data
                 var response = JSON.parse(this.responseText);
                 console.log(response);
             });
             getImageReq.open("GET", `${API_URL}/image_file/${image.id}`);
             getImageReq.send();
-        });
+        });*/
+
+        /*const imagesList = document.getElementById('images-list');
+        images.forEach((image) => {
+            imagesList.htmlToElements(`
+                <li class='mdc-image-list__item'>
+                    <img class='mdc-image-list__image' src='http://localhost:8000/image_file/1'>
+                    <div class='mdc-image-list__supporting'>
+                        <span class='mdc-image-list__label'>Text label</span>
+                    </div>
+                </li>`
+            );
+        });*/
+
+        document.getElementById('images-list').htmlToElements(`
+            <li class='mdc-image-list__item'>
+                <img class='mdc-image-list__image' src='http://localhost:8000/image_file/1'>
+                <div class='mdc-image-list__supporting'>
+                    <span class='mdc-image-list__label'>Text label</span>
+                </div>
+            </li>`
+        );
     }
     
     console.log(mode);
