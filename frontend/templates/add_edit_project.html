@@ -113,10 +113,9 @@
     const project_save_error_msg = "Failed to save project."
 
     const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
-    const iconToggle = new mdc.iconButton.MDCIconButtonToggle(document.querySelector('.mdc-icon-button'));
 
     var images_to_upload = [];
-    //var images_to_delete = [];
+    var images_to_delete = [];
 
     function getProjectDataAndPopulateFields(project_id) {
         if (project_id == null) {
@@ -217,6 +216,20 @@
         }
     }
 
+    /*function deleteImage(image_id) {
+        var deleteImageReq = new XMLHttpRequest();
+        deleteImageReq.addEventListener("load", listener.bind(null, images_data, null));
+        deleteImageReq.open("DELTE", `${API_URL}/image/${image_id}`, true);
+        deleteImageReq.setRequestHeader("Content-Type", "application/json");
+        deleteImageReq.send(JSON.stringify(project_data));
+    }
+
+    function deleteImages() {
+        images_to_delete.forEach((image) => {
+            deleteImage(image_id);
+        });
+    }*/
+
     // API request for project creation
     function createProject(project_data, images_data, listener) {
         var createProjectReq = new XMLHttpRequest();
@@ -309,9 +322,21 @@
         console.log(event.currentTarget.classList);
         if (event.currentTarget.classList.contains("mdc-icon-button--on")) {
             event.currentTarget.classList.remove("mdc-icon-button--on");
+            if (image_id == null) {
+                // TODO: add the image back to the images_to_upload list
+            } else {
+                images_to_delete = images_to_delete.filter(function(e) { return e !== image_id });
+            }            
         } else {
             event.currentTarget.classList.add("mdc-icon-button--on");
+            if (image_id == null) {
+                // TODO: remove image from images_to_upload list
+                //images_to_upload = images_to_upload.filter(function(e) { return e !== image_id });
+            } else {
+                images_to_delete.push(image_id);  // mark for deletion
+            } 
         }
+        console.log(images_to_delete);
     }
 
     getProjectDataAndPopulateFields(project_id);

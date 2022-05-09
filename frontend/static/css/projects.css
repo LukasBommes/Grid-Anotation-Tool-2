@@ -19,15 +19,15 @@
 .image-list__item {
     display: flex;
     object-fit: contain;
+    position: relative;
 }
 
 .image-list__item img {
-    max-height: 100%;
-    max-width: 100%;
+    height: 150px;
+    width: 100%;
 }
 
 .image-list-image__delete-button {
-
 }
 
 input[type="file"] {
