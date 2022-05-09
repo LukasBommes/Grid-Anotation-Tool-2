@@ -103,6 +103,8 @@
     const mode = {{ mode|tojson }};
     const project_id = {{ project_id|tojson }};
 
+    var images_to_upload = [];
+
     function getProjectDataAndPopulateFields(project_id) {
         var getProjectReq = new XMLHttpRequest();
         getProjectReq.addEventListener("load", function () {
@@ -159,7 +161,7 @@
         });
     }
     
-    console.log(mode);
+    
     if (mode == "edit") {
         getProjectDataAndPopulateFields(project_id);
     }
@@ -169,8 +171,6 @@
     else {
         console.log("Unknown mode. Must be either 'add' or 'edit'.")
     }
-
-
 
     // TODO:
     // - upon "uploading images"
@@ -183,30 +183,40 @@
     //    -> assemble json body
     //    -> send POST request for project creation
 
-    function readDataFromFields() {
+    // API request for images creation
+    function createImages(project_id, images_data) {
+        var createImagesReq = new XMLHttpRequest();
+        createImagesReq.addEventListener("load", function () {
+            console.log("Images created.")
+            console.log(this.responsetext)
+            // const response = JSON.parse(this.responseText);
+            // TODO: in case of error show error message (flash)
+
+            // TODO: update image list (get images from server and remove the temporary ones)
+        });
+        createImagesReq.open("POST", `${API_URL}/project/${project_id}/images/`, true);
+        createImagesReq.send(images_data);
 
     }
 
-    function validateFields() {
-
-    }
-
-    function assembleJson() {
-        var data = {"name": "Hallo Project", "description": "Nothing to say"};
-        return data;
-    }
-
-    function createProject(data) {
+    // API request for project creation
+    function createProject(project_data, images_data) {
         var saveAnnotationReq = new XMLHttpRequest();
         saveAnnotationReq.addEventListener("load", function () {
-        console.log("Project created.")
-        // TODO: in case of error show error message (flash)
+            console.log("Project created.");
+            console.log(this.responsetext);
+            const response = JSON.parse(this.responseText);
+            // TODO: in case of error show error message (flash)
 
-        // TODO: send the request to create images that were uploaded to this project
+            // send request to create images that were selected
+            if (this.status == 200) {
+                const project_id_new = response.id;
+                createImages(project_id_new, images_data);
+            }
         });
         saveAnnotationReq.open("POST", `${API_URL}/projects/`, true);
         saveAnnotationReq.setRequestHeader("Content-Type", "application/json");
-        saveAnnotationReq.send(JSON.stringify(data));
+        saveAnnotationReq.send(JSON.stringify(project_data));
     }
 
     function redirectHome() {
@@ -214,32 +224,35 @@
     }
 
     function createProjectButtonClicked(event) {
-        //console.log(event);
-        //readDataFromFields();
+        // get project data from fields and file input
+        const project_data = {
+            "name": document.getElementById('text-field-name-input').value, 
+            "description": document.getElementById('text-field-description-input').value
+        };
 
-        const data = assembleJson();
-        createProject(data);
+        var images_data = new FormData();
+        Array.from(images_to_upload).forEach(file => {
+            images_data.append("files", file, file.name);
+        });
 
-        redirectHome();
+        createProject(project_data, images_data);
+        //redirectHome();
     }
 
     function cancelButtonClicked() {
-        // clear forms
         redirectHome();
     }    
 
     function filesInputChanged(event) {
-
         function createObjectURL(object) {
             return (window.URL) ? window.URL.createObjectURL(object) : window.webkitURL.createObjectURL(object);
         }
-
-        console.log(event);
         console.log(event.target.files);
-
         if(event.target.files.length) {
             for(var i = 0; i < event.target.files.length; i++) {
-                var src = createObjectURL(event.target.files[i]);
+                const file = event.target.files[i];
+                images_to_upload.push(file);
+                var src = createObjectURL(file);
                 addImageToImageList(`${src}`, "image-not-uploaded");
             }
         }
