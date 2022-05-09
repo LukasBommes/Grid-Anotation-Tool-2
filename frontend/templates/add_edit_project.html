@@ -5,14 +5,14 @@
 {% endblock %}
 
 {% block appbar_buttons %}
-<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Annotation">
+<!--<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Annotation">
     <div class="mdc-icon-button__ripple"></div>
     file_download
 </button>
 <button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Print this page">
     <div class="mdc-icon-button__ripple"></div>
     print
-</button>
+</button>-->
 {% endblock %}
 
 {% block content %}
@@ -67,26 +67,26 @@
 
                     <!-- Image List -->
                     <div class="form-row">
-                        <h1 class="mdc-typography--subtitle1">Images</h1>
+                        <h1 class="mdc-typography--subtitle1" id="image-list-title" style="display: none;">Images</h1>
                         <div class="image-list" id="images-list">
                         </div>
                     </div>
 
                     <!-- Buttons -->
                     <div class="form-row">
-                    <button class="mdc-button mdc-button--raised" onclick="cancelButtonClicked()">
-                        <span class="mdc-button__ripple"></span>
-                        <span class="mdc-button__focus-ring"></span>
-                        <span class="mdc-button__label">Cancel</span>
-                    </button>
-                    <button class="mdc-button mdc-button--raised mdc-button--icon-leading" onclick="createProjectButtonClicked(event)">
-                        <span class="mdc-button__ripple"></span>
-                        <span class="mdc-button__focus-ring"></span>
-                        <i class="material-icons mdc-button__icon" aria-hidden="true">
-                            save
-                        </i>
-                        <span class="mdc-button__label">{% if mode == 'add' %}Create Project{% else %}Save Changes{% endif %}</span>
-                    </button>
+                        <button class="mdc-button mdc-button--raised" onclick="cancelButtonClicked()">
+                            <span class="mdc-button__ripple"></span>
+                            <span class="mdc-button__focus-ring"></span>
+                            <span class="mdc-button__label">Cancel</span>
+                        </button>
+                        <button class="mdc-button mdc-button--raised mdc-button--icon-leading" onclick="saveProjectButtonClicked(event)">
+                            <span class="mdc-button__ripple"></span>
+                            <span class="mdc-button__focus-ring"></span>
+                            <i class="material-icons mdc-button__icon" aria-hidden="true">
+                                save
+                            </i>
+                            <span class="mdc-button__label">{% if mode == 'add' %}Create Project{% else %}Save Changes{% endif %}</span>
+                        </button>
                     </div>
 
                 </div>
@@ -99,31 +99,46 @@
 
 {% block script %}
 <script>
+    // TODOS:
+    // - make images deletable
+    // - images list pagination
+    // - validate inputs, e.g. do not allow sending empty strings (show error msg in helper text)
+    // - catch errors of XHR requests (show snackbar with generic error message and full error message in console)
+
     const API_URL = {{ api_url|tojson }};
     const mode = {{ mode|tojson }};
     const project_id = {{ project_id|tojson }};
 
+    const project_save_success_msg = "Project saved successfully.";
+    const project_save_error_msg = "Failed to save project."
+
+    const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
+
     var images_to_upload = [];
 
     function getProjectDataAndPopulateFields(project_id) {
-        var getProjectReq = new XMLHttpRequest();
-        getProjectReq.addEventListener("load", function () {
-            console.log("Project data loaded.")
-            console.log(this.responseText);
-            var response = JSON.parse(this.responseText);
-            var neededKeys = [
-                'name', 
-                'description', 
-                'images'
-            ];
-            if (neededKeys.every(key => Object.keys(response).includes(key))) {
-                setName(response.name);
-                setDescription(response.description);
-                setImagesList(response.images);
-            }
-        });
-        getProjectReq.open("GET", `${API_URL}/project/${project_id}`);
-        getProjectReq.send();
+        if (project_id == null) {
+            return;
+        } else {
+            var getProjectReq = new XMLHttpRequest();
+            getProjectReq.addEventListener("load", function () {
+                console.log("Project data loaded.")
+                console.log(this.responseText);
+                var response = JSON.parse(this.responseText);
+                var neededKeys = [
+                    'name', 
+                    'description', 
+                    'images'
+                ];
+                if (neededKeys.every(key => Object.keys(response).includes(key))) {
+                    setName(response.name);
+                    setDescription(response.description);
+                    setImagesList(response.images);
+                }
+            });
+            getProjectReq.open("GET", `${API_URL}/project/${project_id}`);
+            getProjectReq.send();
+        }
     }
 
     function setName(name) {
@@ -154,76 +169,85 @@
         document.getElementById('images-list').appendChild(htmlToElements(html));
     }
 
+    function updateImageListTitle(show) {
+        if (show) {
+            document.getElementById('image-list-title').style.display = "block";
+        } else {
+            document.getElementById('image-list-title').style.display = "none";
+        }
+    }
+
     function setImagesList(images) {
+        updateImageListTitle(images.length > 0);
         const imagesList = document.getElementById('images-list');
         images.forEach((image) => {
             addImageToImageList(`${API_URL}/image_file/${image.id}`, "image-already-uploaded");
         });
     }
-    
-    
-    if (mode == "edit") {
-        getProjectDataAndPopulateFields(project_id);
-    }
-    else if (mode == "add") {
-        
-    }
-    else {
-        console.log("Unknown mode. Must be either 'add' or 'edit'.")
-    }
-
-    // TODO:
-    // - upon "uploading images"
-    // - load images locally
-    // - place images in the preview list
-
-    // - upon clicking save button
-    //    -> read out data from all inputs (including the image list)
-    //    -> validate inputs
-    //    -> assemble json body
-    //    -> send POST request for project creation
 
     // API request for images creation
     function createImages(project_id, images_data) {
-        var createImagesReq = new XMLHttpRequest();
-        createImagesReq.addEventListener("load", function () {
-            console.log("Images created.")
-            console.log(this.responsetext)
-            // const response = JSON.parse(this.responseText);
-            // TODO: in case of error show error message (flash)
-
-            // TODO: update image list (get images from server and remove the temporary ones)
-        });
-        createImagesReq.open("POST", `${API_URL}/project/${project_id}/images/`, true);
-        createImagesReq.send(images_data);
-
+        if (images_data.has("files")) {
+            var createImagesReq = new XMLHttpRequest();
+            createImagesReq.addEventListener("load", function () {
+                console.log("Images created.")
+                console.log(this.responsetext)
+                if (this.status == 200) {
+                    snackbar.labelText = project_save_success_msg;
+                    snackbar.open();
+                } else {
+                    snackbar.labelText = project_save_error_msg;    
+                    snackbar.open();
+                }
+            });
+            createImagesReq.open("POST", `${API_URL}/project/${project_id}/images/`, true);
+            createImagesReq.send(images_data);
+        }
     }
 
     // API request for project creation
-    function createProject(project_data, images_data) {
-        var saveAnnotationReq = new XMLHttpRequest();
-        saveAnnotationReq.addEventListener("load", function () {
-            console.log("Project created.");
-            console.log(this.responsetext);
-            const response = JSON.parse(this.responseText);
-            // TODO: in case of error show error message (flash)
+    function createProject(project_data, images_data, listener) {
+        var createProjectReq = new XMLHttpRequest();
+        createProjectReq.addEventListener("load", listener.bind(null, images_data, null));
+        createProjectReq.open("POST", `${API_URL}/projects/`, true);
+        createProjectReq.setRequestHeader("Content-Type", "application/json");
+        createProjectReq.send(JSON.stringify(project_data));
+    }
 
-            // send request to create images that were selected
-            if (this.status == 200) {
+    function updateProject(project_id, project_data, images_data, listener) {
+        var updateProjectReq = new XMLHttpRequest();
+        updateProjectReq.addEventListener("load", listener.bind(null, images_data, project_id));
+        updateProjectReq.open("PUT", `${API_URL}/project/${project_id}`, true);
+        updateProjectReq.setRequestHeader("Content-Type", "application/json");
+        updateProjectReq.send(JSON.stringify(project_data));
+    }
+
+    function saveProjectListener(images_data, project_id, event) {
+        if (event.target.status == 200) {
+            const response = JSON.parse(event.target.responseText);
+            if (!images_data.has("files")) {
+                snackbar.labelText = project_save_success_msg;
+                snackbar.open();
+                return;
+            }
+
+            if (project_id == null) {
                 const project_id_new = response.id;
                 createImages(project_id_new, images_data);
-            }
-        });
-        saveAnnotationReq.open("POST", `${API_URL}/projects/`, true);
-        saveAnnotationReq.setRequestHeader("Content-Type", "application/json");
-        saveAnnotationReq.send(JSON.stringify(project_data));
+            } else {
+                createImages(project_id, images_data);
+            }            
+        } else {
+            snackbar.labelText = project_save_error_msg;    
+            snackbar.open();
+        }
     }
 
     function redirectHome() {
         window.location.href = "{{ url_for('projects') }}";
     }
 
-    function createProjectButtonClicked(event) {
+    function saveProjectButtonClicked(event) {
         // get project data from fields and file input
         const project_data = {
             "name": document.getElementById('text-field-name-input').value, 
@@ -235,8 +259,15 @@
             images_data.append("files", file, file.name);
         });
 
-        createProject(project_data, images_data);
-        //redirectHome();
+        if (mode == "add") {
+            createProject(project_data, images_data, saveProjectListener);
+            redirectHome();
+        } else if (mode == "edit") {
+            updateProject(project_id, project_data, images_data, saveProjectListener);
+        }
+        else {
+            console.log("Unknown mode. Must be either 'add' or 'edit'.")
+        }
     }
 
     function cancelButtonClicked() {
@@ -255,7 +286,10 @@
                 var src = createObjectURL(file);
                 addImageToImageList(`${src}`, "image-not-uploaded");
             }
+            updateImageListTitle(true);
         }
     }
+
+    getProjectDataAndPopulateFields(project_id);
 </script>
 {% endblock %}

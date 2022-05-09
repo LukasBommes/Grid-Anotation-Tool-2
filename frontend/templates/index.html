@@ -30,6 +30,21 @@
 
     <div class="mdc-top-app-bar--fixed-adjust">
       {% block content %}{% endblock %}
+
+      <!-- Snackbar -->
+      <aside class="mdc-snackbar">
+        <div class="mdc-snackbar__surface" role="status" aria-relevant="additions">
+          <div class="mdc-snackbar__label" aria-atomic="false">
+            Snackbar Text.
+          </div>
+          <div class="mdc-snackbar__actions" aria-atomic="true">
+            <button type="button" class="mdc-button mdc-snackbar__action">
+              <div class="mdc-button__ripple"></div>
+              <span class="mdc-button__label">OK</span>
+            </button>
+          </div>
+        </div>
+      </aside>
     </div>
   </div>
 
