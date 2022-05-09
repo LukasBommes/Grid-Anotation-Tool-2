@@ -24,9 +24,8 @@
 .image-list > div > img {
     max-height: 100%;
     max-width: 100%;
-  }
+}
 
-/*.image-list img {
-    width: 150px;
-    height: auto;
-}*/
+input[type="file"] {
+    display: none;
+}

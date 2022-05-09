@@ -55,27 +55,26 @@
                     </div>
 
                     <!-- Image Upload -->
-                    <div class="form-row">
-                        <label for="img">Select image:</label>
-                        <input type="file" id="img" name="img" accept="image/*" multiple>
-
-                        <button class="mdc-button mdc-button--outlined mdc-button--icon-leading">
+                    <div class="form-row">                       
+                        <label for="image-upload-input" class="mdc-button mdc-button--outlined mdc-button--icon-leading image-upload-button">
                             <span class="mdc-button__ripple"></span>
                             <span class="mdc-button__focus-ring"></span>
-                            <i class="material-icons mdc-button__icon" aria-hidden="true">upload</i>
-                            <span class="mdc-button__label">Upload Images</span>
-                        </button>
+                            <i class="material-icons mdc-button__icon" aria-hidden="true">add</i>
+                            <span class="mdc-button__label">Add Images</span>
+                        </label>
+                        <input type="file" id="image-upload-input" accept="image/*" multiple oninput="filesInputChanged(event)">
                     </div>
 
                     <!-- Image List -->
                     <div class="form-row">
+                        <h1 class="mdc-typography--subtitle1">Images</h1>
                         <div class="image-list" id="images-list">
                         </div>
                     </div>
 
                     <!-- Buttons -->
                     <div class="form-row">
-                    <button class="mdc-button mdc-button--raised">
+                    <button class="mdc-button mdc-button--raised" onclick="cancelButtonClicked()">
                         <span class="mdc-button__ripple"></span>
                         <span class="mdc-button__focus-ring"></span>
                         <span class="mdc-button__label">Cancel</span>
@@ -145,15 +144,19 @@
         return template.content;
     }
 
+    function addImageToImageList(src, classsuffix) {
+        const html = `
+            <div class="image-list__item">
+                <img class="image-list__${classsuffix}" src="${src}">
+            </div>`;
+        document.getElementById('images-list').appendChild(htmlToElements(html));
+    }
+
     function setImagesList(images) {
         const imagesList = document.getElementById('images-list');
         images.forEach((image) => {
-            const html = `
-                <div class="image-list__item">
-                    <img class="image-list__image" src="${API_URL}/image_file/${image.id}">
-                </div>`;
-            document.getElementById('images-list').appendChild(htmlToElements(html));
-        });        
+            addImageToImageList(`${API_URL}/image_file/${image.id}`, "image-already-uploaded");
+        });
     }
     
     console.log(mode);
@@ -206,11 +209,40 @@
         saveAnnotationReq.send(JSON.stringify(data));
     }
 
+    function redirectHome() {
+        window.location.href = "{{ url_for('projects') }}";
+    }
+
     function createProjectButtonClicked(event) {
         //console.log(event);
         //readDataFromFields();
+
         const data = assembleJson();
         createProject(data);
+
+        redirectHome();
+    }
+
+    function cancelButtonClicked() {
+        // clear forms
+        redirectHome();
+    }    
+
+    function filesInputChanged(event) {
+
+        function createObjectURL(object) {
+            return (window.URL) ? window.URL.createObjectURL(object) : window.webkitURL.createObjectURL(object);
+        }
+
+        console.log(event);
+        console.log(event.target.files);
+
+        if(event.target.files.length) {
+            for(var i = 0; i < event.target.files.length; i++) {
+                var src = createObjectURL(event.target.files[i]);
+                addImageToImageList(`${src}`, "image-not-uploaded");
+            }
+        }
     }
 </script>
 {% endblock %}
