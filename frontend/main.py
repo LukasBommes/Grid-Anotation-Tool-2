@@ -22,6 +22,7 @@ def add_project():
     return render_template(
         'add_edit_project.html',
         api_url=app.config['API_URL'],
+        project_id=None,
         mode="add"
     )
 

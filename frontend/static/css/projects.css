@@ -9,3 +9,24 @@
 .main-container .form-row .mdc-text-field {
     width: 100%;
 }
+
+.image-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.image-list > div {
+    display: flex;
+    object-fit: contain;
+}
+
+.image-list > div > img {
+    max-height: 100%;
+    max-width: 100%;
+  }
+
+/*.image-list img {
+    width: 150px;
+    height: auto;
+}*/

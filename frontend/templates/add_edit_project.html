@@ -22,7 +22,7 @@
         <div class="mdc-layout-grid__cell--span-8">                                
             <div class="mdc-elevation--z4">
                 <div class="main-container">
-                    <h1 class="mdc-typography--button">New Project</h1>
+                    <h1 class="mdc-typography--button">{% if mode == 'add' %}New Project{% else %}Edit Project{% endif %}</h1>
 
                     <!-- Name Textfield -->
                     <div class="form-row">
@@ -69,16 +69,8 @@
 
                     <!-- Image List -->
                     <div class="form-row">
-                        <ul class="mdc-image-list my-image-list" id="images-list">
-                            <li class="mdc-image-list__item">
-                            <div class="mdc-image-list__image-aspect-container">
-                                <img class="mdc-image-list__image" src="http://localhost:8000/image_file/1">
-                            </div>
-                            <div class="mdc-image-list__supporting">
-                                <span class="mdc-image-list__label">Images</span>
-                            </div>
-                            </li>
-                        </ul>
+                        <div class="image-list" id="images-list">
+                        </div>
                     </div>
 
                     <!-- Buttons -->
@@ -94,7 +86,7 @@
                         <i class="material-icons mdc-button__icon" aria-hidden="true">
                             save
                         </i>
-                        <span class="mdc-button__label">Create Project</span>
+                        <span class="mdc-button__label">{% if mode == 'add' %}Create Project{% else %}Save Changes{% endif %}</span>
                     </button>
                     </div>
 
@@ -110,6 +102,7 @@
 <script>
     const API_URL = {{ api_url|tojson }};
     const mode = {{ mode|tojson }};
+    const project_id = {{ project_id|tojson }};
 
     function getProjectDataAndPopulateFields(project_id) {
         var getProjectReq = new XMLHttpRequest();
@@ -125,7 +118,7 @@
             if (neededKeys.every(key => Object.keys(response).includes(key))) {
                 setName(response.name);
                 setDescription(response.description);
-                setImages(response.images);
+                setImagesList(response.images);
             }
         });
         getProjectReq.open("GET", `${API_URL}/project/${project_id}`);
@@ -149,52 +142,26 @@
     function htmlToElements(html) {
         var template = document.createElement('template');
         template.innerHTML = html;
-        return template.content.childNodes;
+        return template.content;
     }
 
-    function setImages(images) {
-        //const image_ids = images.map(image => image.id);
-        // get images and build image list
-        /*images.forEach((image) => {
-            var getImageReq = new XMLHttpRequest();
-            getImageReq.addEventListener("load", function () {
-                console.log(this.responseText); // contains binary image data
-                var response = JSON.parse(this.responseText);
-                console.log(response);
-            });
-            getImageReq.open("GET", `${API_URL}/image_file/${image.id}`);
-            getImageReq.send();
-        });*/
-
-        /*const imagesList = document.getElementById('images-list');
+    function setImagesList(images) {
+        const imagesList = document.getElementById('images-list');
         images.forEach((image) => {
-            imagesList.htmlToElements(`
-                <li class='mdc-image-list__item'>
-                    <img class='mdc-image-list__image' src='http://localhost:8000/image_file/1'>
-                    <div class='mdc-image-list__supporting'>
-                        <span class='mdc-image-list__label'>Text label</span>
-                    </div>
-                </li>`
-            );
-        });*/
-
-        document.getElementById('images-list').htmlToElements(`
-            <li class='mdc-image-list__item'>
-                <img class='mdc-image-list__image' src='http://localhost:8000/image_file/1'>
-                <div class='mdc-image-list__supporting'>
-                    <span class='mdc-image-list__label'>Text label</span>
-                </div>
-            </li>`
-        );
+            const html = `
+                <div class="image-list__item">
+                    <img class="image-list__image" src="${API_URL}/image_file/${image.id}">
+                </div>`;
+            document.getElementById('images-list').appendChild(htmlToElements(html));
+        });        
     }
     
     console.log(mode);
     if (mode == "edit") {
-        const project_id = {{ project_id|tojson }};
         getProjectDataAndPopulateFields(project_id);
     }
     else if (mode == "add") {
-
+        
     }
     else {
         console.log("Unknown mode. Must be either 'add' or 'edit'.")
