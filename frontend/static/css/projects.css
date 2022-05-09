@@ -16,14 +16,18 @@
     gap: 10px;
 }
 
-.image-list > div {
+.image-list__item {
     display: flex;
     object-fit: contain;
 }
 
-.image-list > div > img {
+.image-list__item img {
     max-height: 100%;
     max-width: 100%;
+}
+
+.image-list-image__delete-button {
+
 }
 
 input[type="file"] {

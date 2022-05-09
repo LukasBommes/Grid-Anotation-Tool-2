@@ -113,8 +113,10 @@
     const project_save_error_msg = "Failed to save project."
 
     const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
+    const iconToggle = new mdc.iconButton.MDCIconButtonToggle(document.querySelector('.mdc-icon-button'));
 
     var images_to_upload = [];
+    //var images_to_delete = [];
 
     function getProjectDataAndPopulateFields(project_id) {
         if (project_id == null) {
@@ -161,10 +163,20 @@
         return template.content;
     }
 
-    function addImageToImageList(src, classsuffix) {
+    function addImageToImageList(image_id, src, classsuffix) {
         const html = `
             <div class="image-list__item">
-                <img class="image-list__${classsuffix}" src="${src}">
+                <div class="mdc-elevation--z2">
+                    <img class="image-list-image__${classsuffix}" src="${src}">
+                    <div class="image-list-image__delete-button">
+                        <button class="mdc-icon-button material-icons" onclick="deleteImageButtonClicked(${image_id}, event)">
+                            <div class="mdc-icon-button__ripple"></div>
+                            <span class="mdc-icon-button__focus-ring"></span>
+                            <i class="material-icons mdc-icon-button__icon mdc-icon-button__icon--on">delete</i>
+                            <i class="material-icons mdc-icon-button__icon">delete_outline</i>
+                        </button>
+                    </div>
+                </div>
             </div>`;
         document.getElementById('images-list').appendChild(htmlToElements(html));
     }
@@ -181,7 +193,7 @@
         updateImageListTitle(images.length > 0);
         const imagesList = document.getElementById('images-list');
         images.forEach((image) => {
-            addImageToImageList(`${API_URL}/image_file/${image.id}`, "image-already-uploaded");
+            addImageToImageList(image.id, `${API_URL}/image_file/${image.id}`, "image-already-uploaded");
         });
     }
 
@@ -284,9 +296,21 @@
                 const file = event.target.files[i];
                 images_to_upload.push(file);
                 var src = createObjectURL(file);
-                addImageToImageList(`${src}`, "image-not-uploaded");
+                addImageToImageList(null, `${src}`, "image-not-uploaded");
             }
             updateImageListTitle(true);
+        }
+    }
+
+    function deleteImageButtonClicked(image_id, event) {
+        console.log("deleteImageButtonClicked");
+        console.log(event);
+        console.log(image_id);
+        console.log(event.currentTarget.classList);
+        if (event.currentTarget.classList.contains("mdc-icon-button--on")) {
+            event.currentTarget.classList.remove("mdc-icon-button--on");
+        } else {
+            event.currentTarget.classList.add("mdc-icon-button--on");
         }
     }
 
