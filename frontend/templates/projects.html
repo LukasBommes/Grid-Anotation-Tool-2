@@ -4,16 +4,7 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/projects.css') }}">
 {% endblock %}
 
-{% block appbar_buttons %}
-<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Annotation">
-    <div class="mdc-icon-button__ripple"></div>
-    file_download
-</button>
-<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Print this page">
-    <div class="mdc-icon-button__ripple"></div>
-    print
-</button>
-{% endblock %}
+{% block appbar_buttons %}{% endblock %}
 
 {% block content %}
 <div class="mdc-layout-grid">

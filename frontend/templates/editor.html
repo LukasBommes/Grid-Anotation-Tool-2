@@ -13,29 +13,41 @@
     <div class="mdc-icon-button__ripple"></div>
     file_download
 </button>
+<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Annotation">
+    <div class="mdc-icon-button__ripple"></div>
+    settings
+</button>
 {% endblock %}
 
 {% block content %}
 <div id="controls">
     <label for="images_selection">Select Image:</label>
     <select name="images_selection" id="images_selection" size="15"></select>
-
-    <div class="btn-group" id="drawing-actions">
-      <button id='btn-draw-auxline' class="btn-active">Draw Auxilary Line</button>
-      <button id='btn-draw-auxcurve'>Draw Auxilary Curve</button>
-      <button id='btn-get-intersects'>Get Intersections</button>
-      <button id='btn-add-corner'>Add Corners</button>
-      <button id='btn-create-module'>Create Grid Cell</button>
-      <button id='btn-create-module-manual'>Create Grid Cell (manual)</button>
-      <button id='btn-mark-module-partially-visible'>Toggle Cell Visibility</button>
-      <button id='btn-erase'>Erase</button>
-    </div>
 </div>
+
+<div class="btn-group" id="drawing-actions">
+  <button id='btn-draw-auxline' class="btn-active">Draw Auxilary Line</button>
+  <button id='btn-draw-auxcurve'>Draw Auxilary Curve</button>
+  <button id='btn-get-intersects'>Get Intersections</button>
+  <button id='btn-add-corner'>Add Corners</button>
+  <button id='btn-create-module'>Create Grid Cell</button>
+  <button id='btn-create-module-manual'>Create Grid Cell (manual)</button>
+  <button id='btn-mark-module-partially-visible'>Toggle Cell Visibility</button>
+  <button id='btn-erase'>Erase</button>
+</div>
+
 <svg id="current_image"></svg>
 {% endblock %}
 
 {% block script %}
 <script>
+  // TODO:
+  // - display project info (name, number of images, number of annotated images, last edited, created, description, etc.)
+  // - style button group and image selection according to material ui guidelines
+  // - add buttons for prev/next image
+  // - add link and tooltip to export button
+  // - add buttons to return to project list and project details
+
   $(document).ready(function() {
     const API_URL = {{ api_url|tojson }};
     const project_id = {{ project_id|tojson }};

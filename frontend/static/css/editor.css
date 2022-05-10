@@ -22,7 +22,12 @@
 }
 
 .btn-group {
-    padding-top: 10px;
+    z-index: 1;
+    position: absolute;
+    width: 200px;
+    top: 40px;
+    right: 0;
+    padding: 20px;
 }
 
 .btn-group button {
