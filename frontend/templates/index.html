@@ -52,6 +52,14 @@
 
   {% block script %}{% endblock %}
 
+  <script>
+    function htmlToElements(html) {
+      var template = document.createElement('template');
+      template.innerHTML = html;
+      return template.content;
+    }
+  </script>
+
   <!-- MUI Web Components -->
   <script>    
     const iconButtonRipples = [].map.call(document.querySelectorAll('.app-bar-icon-button'), function(element) {

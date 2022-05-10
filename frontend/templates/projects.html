@@ -27,7 +27,7 @@
 
                         <!-- Buttons -->
                         <div class="main-container-title-buttons">
-                            <button class="mdc-button mdc-button--icon-leading" onclick="importProjectButtonClicked(event)">
+                            <button class="mdc-button mdc-button--icon-leading" onclick="importProjectButtonClicked()">
                                 <span class="mdc-button__ripple"></span>
                                 <span class="mdc-button__focus-ring"></span>
                                 <i class="material-icons mdc-button__icon" aria-hidden="true">
@@ -47,40 +47,7 @@
                     </div>
 
                     <!-- Project List -->
-                    <!-- Add / Import / Delete / Edit / Export / Annotate -->
-                    <ul class="mdc-list">
-                        <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image" tabindex="0">
-                            <span class="mdc-list-item__ripple"></span>
-                            <span class="mdc-list-item__start"></span>
-                            <span class="mdc-list-item__content" id="1">
-                                <span class="mdc-list-item__primary-text">My list item</span>
-                                <span class="mdc-list-item__secondary-text">14 / 50 images annotated</span>
-                            </span>
-                            <span class="mdc-list-item__end list-item-end-custom">
-                                <button class="mdc-icon-button material-icons" onclick="openMenu(event)">
-                                    <div class="mdc-icon-button__ripple"></div>
-                                    <span class="mdc-icon-button__focus-ring"></span>
-                                    more_vert
-                                </button>
-                            </span>
-                        </li>
-
-                        <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image" tabindex="0">
-                            <span class="mdc-list-item__ripple"></span>
-                            <span class="mdc-list-item__start"></span>
-                            <span class="mdc-list-item__content" id="1">
-                                <span class="mdc-list-item__primary-text">My list item 2</span>
-                                <span class="mdc-list-item__secondary-text">50 / 50 images annotated</span>
-                            </span>
-                            <span class="mdc-list-item__end list-item-end-custom">
-                                <button class="mdc-icon-button material-icons" onclick="openMenu(event)">
-                                    <div class="mdc-icon-button__ripple"></div>
-                                    <span class="mdc-icon-button__focus-ring"></span>
-                                    more_vert
-                                </button>
-                            </span>
-                        </li>
-                    </ul>
+                    <ul class="mdc-list" id="projects-list"></ul>
 
                 </div>
             </div>
@@ -89,38 +56,8 @@
     </div>
 </div>
 
-<div class="mdc-menu mdc-menu-surface">
-    <ul class="mdc-deprecated-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
-        <li class="mdc-deprecated-list-item" role="menuitem">
-            <span class="mdc-deprecated-list-item__ripple"></span>            
-            <span class="mdc-deprecated-list-item__text">View</span>
-            <span class="mdc-deprecated-list-item__meta">
-                <i class="material-icons">visibility</i>
-            </span>
-        </li>
-    <li class="mdc-deprecated-list-item" role="menuitem">
-        <span class="mdc-deprecated-list-item__ripple"></span>
-        <span class="mdc-deprecated-list-item__text">Edit</span>
-        <span class="mdc-deprecated-list-item__meta">
-            <i class="material-icons">edit</i>
-        </span>
-    </li>
-    <li class="mdc-deprecated-list-item" role="menuitem">
-        <span class="mdc-deprecated-list-item__ripple"></span>
-        <span class="mdc-deprecated-list-item__text">Export</span>
-        <span class="mdc-deprecated-list-item__meta">
-            <i class="material-icons">download</i>
-        </span>
-    </li>
-    <li class="mdc-deprecated-list-item" role="menuitem">
-        <span class="mdc-deprecated-list-item__ripple"></span>
-        <span class="mdc-deprecated-list-item__text">Delete</span>
-        <span class="mdc-deprecated-list-item__meta">
-            <i class="material-icons">delete</i>
-        </span>
-    </li>
-    </ul>
-</div>
+<!-- Menu Items for Project List -->
+<div id="projects-list-menu-list"></div>
 {% endblock %}
 
 {% block tooltips %}
@@ -138,19 +75,161 @@
     // assemble list with projects (add correct links, etc.)
     // handle other button clicks (add, delete, edit, annotate)
 
-    const menu = new mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
+    const API_URL = {{ api_url|tojson }};
+    const project_list_menus = {};
 
-    function openMenu(event) {
+    //const menu = new mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
+
+    function getAnnotationIds() {      
+      var getAnnotationIdsReq = new XMLHttpRequest();
+      getAnnotationIdsReq.addEventListener("load", function () {
+        var existing_anotations = JSON.parse(this.responseText);
+        getProjects(existing_anotations);
+      });
+      getAnnotationIdsReq.open("GET", `${API_URL}/annotation_ids/`);
+      getAnnotationIdsReq.send();
+    }
+
+    function addProjectToProjectList(project, num_images, num_annotated) {
+        const html_list_item = `
+            <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image">
+                <span class="mdc-list-item__ripple"></span>
+                <span class="mdc-list-item__start"></span>
+                <span class="mdc-list-item__content" id="projects-list-item-${project.id}">
+                    <span class="mdc-list-item__primary-text">${project.name.slice(0, 10)}</span>
+                    <span class="mdc-list-item__secondary-text">${num_annotated} / ${num_images} images annotated</span>
+                </span>
+                <span class="mdc-list-item__end list-item-end-custom">
+                    <button class="mdc-icon-button material-icons" onclick="openMenu(${project.id}, event)">
+                        <div class="mdc-icon-button__ripple"></div>
+                        <span class="mdc-icon-button__focus-ring"></span>
+                        more_vert
+                    </button>
+                </span>
+            </li>`;
+        const html_menu_item = `
+            <div class="mdc-menu mdc-menu-surface" id="projects-list-menu-${project.id}">
+                <ul class="mdc-deprecated-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
+                    <li class="mdc-deprecated-list-item" role="menuitem" onclick="annotateProjectClicked(${project.id})">
+                        <span class="mdc-deprecated-list-item__ripple"></span>
+                        <span class="mdc-deprecated-list-item__text">Annotate</span>
+                        <span class="mdc-deprecated-list-item__meta">
+                            <i class="material-icons menu-icon">edit</i>
+                        </span>
+                    </li>
+                    <li class="mdc-deprecated-list-item" role="menuitem" onclick="setupProjectClicked(${project.id})">
+                        <span class="mdc-deprecated-list-item__ripple"></span>
+                        <span class="mdc-deprecated-list-item__text">Setup</span>
+                        <span class="mdc-deprecated-list-item__meta">
+                            <i class="material-icons menu-icon">settings</i>
+                        </span>
+                    </li>
+                    <li class="mdc-deprecated-list-item" role="menuitem" onclick="exportProjectClicked(${project.id})">
+                        <span class="mdc-deprecated-list-item__ripple"></span>
+                        <span class="mdc-deprecated-list-item__text">Export</span>
+                        <span class="mdc-deprecated-list-item__meta">
+                            <i class="material-icons menu-icon">download</i>
+                        </span>
+                    </li>
+                    <li class="mdc-deprecated-list-item" role="menuitem" onclick="deleteProjectClicked(${project.id})">
+                        <span class="mdc-deprecated-list-item__ripple"></span>
+                        <span class="mdc-deprecated-list-item__text">Delete</span>
+                        <span class="mdc-deprecated-list-item__meta">
+                            <i class="material-icons menu-icon">delete</i>
+                        </span>
+                    </li>
+                </ul>
+            </div>`;
+        document.getElementById('projects-list').appendChild(htmlToElements(html_list_item));
+        document.getElementById('projects-list-menu-list').appendChild(htmlToElements(html_menu_item));
+        project_list_menus[project.id] = new mdc.menu.MDCMenu(document.querySelector(`#projects-list-menu-${project.id}`));
+        init_mui_elements();
+    }
+
+    function countAnnotatedImages(images, existing_anotations) {
+        var num_annotated = 0;
+        for (var i = 0; i < images.length; i++) {
+            if (existing_anotations.includes(images[i].id)) {
+                num_annotated++;
+            }
+        }
+        return num_annotated;
+    }
+
+    function getProjects(existing_anotations) {
+        var getProjectsReq = new XMLHttpRequest();
+        getProjectsReq.addEventListener("load", function () {
+            console.log("Projects loaded.")
+            console.log(this.responseText);
+            if (this.status == 200) {
+                var response = JSON.parse(this.responseText);
+                console.log(response);
+                // get number of images
+                response.forEach((project) => {
+                    // count how many of the image_ids occur in exisitng annotation list
+                    const num_images = project.images.length;
+                    const num_annotated = countAnnotatedImages(project.images, existing_anotations);
+                    addProjectToProjectList(project, num_images, num_annotated);
+                });                
+            }
+        });
+        getProjectsReq.open("GET", `${API_URL}/projects/`);
+        getProjectsReq.send();
+    }
+
+    function openMenu(project_id, event) {
         console.log("Opening menu");
         console.log(event);
+        const menu = project_list_menus[project_id];
         menu.setAbsolutePosition(event.clientX, event.clientY);
-        menu.open = !menu.open;    
+        menu.open = !menu.open;
     }
-</script>
 
-<script>
-    const listItemRipples = [].map.call(document.querySelectorAll('.mdc-list-item'), function(element) {
-        return new mdc.ripple.MDCRipple(element);
-    });
+    function importProjectButtonClicked() {
+
+    }
+
+    function newProjectButtonClicked() {
+        window.location.href = "{{ url_for('add_project') }}";
+    }
+
+    function annotateProjectClicked(project_id) {
+        var editProjectRedirectReq = new XMLHttpRequest();
+        editProjectRedirectReq.addEventListener("load", function () {
+            if (this.status == 200) {
+                window.location.href = JSON.parse(this.responseText).url;
+            }  
+        });
+        editProjectRedirectReq.open("GET", "{{ url_for('get_editor_url') }}"+"?project_id="+project_id);
+        editProjectRedirectReq.send();
+    }
+
+    function setupProjectClicked(project_id) {
+        var editProjectRedirectReq = new XMLHttpRequest();
+        editProjectRedirectReq.addEventListener("load", function () {
+            if (this.status == 200) {
+                window.location.href = JSON.parse(this.responseText).url;
+            }  
+        });
+        editProjectRedirectReq.open("GET", "{{ url_for('get_edit_project_url') }}"+"?project_id="+project_id);
+        editProjectRedirectReq.send();
+    }
+
+    function exportProjectClicked(project_id) {
+        console.log("Export "+project_id);
+    }
+
+    function deleteProjectClicked(project_id) {
+        console.log("Delete "+project_id);
+        // TODO: show dialog, if clicked yes then issue delete request
+    }
+
+    function init_mui_elements() {
+        const listItemRipples = [].map.call(document.querySelectorAll('.mdc-list-item'), function(element) {
+            return new mdc.ripple.MDCRipple(element);
+        });
+    }
+
+    getAnnotationIds();
 </script>
 {% endblock %}

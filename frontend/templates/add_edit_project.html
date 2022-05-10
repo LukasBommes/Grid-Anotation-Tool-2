@@ -74,7 +74,7 @@
 
                     <!-- Buttons -->
                     <div class="form-row">
-                        <button class="mdc-button mdc-button--raised" onclick="cancelButtonClicked()">
+                        <button class="mdc-button mdc-button--outlined" onclick="cancelButtonClicked()">
                             <span class="mdc-button__ripple"></span>
                             <span class="mdc-button__focus-ring"></span>
                             <span class="mdc-button__label">Cancel</span>
@@ -156,12 +156,6 @@
             document.getElementById('text-field-description').classList.add("mdc-text-field--label-floating");
             document.getElementById('text-field-description-label').classList.add("mdc-floating-label--float-above");
         }
-    }
-
-    function htmlToElements(html) {
-        var template = document.createElement('template');
-        template.innerHTML = html;
-        return template.content;
     }
 
     function addImageToImageList(image_id, src, classsuffix) {

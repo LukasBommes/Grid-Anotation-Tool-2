@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 
 
 app = Flask(__name__)
@@ -9,7 +9,6 @@ app.config['API_URL'] = "http://localhost:8000"
 
 @app.route('/projects')
 def projects():
-    """Main page for annotation of images"""
     return render_template(
         'projects.html',
         api_url=app.config['API_URL']
@@ -18,7 +17,6 @@ def projects():
 
 @app.route('/add')
 def add_project():
-    """Main page for annotation of images"""
     return render_template(
         'add_edit_project.html',
         api_url=app.config['API_URL'],
@@ -27,9 +25,14 @@ def add_project():
     )
 
 
+@app.route('/get_edit_project_url', methods=['GET'])
+def get_edit_project_url():
+    project_id = request.args.get("project_id")
+    return jsonify({"url": f'/edit/{project_id}'})
+
+
 @app.route('/edit/<int:project_id>')
 def edit_project(project_id):
-    """Main page for annotation of images"""
     return render_template(
         'add_edit_project.html',
         api_url=app.config['API_URL'],
@@ -38,9 +41,14 @@ def edit_project(project_id):
     )
 
 
+@app.route('/get_editor_url', methods=['GET'])
+def get_editor_url():
+    project_id = request.args.get("project_id")
+    return jsonify({"url": f'/editor/{project_id}'})
+
+
 @app.route('/editor/<int:project_id>')
 def editor(project_id):
-    """Main page for annotation of images"""
     return render_template(
         'editor.html',
         api_url=app.config['API_URL'],

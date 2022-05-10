@@ -108,9 +108,9 @@
 
     // saves annotation data to file
     function save() {
-        //   if (selected_image["name"] != null && (pv_modules.length > 0 || corners.length > 0 ||
-        //       auxlines.length > 0 || auxcurves.length > 0)) {
-        if (selected_image["name"] != null) {
+        if (selected_image["name"] != null && (pv_modules.length > 0 || corners.length > 0 ||
+            auxlines.length > 0 || auxcurves.length > 0)) {
+        //if (selected_image["name"] != null) {    // with thisline simply changing the selection will save annotations
             save_to_json(selected_image["id"]);
             $("#"+splitext(selected_image["name"])).css("background-color", "#ebc334");
         }
