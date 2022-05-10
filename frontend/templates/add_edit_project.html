@@ -117,6 +117,8 @@
     var images_to_upload = [];
     var images_to_delete = [];
 
+    console.log(mode);
+
     function getProjectDataAndPopulateFields(project_id) {
         if (project_id == null) {
             return;
@@ -203,9 +205,10 @@
             createImagesReq.addEventListener("load", function () {
                 console.log("Images created.")
                 console.log(this.responsetext)
-                if (this.status == 200) {
+                if (this.status == 200) {                    
                     snackbar.labelText = project_save_success_msg;
                     snackbar.open();
+                    redirectHome();
                 } else {
                     snackbar.labelText = project_save_error_msg;    
                     snackbar.open();
@@ -248,7 +251,7 @@
     }
 
     function saveProjectListener(images_data, project_id, event) {
-        if (event.target.status == 200) {
+        if (event.target.status == 200) {            
             const response = JSON.parse(event.target.responseText);
             if (!images_data.has("files")) {
                 snackbar.labelText = project_save_success_msg;
@@ -286,7 +289,6 @@
 
         if (mode == "add") {
             createProject(project_data, images_data, saveProjectListener);
-            redirectHome();
         } else if (mode == "edit") {
             updateProject(project_id, project_data, images_data, saveProjectListener);
         }
@@ -303,7 +305,6 @@
         function createObjectURL(object) {
             return (window.URL) ? window.URL.createObjectURL(object) : window.webkitURL.createObjectURL(object);
         }
-        console.log(event.target.files);
         if(event.target.files.length) {
             for(var i = 0; i < event.target.files.length; i++) {
                 const file = event.target.files[i];
