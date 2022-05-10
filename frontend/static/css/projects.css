@@ -27,9 +27,15 @@
     position: relative;
 }
 
+.image-list__item > div {
+    border-radius: 4px;;
+}
+
 .image-list__item img {
     height: 150px;
     width: 100%;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
 }
 
 input[type="file"] {

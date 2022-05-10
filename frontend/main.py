@@ -7,6 +7,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # disable caching of static files
 app.config['API_URL'] = "http://localhost:8000"
 
 
+@app.route('/')
 @app.route('/projects')
 def projects():
     return render_template(
