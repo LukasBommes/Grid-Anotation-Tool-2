@@ -58,6 +58,32 @@
 
 <!-- Menu Items for Project List -->
 <div id="projects-list-menu-list"></div>
+
+<!-- Delete Project Alert -->
+<div class="mdc-dialog" id="delete-project-dialog">
+    <div class="mdc-dialog__container">
+      <div class="mdc-dialog__surface"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="my-dialog-title"
+        aria-describedby="my-dialog-content">
+        <div class="mdc-dialog__content" id="my-dialog-content">
+          Are you sure you want to delete the project?
+        </div>
+        <div class="mdc-dialog__actions">
+          <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel">
+            <div class="mdc-button__ripple"></div>
+            <span class="mdc-button__label">No, Cancel</span>
+          </button>
+          <button type="button" class="mdc-button mdc-dialog__button" id="delete-project-dialog-button" data-mdc-dialog-action="ok">
+            <div class="mdc-button__ripple"></div>
+            <span class="mdc-button__label">Yes, Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="mdc-dialog__scrim"></div>
+  </div>
 {% endblock %}
 
 {% block tooltips %}
@@ -78,7 +104,20 @@
     const API_URL = {{ api_url|tojson }};
     const project_list_menus = {};
 
-    //const menu = new mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
+    const project_delete_success_msg = "Project deleted.";
+    const project_delete_error_msg = "Failed to delete project."
+
+    const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
+    const delete_project_dialog = new mdc.dialog.MDCDialog(document.querySelector('#delete-project-dialog'));
+    var deleteProjectDialogEventListener;
+
+    function loadProjects() {
+        // clear project list
+        document.getElementById("projects-list").innerHTML = '';
+        document.getElementById("projects-list-menu-list").innerHTML = '';
+        // get projects
+        getAnnotationIds();
+    }
 
     function getAnnotationIds() {      
       var getAnnotationIdsReq = new XMLHttpRequest();
@@ -92,7 +131,7 @@
 
     function addProjectToProjectList(project, num_images, num_annotated) {
         const html_list_item = `
-            <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image">
+            <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image" onclick="annotateProjectClicked(${project.id})">
                 <span class="mdc-list-item__ripple"></span>
                 <span class="mdc-list-item__start"></span>
                 <span class="mdc-list-item__content" id="projects-list-item-${project.id}">
@@ -160,13 +199,9 @@
         var getProjectsReq = new XMLHttpRequest();
         getProjectsReq.addEventListener("load", function () {
             console.log("Projects loaded.")
-            console.log(this.responseText);
             if (this.status == 200) {
                 var response = JSON.parse(this.responseText);
-                console.log(response);
-                // get number of images
                 response.forEach((project) => {
-                    // count how many of the image_ids occur in exisitng annotation list
                     const num_images = project.images.length;
                     const num_annotated = countAnnotatedImages(project.images, existing_anotations);
                     addProjectToProjectList(project, num_images, num_annotated);
@@ -177,12 +212,30 @@
         getProjectsReq.send();
     }
 
+    function deleteProject(project_id) {
+        var deleteProjectReq = new XMLHttpRequest();
+        deleteProjectReq.addEventListener("load", function () {
+            console.log(this.responseText);
+            if (this.status == 200) {
+                snackbar.labelText = project_delete_success_msg;
+                snackbar.open();
+            } else {
+                snackbar.labelText = project_delete_error_msg;
+                snackbar.open();
+            }
+            // refresh project list
+            loadProjects();
+        });
+        deleteProjectReq.open("DELETE", `${API_URL}/project/${project_id}`, true);
+        deleteProjectReq.setRequestHeader("Content-Type", "application/json");
+        deleteProjectReq.send();
+    }
+
     function openMenu(project_id, event) {
-        console.log("Opening menu");
-        console.log(event);
         const menu = project_list_menus[project_id];
         menu.setAbsolutePosition(event.clientX, event.clientY);
         menu.open = !menu.open;
+        event.stopPropagation();
     }
 
     function importProjectButtonClicked() {
@@ -220,8 +273,11 @@
     }
 
     function deleteProjectClicked(project_id) {
-        console.log("Delete "+project_id);
-        // TODO: show dialog, if clicked yes then issue delete request
+        const button_yes = document.getElementById("delete-project-dialog-button");
+        button_yes.removeEventListener('click', deleteProjectDialogEventListener);
+        deleteProjectDialogEventListener = deleteProject.bind(null, project_id);
+        button_yes.addEventListener('click', deleteProjectDialogEventListener);
+        delete_project_dialog.open();
     }
 
     function init_mui_elements() {
@@ -230,6 +286,6 @@
         });
     }
 
-    getAnnotationIds();
+    loadProjects();
 </script>
 {% endblock %}
