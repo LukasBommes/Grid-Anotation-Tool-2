@@ -10,6 +10,14 @@ body {
   height: 100%;
 }
 
+.mdc-top-app-bar .mdc-top-app-bar__row {
+  height: 40px;
+}
+
+.mdc-top-app-bar--fixed-adjust {
+  padding-top: 40px !important;
+}
+
 #controls {
   position: absolute;
   z-index: 1;
