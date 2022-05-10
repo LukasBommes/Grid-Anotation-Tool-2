@@ -22,9 +22,65 @@
         <div class="mdc-layout-grid__cell--span-8">                                
             <div class="mdc-elevation--z4">
                 <div class="main-container">
-                    <h1 class="mdc-typography--button">Projects</h1>
+                    <div class="main-container-title">
+                        <h1 class="mdc-typography--button">Projects</h1>
 
+                        <!-- Buttons -->
+                        <div class="main-container-title-buttons">
+                            <button class="mdc-button mdc-button--icon-leading" onclick="importProjectButtonClicked(event)">
+                                <span class="mdc-button__ripple"></span>
+                                <span class="mdc-button__focus-ring"></span>
+                                <i class="material-icons mdc-button__icon" aria-hidden="true">
+                                    upload
+                                </i>
+                                <span class="mdc-button__label">Import Project</span>
+                            </button>
+                            <button class="mdc-button mdc-button--icon-leading" onclick="newProjectButtonClicked()">
+                                <span class="mdc-button__ripple"></span>
+                                <span class="mdc-button__focus-ring"></span>
+                                <i class="material-icons mdc-button__icon" aria-hidden="true">
+                                    add
+                                </i>
+                                <span class="mdc-button__label">New Project</span>
+                            </button>
+                        </div>
+                    </div>
 
+                    <!-- Project List -->
+                    <!-- Add / Import / Delete / Edit / Export / Annotate -->
+                    <ul class="mdc-list">
+                        <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image" tabindex="0">
+                            <span class="mdc-list-item__ripple"></span>
+                            <span class="mdc-list-item__start"></span>
+                            <span class="mdc-list-item__content" id="1">
+                                <span class="mdc-list-item__primary-text">My list item</span>
+                                <span class="mdc-list-item__secondary-text">14 / 50 images annotated</span>
+                            </span>
+                            <span class="mdc-list-item__end list-item-end-custom">
+                                <button class="mdc-icon-button material-icons" onclick="openMenu(event)">
+                                    <div class="mdc-icon-button__ripple"></div>
+                                    <span class="mdc-icon-button__focus-ring"></span>
+                                    more_vert
+                                </button>
+                            </span>
+                        </li>
+
+                        <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image" tabindex="0">
+                            <span class="mdc-list-item__ripple"></span>
+                            <span class="mdc-list-item__start"></span>
+                            <span class="mdc-list-item__content" id="1">
+                                <span class="mdc-list-item__primary-text">My list item 2</span>
+                                <span class="mdc-list-item__secondary-text">50 / 50 images annotated</span>
+                            </span>
+                            <span class="mdc-list-item__end list-item-end-custom">
+                                <button class="mdc-icon-button material-icons" onclick="openMenu(event)">
+                                    <div class="mdc-icon-button__ripple"></div>
+                                    <span class="mdc-icon-button__focus-ring"></span>
+                                    more_vert
+                                </button>
+                            </span>
+                        </li>
+                    </ul>
 
                 </div>
             </div>
@@ -32,7 +88,69 @@
         <div class="mdc-layout-grid__cell--span-2"></div>
     </div>
 </div>
+
+<div class="mdc-menu mdc-menu-surface">
+    <ul class="mdc-deprecated-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
+        <li class="mdc-deprecated-list-item" role="menuitem">
+            <span class="mdc-deprecated-list-item__ripple"></span>            
+            <span class="mdc-deprecated-list-item__text">View</span>
+            <span class="mdc-deprecated-list-item__meta">
+                <i class="material-icons">visibility</i>
+            </span>
+        </li>
+    <li class="mdc-deprecated-list-item" role="menuitem">
+        <span class="mdc-deprecated-list-item__ripple"></span>
+        <span class="mdc-deprecated-list-item__text">Edit</span>
+        <span class="mdc-deprecated-list-item__meta">
+            <i class="material-icons">edit</i>
+        </span>
+    </li>
+    <li class="mdc-deprecated-list-item" role="menuitem">
+        <span class="mdc-deprecated-list-item__ripple"></span>
+        <span class="mdc-deprecated-list-item__text">Export</span>
+        <span class="mdc-deprecated-list-item__meta">
+            <i class="material-icons">download</i>
+        </span>
+    </li>
+    <li class="mdc-deprecated-list-item" role="menuitem">
+        <span class="mdc-deprecated-list-item__ripple"></span>
+        <span class="mdc-deprecated-list-item__text">Delete</span>
+        <span class="mdc-deprecated-list-item__meta">
+            <i class="material-icons">delete</i>
+        </span>
+    </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block tooltips %}
+<!--<div id="tooltip-id" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+    <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+      lorem ipsum dolor
+    </div>
+</div>-->
 {% endblock %}
 
 {% block script %}
+<script>
+    // TODO:
+    // get request all projects
+    // assemble list with projects (add correct links, etc.)
+    // handle other button clicks (add, delete, edit, annotate)
+
+    const menu = new mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
+
+    function openMenu(event) {
+        console.log("Opening menu");
+        console.log(event);
+        menu.setAbsolutePosition(event.clientX, event.clientY);
+        menu.open = !menu.open;    
+    }
+</script>
+
+<script>
+    const listItemRipples = [].map.call(document.querySelectorAll('.mdc-list-item'), function(element) {
+        return new mdc.ripple.MDCRipple(element);
+    });
+</script>
 {% endblock %}

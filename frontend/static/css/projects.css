@@ -10,6 +10,11 @@
     width: 100%;
 }
 
+.list-item-end-custom {
+    pointer-events: all !important;
+    color: black !important;
+}
+
 .image-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));

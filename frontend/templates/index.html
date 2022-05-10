@@ -48,6 +48,8 @@
     </div>
   </div>
 
+  {% block tooltips %}{% endblock %}
+
   {% block script %}{% endblock %}
 
   <!-- MUI Web Components -->
@@ -61,6 +63,10 @@
     
     const textfields = [].map.call(document.querySelectorAll('.mdc-text-field'), function(element) {
         return new mdc.textField.MDCTextField(element);
+    });
+
+    const tooltips = [].map.call(document.querySelectorAll('.mdc-tooltip'), function(element) {
+        return new mdc.tooltip.MDCTooltip(element);
     });
   </script>
 </body>
