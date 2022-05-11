@@ -377,6 +377,34 @@ def confirm_anotation_exists(image_id):
     assert set(data.keys()) == set(["id", "data"])
 
 
+def update_annotation(image_id, image_name):
+    new_data = {
+        "image": image_name,
+        "grid_cells": [{
+                "corners": [
+                    {"x": 628.1555178074648, "y": 555.6936223629666, "id": "dc75a572-a1f3-421c-8b27-a56c5ac6d48c"}, 
+                    {"x": 506.7893166203104, "y": 556.3686265351816, "id": "90f40779-d3e3-47cf-bc9a-0eb950c89336"}, 
+                    {"x": 507.3894038067126, "y": 582.0948804038808, "id": "3608bd12-4b9d-4897-b735-4b08937cdb7d"}, 
+                    {"x": 628.6076629892434, "y": 581.461720391297, "id": "6ccdb989-5d92-4e5a-be68-676bfe6d9b14"}
+                ], 
+                "center": {"x": 567.7354753059328, "y": 568.9047124233315},
+                "id": "bd25ff5d-82c0-495d-a144-a6af298c0af2", 
+                "truncated": False
+            }]
+    }
+    response = client.put(
+        f"/annotation/{image_id}",
+        headers={"Content-Type": "application/json", "accept": "application/json"},
+        json={"data": new_data},
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["id"] == image_id
+    assert data["data"] == new_data
+    assert set(data.keys()) == set(["id", "data"])
+    return new_data
+
+
 def test_create_image_creates_annotation(test_db):
     project_id, _, _ = create_project()
     image_id1, _, image_id2, _ = create_images(project_id)
@@ -404,23 +432,11 @@ def test_delete_image_deletes_annotation(test_db):
 
 def test_update_annotation(test_db):
     project_id, _, _ = create_project()
-    image_id1, _, image_id2, _ = create_images(project_id)
+    image_id1, image_name1, image_id2, image_name2 = create_images(project_id)
 
-    for image_id in [image_id1, image_id2]:
+    for image_id, image_name in zip([image_id1, image_id2], [image_name1, image_name2]):
         confirm_anotation_exists(image_id)
-
-    # update annotation
-    new_data = {"image": "516ce9e2-fd78-4b0a-9d54-3cafc224a580.jpg", "grid_cells": [{"corners": [{"x": 628.1555178074648, "y": 555.6936223629666, "id": "dc75a572-a1f3-421c-8b27-a56c5ac6d48c"}, {"x": 506.7893166203104, "y": 556.3686265351816, "id": "90f40779-d3e3-47cf-bc9a-0eb950c89336"}, {"x": 507.3894038067126, "y": 582.0948804038808, "id": "3608bd12-4b9d-4897-b735-4b08937cdb7d"}, {"x": 628.6076629892434, "y": 581.461720391297, "id": "6ccdb989-5d92-4e5a-be68-676bfe6d9b14"}], "center": {"x": 567.7354753059328, "y": 568.9047124233315}, "id": "bd25ff5d-82c0-495d-a144-a6af298c0af2", "truncated": False}]}
-    response = client.put(
-        f"/annotation/{image_id}",
-        headers={"Content-Type": "application/json", "accept": "application/json"},
-        json={"data": new_data},
-    )
-    assert response.status_code == 200, response.text
-    data = response.json()
-    assert data["id"] == image_id
-    assert data["data"] == new_data
-    assert set(data.keys()) == set(["id", "data"])
+        update_annotation(image_id, image_name)
 
 
 def test_get_annotation_ids(test_db):
@@ -430,7 +446,7 @@ def test_get_annotation_ids(test_db):
     assert data == []
 
     project_id, _, _ = create_project()
-    image_id1, _, image_id2, _ = create_images(project_id)
+    image_id1, image_name1, image_id2, image_name2 = create_images(project_id)
 
     # since annotations are empty they should not be listed
     response = client.get(f"/annotation_ids/")
@@ -439,13 +455,7 @@ def test_get_annotation_ids(test_db):
     assert data == []
 
     # update annotation
-    new_data = {"a": 1, "b": 2}
-    response = client.put(
-        f"/annotation/{image_id1}",
-        headers={"Content-Type": "application/json", "accept": "application/json"},
-        json={"data": new_data},
-    )
-    assert response.status_code == 200, response.text
+    update_annotation(image_id1, image_name1)
 
     # now the updated annotation should be listed
     response = client.get(f"/annotation_ids/")
@@ -461,7 +471,7 @@ def test_get_annotation_ids(test_db):
 ##########################################################################################
 
 
-def check_export_file(response, project_id, project_name, project_description, image_name1, image_name2):
+def check_export_file(response, project_id, project_name, project_description, image_name1, image_name2, zip_file_members_expected):
     assert response.headers["content-disposition"] == f"attachment; filename=project_{project_id}.zip"
     assert response.headers["cache-control"] == "no-cache"
     assert response.headers["content-type"] == "application/x-zip-compressed"
@@ -470,11 +480,7 @@ def check_export_file(response, project_id, project_name, project_description, i
     zip_file = zipfile.ZipFile(io.BytesIO(response.content), "r")
     assert zip_file.testzip() == None
     zip_file_members = zip_file.namelist()
-    assert zip_file_members == [
-        'project.json', 
-        f'images/{image_name1}', 
-        f'images/{image_name2}'
-    ]
+    assert set(zip_file_members) == set(zip_file_members_expected)
 
     # check file contents
     for image_name, test_image_name in zip([image_name1, image_name2], ["test_image_1.jpg", "test_image_2.jpg"]):
@@ -490,6 +496,7 @@ def check_export_file(response, project_id, project_name, project_description, i
         assert project_meta["description"] == project_description
         assert project_meta["id"] == project_id
 
+    return zip_file
 
 
 def test_export_project_without_anotations(test_db):
@@ -497,14 +504,65 @@ def test_export_project_without_anotations(test_db):
     _, image_name1, _, image_name2 = create_images(project_id)
 
     response = client.get(f"/export/{project_id}")
-
     assert response.status_code == 200, response.text
     
-    check_export_file(response, project_id, project_name, project_description, image_name1, image_name2)
+    zip_file_members_expected = [
+        'project.json', 
+        f'images/{image_name1}', 
+        f'images/{image_name2}'
+    ]
+    check_export_file(
+        response, project_id, project_name, project_description, 
+        image_name1, image_name2, zip_file_members_expected)
 
     
 def test_export_project_with_anotations(test_db):
-    pass
+    project_id, project_name, project_description = create_project()
+    image_id1, image_name1, image_id2, image_name2 = create_images(project_id)
+
+    new_data1 = update_annotation(image_id1, image_name1)
+    new_data2 = update_annotation(image_id2, image_name2)
+
+    response = client.get(f"/export/{project_id}")
+    assert response.status_code == 200, response.text
+    
+    zip_file_members_expected = [
+        'project.json', 
+        f'annotations/{os.path.splitext(image_name1)[0]}.json', 
+        f'annotations/{os.path.splitext(image_name2)[0]}.json',
+        f'save/{os.path.splitext(image_name1)[0]}.json',
+        f'save/{os.path.splitext(image_name2)[0]}.json',
+        f'images/{image_name1}', 
+        f'images/{image_name2}'
+    ]
+
+    zip_file = check_export_file(
+        response, project_id, project_name, project_description, 
+        image_name1, image_name2, zip_file_members_expected)
+
+    # check file contents of save and annotation
+    for image_name, new_data in zip([image_name1, image_name2], [new_data1, new_data2]):
+        with zip_file.open(f"save/{os.path.splitext(image_name)[0]}.json", "r") as annotation_zipped:
+            annotation = json.loads(annotation_zipped.read())
+            assert annotation == new_data
+
+    with zip_file.open(f"annotations/{os.path.splitext(image_name1)[0]}.json", "r") as annotation_zipped:
+        annotation = json.loads(annotation_zipped.read())
+
+        assert annotation == {
+            'image': image_name1, 
+            'grid_cells': [{
+                'corners': [
+                    {'x': 628.1555178074648, 'y': 555.6936223629666}, 
+                    {'x': 506.7893166203104, 'y': 556.3686265351816}, 
+                    {'x': 507.3894038067126, 'y': 582.0948804038808}, 
+                    {'x': 628.6076629892434, 'y': 581.461720391297}
+                ], 
+                'center': {'x': 567.7354753059328, 'y': 568.9047124233315}, 
+                'id': 'bd25ff5d-82c0-495d-a144-a6af298c0af2', 
+                'truncated': False
+            }]
+        }
 
 
 def test_export_non_existing_project(test_db):

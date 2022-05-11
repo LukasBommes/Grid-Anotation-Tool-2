@@ -4,6 +4,7 @@ import tempfile
 import zipfile
 import json
 import shutil
+import copy
 
 from datetime import datetime
 from typing import List
@@ -12,6 +13,7 @@ from fastapi import Depends, FastAPI, HTTPException, File, UploadFile, Backgroun
 from fastapi.responses import FileResponse
 from sqlalchemy import event
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import NoResultFound
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import config, models, schemas
@@ -256,8 +258,7 @@ def update_annotation(image_id: int, annotation: schemas.AnnotationCreate, db: S
 #
 ##########################################################################################
 
-from sqlalchemy.exc import NoResultFound
-import copy
+
 def strip_annotation(annotation_data):
     """Cleanup up the annotation JSON."""
     stripped = {}
@@ -323,7 +324,7 @@ def export_project(project_id: int, background_tasks: BackgroundTasks, db: Sessi
             image_name = os.path.splitext(image.name)[0]
             db_annotation = db.query(models.Annotation).get(image.id)
             if not db_annotation:
-                raise NoResultFound(f"Annotation with id {image.id} not found.")
+                raise NoResultFound(f"Annotation with id {image.id} not found.")  # should never happen
 
             annotation_data = db_annotation.data
 
@@ -357,8 +358,6 @@ def export_project(project_id: int, background_tasks: BackgroundTasks, db: Sessi
             "Cache-Control": "no-cache",
         }
     )
-
-#http://localhost:8000/export/15
 
 
 #@app.post("/export/{project_id}", response_model=)
