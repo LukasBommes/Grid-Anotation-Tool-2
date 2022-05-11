@@ -1,6 +1,9 @@
 import os
 import glob
 import shutil
+import io
+import json
+import zipfile
 
 import pytest
 from fastapi.testclient import TestClient
@@ -458,16 +461,53 @@ def test_get_annotation_ids(test_db):
 ##########################################################################################
 
 
+def check_export_file(response, project_id, project_name, project_description, image_name1, image_name2):
+    assert response.headers["content-disposition"] == f"attachment; filename=project_{project_id}.zip"
+    assert response.headers["cache-control"] == "no-cache"
+    assert response.headers["content-type"] == "application/x-zip-compressed"
+
+    # convert response back into zipfile
+    zip_file = zipfile.ZipFile(io.BytesIO(response.content), "r")
+    assert zip_file.testzip() == None
+    zip_file_members = zip_file.namelist()
+    assert zip_file_members == [
+        'project.json', 
+        f'images/{image_name1}', 
+        f'images/{image_name2}'
+    ]
+
+    # check file contents
+    for image_name, test_image_name in zip([image_name1, image_name2], ["test_image_1.jpg", "test_image_2.jpg"]):
+        with zip_file.open(f"images/{image_name}", "r") as image_zipped, open(test_image_name, "rb") as image:
+            assert image_zipped.read() == image.read()
+
+    with zip_file.open("project.json", "r") as project_zipped:
+        project_meta = json.loads(project_zipped.read())
+
+        assert set(project_meta.keys()) == set(['version', 'id', 'name', 'description', 'created', 'edited'])
+        assert project_meta["version"] == "v1.0"
+        assert project_meta["name"] == project_name
+        assert project_meta["description"] == project_description
+        assert project_meta["id"] == project_id
+
+
+
+def test_export_project_without_anotations(test_db):
+    project_id, project_name, project_description = create_project()
+    _, image_name1, _, image_name2 = create_images(project_id)
+
+    response = client.get(f"/export/{project_id}")
+
+    assert response.status_code == 200, response.text
+    
+    check_export_file(response, project_id, project_name, project_description, image_name1, image_name2)
+
+    
+def test_export_project_with_anotations(test_db):
+    pass
+
+
 def test_export_non_existing_project(test_db):
     project_id = -1
     response = client.get(f"/export/{project_id}")
     assert response.status_code == 404, response.text
-
-
-def test_export_project(test_db):
-    project_id, project_name, project_description = create_project()
-    image_id1, image_name1, image_id2, image_name2 = create_images(project_id)
-
-    response = client.get(f"/export/{project_id}")
-
-    assert False
