@@ -21,7 +21,7 @@
     width: 100%;
 }
 
-.btn-group {
+/*.btn-group {
     z-index: 1;
     position: absolute;
     width: 200px;
@@ -46,4 +46,32 @@
 
 .btn-group .btn-active {
     background-color: #186fab;
+}*/
+
+.btn-group {
+    z-index: 1;
+    position: absolute;
+    width: 48px;
+    top: 40px;
+    right: 0;
+    padding: 20px;
+}
+
+.btn-group .editor-button {
+    margin-bottom: 5px;
+    border: 1px solid gray;
+    border-radius: 5px;
+    background-color: #e6e6e6;
+}
+
+.btn-group .editor-button:last-child {
+    margin-bottom: 0px;
+}
+
+.btn-group .editor-button:hover {
+    background-color: #cacaca;
+}
+
+.btn-group .btn-active, .btn-group .btn-active:hover {
+    background-color: #868686;
 }

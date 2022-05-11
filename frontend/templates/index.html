@@ -69,10 +69,9 @@
   <!-- MUI Web Components -->
   <script>    
     const iconButtonRipples = [].map.call(document.querySelectorAll('.app-bar-icon-button'), function(element) {
-        return new mdc.ripple.MDCRipple(element);
-    });
-    iconButtonRipples.forEach((ripple) => {
+        const ripple = new mdc.ripple.MDCRipple(element);
         ripple.unbounded = true;
+        return ripple;
     });
     
     const textfields = [].map.call(document.querySelectorAll('.mdc-text-field'), function(element) {
@@ -80,7 +79,10 @@
     });
 
     const tooltips = [].map.call(document.querySelectorAll('.mdc-tooltip'), function(element) {
-        return new mdc.tooltip.MDCTooltip(element);
+        const tooltip = new mdc.tooltip.MDCTooltip(element);
+        tooltip.setShowDelay(500);
+        tooltip.setHideDelay(0);
+        return tooltip;
     });
   </script>
 </body>

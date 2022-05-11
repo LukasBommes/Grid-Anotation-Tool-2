@@ -15,7 +15,7 @@
 </button>
 <button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Setup Project" onclick="setupProjectClicked()">
     <div class="mdc-icon-button__ripple"></div>
-    settings
+    build
 </button>
 {% endblock %}
 
@@ -26,17 +26,84 @@
 </div>
 
 <div class="btn-group" id="drawing-actions">
-  <button id='btn-draw-auxline' class="btn-active">Draw Auxilary Line</button>
-  <button id='btn-draw-auxcurve'>Draw Auxilary Curve</button>
-  <button id='btn-get-intersects'>Get Intersections</button>
-  <button id='btn-add-corner'>Add Corners</button>
-  <button id='btn-create-module'>Create Grid Cell</button>
-  <button id='btn-create-module-manual'>Create Grid Cell (manual)</button>
-  <button id='btn-mark-module-partially-visible'>Toggle Cell Visibility</button>
-  <button id='btn-erase'>Erase</button>
+  <button id='btn-draw-auxline' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-draw-auxline">
+    <span class="mdc-icon-button__focus-ring"></span>
+    remove
+  </button>
+  <button id='btn-draw-auxcurve' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-draw-auxcurve">
+    <span class="mdc-icon-button__focus-ring"></span>
+    gesture
+  </button>
+  <button id='btn-get-intersects' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-get-intersects">
+    <span class="mdc-icon-button__focus-ring"></span>
+    auto_fix_high
+  </button>
+  <button id='btn-add-corner' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-add-corner">
+    <span class="mdc-icon-button__focus-ring"></span>
+    scatter_plot
+  </button>
+  <button id='btn-create-module' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-create-module">
+    <span class="mdc-icon-button__focus-ring"></span>
+    apps
+  </button>
+  <button id='btn-create-module-manual' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-create-module-manual">
+    <span class="mdc-icon-button__focus-ring"></span>
+    app_registration
+  </button>
+  <button id='btn-mark-module-partially-visible' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-mark-module-partially-visible">
+    <span class="mdc-icon-button__focus-ring"></span>
+    visibility
+  </button>
+  <button id='btn-erase' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-erase">
+    <span class="mdc-icon-button__focus-ring"></span>
+    delete
+  </button>
 </div>
 
 <svg id="current_image"></svg>
+{% endblock %}
+
+{% block tooltips %}
+<div id="tooltip-draw-auxline" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+  <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+    Draw auxiliary line
+  </div>
+</div>
+<div id="tooltip-draw-auxcurve" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+  <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+    Draw auxiliary curve
+  </div>
+</div>
+<div id="tooltip-get-intersects" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+  <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+    Get intersections of auxiliary lines/curves as grid cell corners
+  </div>
+</div>
+<div id="tooltip-add-corner" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+  <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+    Add grid cell corners manually
+  </div>
+</div>
+<div id="tooltip-create-module" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+  <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+    Create grid cell automatically
+  </div>
+</div>
+<div id="tooltip-create-module-manual" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+  <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+    Create grid cell manually by clicking four corners
+  </div>
+</div>
+<div id="tooltip-mark-module-partially-visible" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+  <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+    Mark grid cell as partially visible
+  </div>
+</div>
+<div id="tooltip-erase" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+  <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+    Erase items
+  </div>
+</div>
 {% endblock %}
 
 {% block script %}
@@ -410,6 +477,7 @@
         console.log("Computed new corners as intersections of auxiliary lines.");
       } else if (btn.id == 'btn-mark-module-partially-visible') {
         marker_mode = "mark_module_partially_visible";
+        btn.classList.add("btn-active");
         svg.select("#cursor")
           .style("fill-opacity", 0)
           .style("stroke", null);
