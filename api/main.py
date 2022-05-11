@@ -288,44 +288,67 @@ def export_project(project_id: int, background_tasks: BackgroundTasks, db: Sessi
     filepath = os.path.join(temp_dir, filename)
     with zipfile.ZipFile(filepath, mode="w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip_file:
 
-        # get project data
+        # store project data in zip
         db_project = db.query(models.Project).get(project_id)
         if not db_project:
             raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
 
-        # print(db_project)
+        project_meta = {
+            "version": "v1.0",  # version of the export file spec
+            "id": db_project.id,
+            "name": db_project.name,
+            "description": db_project.description,
+            "created": db_project.created,
+            "edited": db_project.edited
+        }
 
+        zip_file.writestr(
+            "project.json", 
+            data=json.dumps(
+                project_meta, 
+                ensure_ascii=False,
+                default=str
+            )
+        )
+
+        # store images and annotations in zip
         images = db.query(models.Image).filter(models.Image.project_id == project_id).all()
-        # print(images)
-        # for image in images:
-        #     filepath = os.path.join(config.MEDIA_ROOT, image.name)
-        #     print(filepath)
-
-        # get project -> store json response
-        # get images -> store to image folder
-        # for each image -> get annotation -> store annotation / store stripped down version
-
         for image in images:
 
-            image_name = os.path.splitext(image.name)[0]
-            print(image_name)
+            # store image files
+            image_filepath = os.path.join(config.MEDIA_ROOT, image.name)
+            print(image_filepath)
+            image_arcname = os.path.join("images", os.path.basename(image_filepath))
+            zip_file.write(image_filepath, image_arcname)
 
+            # store annotations and stripped down annotations into zip
+            image_name = os.path.splitext(image.name)[0]
             db_annotation = db.query(models.Annotation).get(image.id)
             if not db_annotation:
                 raise NoResultFound(f"Annotation with id {image.id} not found.")
 
             annotation_data = db_annotation.data
-            if len(annotation_data):
-                annotation_stripped = strip_annotation(annotation_data)
-                print(annotation_stripped)
 
-                annotation_stripped_json = json.dumps(
-                    annotation_stripped, 
-                    ensure_ascii=False,
+            if len(annotation_data):
+                annotation_data_stripped = strip_annotation(annotation_data)
+
+                zip_file.writestr(
+                    os.path.join("annotations", f"{image_name}.json"), 
+                    data=json.dumps(
+                        annotation_data_stripped, 
+                        ensure_ascii=False,
+                    )
                 )
 
-                zip_file.writestr(os.path.join("annotations", f"{image_name}.json"), data=annotation_stripped_json)
-                zip_file.testzip()
+                zip_file.writestr(
+                    os.path.join("save", f"{image_name}.json"), 
+                    data=json.dumps(
+                        annotation_data, 
+                        ensure_ascii=False,
+                    )
+                )
+            
+            zip_file.testzip()
 
     background_tasks.add_task(cleanup, temp_dir)
     return FileResponse(
@@ -334,63 +357,10 @@ def export_project(project_id: int, background_tasks: BackgroundTasks, db: Sessi
         headers={
             "Content-Disposition": f"attachment; filename={filename}",
             "Cache-Control": "no-cache",
-            #"Access-Control-Expose-Headers": "Content-Disposition"
         }
     )
 
 #http://localhost:8000/export/15
-
-# @app.get("/export/{project_id}")
-# def export_project(project_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-#     data = {"a": 1, "b": 2}
-#     print("bla")
-
-#     # write all data to the zipfile
-#     temp_dir = tempfile.mkdtemp()
-#     filename = f"project_{project_id}.zip"
-#     filepath = os.path.join(temp_dir, filename)
-
-#     with zipfile.ZipFile(filepath, mode="w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip_file:
-#         dumped_JSON: str = json.dumps(data, ensure_ascii=False, indent=4)
-#         zip_file.writestr("data.json", data=dumped_JSON)
-#         zip_file.writestr("data2.json", data=dumped_JSON)
-#         zip_file.testzip()
-
-#     background_tasks.add_task(cleanup, temp_dir)
-#     return FileResponse(
-#         filepath,
-#         media_type="application/x-zip-compressed",
-#         headers={
-#             "Content-Disposition": f"attachment; filename={filename}",
-#             "Cache-Control": "no-cache",
-#             #"Access-Control-Expose-Headers": "Content-Disposition"
-#         }
-#     )
-
-# @app.get("/export/{project_id}")
-# def export_project(project_id: int, db: Session = Depends(get_db)):
-#     data = {"a": 1, "b": 2}
-#     print("bla")
-
-#     # write all data to the zipfile
-#     filename = f"project_{project_id}.zip"
-#     filepath = os.path.join("tmp", filename)
-
-#     with zipfile.ZipFile(filepath, mode="w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip_file:
-#         dumped_JSON: str = json.dumps(data, ensure_ascii=False, indent=4)
-#         zip_file.writestr("data.json", data=dumped_JSON)
-#         zip_file.writestr("data2.json", data=dumped_JSON)
-#         zip_file.testzip()
-
-#     return FileResponse(
-#         filepath,
-#         media_type="application/x-zip-compressed",
-#         headers={
-#             "Content-Disposition": f"attachment; filename={filename}",
-#             "Cache-Control": "no-cache",
-#             #"Access-Control-Expose-Headers": "Content-Disposition"
-#         }
-#     )
 
 
 #@app.post("/export/{project_id}", response_model=)
