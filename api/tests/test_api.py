@@ -361,6 +361,25 @@ def test_delete_project_deletes_images(test_db):
         load_files([name1, name2])
 
 
+def test_get_image_file(test_db):
+    project_id, _, _ = create_project()
+    image_id1, _, image_id2, _ = create_images(project_id)
+
+    for image_id, test_image_name in zip([image_id1, image_id2], ["test_image_1.jpg", "test_image_2.jpg"]):
+        response = client.get(f"/image_file/{image_id}")
+        assert response.status_code == 200, response.text
+
+        with open(test_image_name, "rb") as image:
+            response_image = io.BytesIO(response.content)
+            assert response_image.read() == image.read()
+
+
+def test_get_non_existing_image_file(test_db):
+    image_id = -1
+    response = client.get(f"/image_file/{image_id}")
+    assert response.status_code == 404, response.text
+
+
 ##########################################################################################
 #
 # Annotation API
