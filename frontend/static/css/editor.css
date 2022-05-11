@@ -14,39 +14,11 @@
     overflow: hidden;
     width: 100%;
     min-height: 100%;
-    /* background-color: #0a172b; */ /* forest green: #102f00 */
 }
 
 #images_selection {
     width: 100%;
 }
-
-/*.btn-group {
-    z-index: 1;
-    position: absolute;
-    width: 200px;
-    top: 40px;
-    right: 0;
-    padding: 20px;
-}
-
-.btn-group button {
-    display: block;
-    background-color: #173346;
-    border: 1px solid #0a172b;
-    color: white;
-    padding: 10px 24px;
-    cursor: pointer;
-    width: 100%;
-}
-
-.btn-group button:not(:last-child) {
-    border-bottom: none;
-}
-
-.btn-group .btn-active {
-    background-color: #186fab;
-}*/
 
 .btn-group {
     z-index: 1;
