@@ -451,7 +451,23 @@ def test_get_annotation_ids(test_db):
     assert data == [image_id1]
 
 
+##########################################################################################
+#
+# Project Import / Export API
+#
+##########################################################################################
 
 
+def test_export_non_existing_project(test_db):
+    project_id = -1
+    response = client.get(f"/export/{project_id}")
+    assert response.status_code == 404, response.text
 
 
+def test_export_project(test_db):
+    project_id, project_name, project_description = create_project()
+    image_id1, image_name1, image_id2, image_name2 = create_images(project_id)
+
+    response = client.get(f"/export/{project_id}")
+
+    assert False

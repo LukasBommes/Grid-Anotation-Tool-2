@@ -247,7 +247,6 @@ def update_annotation(image_id: int, annotation: schemas.AnnotationCreate, db: S
         db.commit()
         db.refresh(db_annotation)
         db_annotation = jsonable_encoder(db_annotation)
-    print("db_annotation", db_annotation)
     return db_annotation
 
 
@@ -317,7 +316,6 @@ def export_project(project_id: int, background_tasks: BackgroundTasks, db: Sessi
 
             # store image files
             image_filepath = os.path.join(config.MEDIA_ROOT, image.name)
-            print(image_filepath)
             image_arcname = os.path.join("images", os.path.basename(image_filepath))
             zip_file.write(image_filepath, image_arcname)
 
