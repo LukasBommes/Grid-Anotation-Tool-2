@@ -260,7 +260,7 @@
     }
 
     function exportProjectClicked(project_id) {
-        console.log("Export "+project_id);
+        window.location.href = `${API_URL}/export/${project_id}`;
     }
 
     function deleteProjectClicked(project_id) {

@@ -9,11 +9,11 @@
 {% endblock %}
 
 {% block appbar_buttons %}
-<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Annotation">
+<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Project" onclick="exportProjectClicked()">
     <div class="mdc-icon-button__ripple"></div>
     file_download
 </button>
-<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Annotation">
+<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Setup Project" onclick="setupProjectClicked()">
     <div class="mdc-icon-button__ripple"></div>
     settings
 </button>
@@ -910,5 +910,25 @@
       saveAnnotationReq.send(JSON.stringify({"data": json_data}));
     }
   });
-  </script>
+</script>
+
+<script>
+  const API_URL = {{ api_url|tojson }};
+  const project_id = {{ project_id|tojson }};
+
+  function exportProjectClicked() {
+    window.location.href = `${API_URL}/export/${project_id}`;
+  }
+
+  function setupProjectClicked() {
+        var editProjectRedirectReq = new XMLHttpRequest();
+        editProjectRedirectReq.addEventListener("load", function () {
+            if (this.status == 200) {
+                window.location.href = JSON.parse(this.responseText).url;
+            }  
+        });
+        editProjectRedirectReq.open("GET", "{{ url_for('get_edit_project_url') }}"+"?project_id="+project_id);
+        editProjectRedirectReq.send();
+    }
+</script>
 {% endblock %}
