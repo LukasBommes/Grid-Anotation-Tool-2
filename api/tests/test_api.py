@@ -65,7 +65,7 @@ def create_project(name="Name", description="Description"):
         headers={"Content-Type": "application/json", "accept": "application/json"},
         json={"name": name, "description": description},
     )
-    assert response.status_code == 200, response.text
+    assert response.status_code == 201, response.text
     data = response.json()
     assert data["name"] == name
     assert data["description"] == description
@@ -223,7 +223,7 @@ def create_images(project_id):
     # confirm files are uploaded to images directory
     assert len(glob.glob(os.path.join("images", "*.jpg"))) == 2
 
-    assert response.status_code == 200, response.text
+    assert response.status_code == 201, response.text
     data = response.json()
     assert len(data) == 2
     assert set(data[0].keys()) == set(["name", "id", "project_id"])

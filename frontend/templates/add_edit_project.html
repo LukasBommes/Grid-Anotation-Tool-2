@@ -199,7 +199,7 @@
             createImagesReq.addEventListener("load", function () {
                 console.log("Images created.")
                 console.log(this.responsetext)
-                if (this.status == 200) {                    
+                if (this.status == 201) {                    
                     snackbar.labelText = project_save_success_msg;
                     snackbar.open();
                     redirectHome();
@@ -245,7 +245,7 @@
     }
 
     function saveProjectListener(images_data, project_id, event) {
-        if (event.target.status == 200) {            
+        if ((event.target.status == 200) || (event.target.status == 201)) {            
             const response = JSON.parse(event.target.responseText);
             if (!images_data.has("files")) {
                 snackbar.labelText = project_save_success_msg;

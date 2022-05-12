@@ -14,6 +14,7 @@ from typing import List
 import filetype
 from fastapi import Depends, FastAPI, HTTPException, File, UploadFile, BackgroundTasks
 from fastapi.responses import FileResponse
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import event
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
@@ -52,7 +53,7 @@ def get_db():
 ##########################################################################################
 
 
-@app.post("/projects/", response_model=schemas.Project)
+@app.post("/projects/", response_model=schemas.Project, status_code=201)
 def create_project(project: schemas.ProjectCreate, db: Session = Depends(get_db)):
     now = datetime.now()
     db_project = models.Project(**project.dict(), created=now, edited=now)
@@ -62,13 +63,13 @@ def create_project(project: schemas.ProjectCreate, db: Session = Depends(get_db)
     return db_project
 
 
-@app.get("/projects/", response_model=List[schemas.Project])
+@app.get("/projects/", response_model=List[schemas.Project], status_code=200)
 def get_projects(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     db_projects = db.query(models.Project).offset(skip).limit(limit).all()
     return db_projects
 
 
-@app.get("/project/{project_id}", response_model=schemas.Project)
+@app.get("/project/{project_id}", response_model=schemas.Project, status_code=200)
 def get_project(project_id: int, db: Session = Depends(get_db)):
     db_project = db.query(models.Project).get(project_id)
     if not db_project:
@@ -76,7 +77,7 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
     return db_project
 
 
-@app.delete("/project/{project_id}", response_model=schemas.Project)
+@app.delete("/project/{project_id}", response_model=schemas.Project, status_code=200)
 def delete_project(project_id: int, db: Session = Depends(get_db)):
     db_project = db.query(models.Project).get(project_id)
     if not db_project:
@@ -87,7 +88,7 @@ def delete_project(project_id: int, db: Session = Depends(get_db)):
     return db_project
 
 
-@app.put("/project/{project_id}", response_model=schemas.Project)
+@app.put("/project/{project_id}", response_model=schemas.Project, status_code=200)
 def update_project(project_id: int, project: schemas.ProjectCreate, db: Session = Depends(get_db)):
     db_project_query = db.query(models.Project).filter(models.Project.id == project_id)
     db_project = db_project_query.first()
@@ -108,13 +109,13 @@ def update_project(project_id: int, project: schemas.ProjectCreate, db: Session 
 ##########################################################################################
 
 
-@app.get("/project/{project_id}/images/", response_model=List[schemas.Image])
+@app.get("/project/{project_id}/images/", response_model=List[schemas.Image], status_code=200)
 def get_images(project_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     images = db.query(models.Image).filter(models.Image.project_id == project_id).offset(skip).limit(limit).all()
     return images
 
 
-@app.get("/image/{image_id}", response_model=schemas.Image)
+@app.get("/image/{image_id}", response_model=schemas.Image, status_code=200)
 def get_image(image_id: int, db: Session = Depends(get_db)):
     db_image = db.query(models.Image).get(image_id)
     if not db_image:
@@ -122,7 +123,7 @@ def get_image(image_id: int, db: Session = Depends(get_db)):
     return db_image
 
 
-@app.get("/image_file/{image_id}", response_class=FileResponse)
+@app.get("/image_file/{image_id}", response_class=FileResponse, status_code=200)
 def get_image_file(image_id: int, db: Session = Depends(get_db)):
     db_image = db.query(models.Image).get(image_id)
     if not db_image:
@@ -131,7 +132,7 @@ def get_image_file(image_id: int, db: Session = Depends(get_db)):
     return filepath
 
 
-@app.delete("/image/{image_id}", response_model=schemas.Image)
+@app.delete("/image/{image_id}", response_model=schemas.Image, status_code=200)
 def delete_image(image_id: int, db: Session = Depends(get_db)):
     db_image = db.query(models.Image).get(image_id)
     if not db_image:
@@ -154,7 +155,7 @@ def delete_image(name):
         os.remove(filepath)
 
 
-@app.post("/project/{project_id}/images/", response_model=List[schemas.Image])
+@app.post("/project/{project_id}/images/", response_model=List[schemas.Image], status_code=201)
 def create_image(project_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
     db_project = db.query(models.Project).get(project_id)
     if not db_project:
@@ -227,7 +228,7 @@ def receive_after_rollback(session):
 ##########################################################################################
 
 
-@app.get("/annotation_ids/", response_model=List[int])
+@app.get("/annotation_ids/", response_model=List[int], status_code=200)
 def get_annotation_ids(db: Session = Depends(get_db)):
     annotation_ids = []
     db_annotations = db.query(models.Annotation).all()
@@ -237,7 +238,7 @@ def get_annotation_ids(db: Session = Depends(get_db)):
     return annotation_ids
 
 
-@app.get("/annotation/{image_id}", response_model=schemas.Annotation)
+@app.get("/annotation/{image_id}", response_model=schemas.Annotation, status_code=200)
 def get_annotation(image_id: int, db: Session = Depends(get_db)):
     db_annotation = db.query(models.Annotation).get(image_id)
     if not db_annotation:
@@ -245,8 +246,7 @@ def get_annotation(image_id: int, db: Session = Depends(get_db)):
     return db_annotation
 
 
-from fastapi.encoders import jsonable_encoder
-@app.put("/annotation/{image_id}", response_model=schemas.Annotation)
+@app.put("/annotation/{image_id}", response_model=schemas.Annotation, status_code=200)
 def update_annotation(image_id: int, annotation: schemas.AnnotationCreate, db: Session = Depends(get_db)):
     db_annotation_query = db.query(models.Annotation).filter(models.Annotation.id == image_id)
     db_annotation = db_annotation_query.first()
@@ -288,7 +288,7 @@ def cleanup(filepath):
     shutil.rmtree(filepath)
 
 
-@app.get("/export/{project_id}")
+@app.get("/export/{project_id}", status_code=200)
 def export_project(project_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
 
     # create temporary zip file
@@ -395,7 +395,7 @@ def validate_imported_file(zip_file):
     return True
 
 
-@app.post("/import/")
+@app.post("/import/", status_code=201)
 def import_project(file: UploadFile, db: Session = Depends(get_db)):
     # receive zip file
     contents = file.file.read()
@@ -454,8 +454,3 @@ def import_project(file: UploadFile, db: Session = Depends(get_db)):
         db_annotation = models.Annotation(id=db_image.id, data=annotation)
         db.add(db_annotation)
         db.commit()
-
-    return
-
-# TODO: 
-# - raise error if no file was uploaded
