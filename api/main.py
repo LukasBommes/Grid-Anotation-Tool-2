@@ -396,7 +396,7 @@ def validate_imported_file(zip_file):
 
 
 @app.post("/import/")
-def import_project(file: UploadFile = File(...), db: Session = Depends(get_db)):
+def import_project(file: UploadFile, db: Session = Depends(get_db)):
     # receive zip file
     contents = file.file.read()
 
@@ -423,19 +423,20 @@ def import_project(file: UploadFile = File(...), db: Session = Depends(get_db)):
         db.commit()
         db.refresh(db_project)
 
-    print(db_project.id)
     members = zip_file.namelist()
     members.remove('project.json')
 
     for member in members:
         basename, filename = os.path.split(member)
-        file_uuid = os.path.splitext(filename)[0]
-        print(basename, filename, file_uuid)
+        #file_uuid = os.path.splitext(filename)[0]
+        #print(basename, filename, file_uuid)
 
         # extract images and add image DB entries
         if basename == "images":
-            #zip_file.extract(member, path=config.MEDIA_ROOT)
-            zip_file.read(member)
+            # extract image 
+            with open(os.path.join(config.MEDIA_ROOT, filename), "wb") as image_file:
+                with zip_file.open(member, "r") as image_data:
+                    image_file.write(image_data.read())
 
             db_image = models.Image(name=filename, project_id=db_project.id)
             db.add(db_image)
@@ -446,7 +447,6 @@ def import_project(file: UploadFile = File(...), db: Session = Depends(get_db)):
         elif basename == "save":
             with zip_file.open(member, "r") as annotation_file:
                 annotation = json.loads(annotation_file.read())
-                print(annotation)
 
             db_annotation = models.Annotation(id=db_image.id, data=annotation)
             db.add(db_annotation)
@@ -455,30 +455,8 @@ def import_project(file: UploadFile = File(...), db: Session = Depends(get_db)):
         else:
             continue
 
-
-    # #uuid_regex = re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', re.I)
-    # #images_names = 
-
-    # # extract images and add image DB entries
-    # image_regex = re.compile(r'^images(\\|\/)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[A-Za-z]{3,4}$', re.I)
-    # image_files = list(filter(image_regex.fullmatch, members))
-
-    # for image_file in image_files:
-    #     print(image_file)
-    #     zip_file.extract(image_file, path=config.MEDIA_ROOT)
-    #     image_name = 
-
-    #     # add image DB entry
-    #     db_image = models.Image(name=image_name, project_id=db_project.id)
-    #     db.add(db_image)
-    #     db.commit()
-
-    # # add annotation DB entries
-    # annotation_regex = re.compile(r'^save(\\|\/)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(json|JSON)$', re.I)
-    # annotation_files = list(filter(annotation_regex.fullmatch, members))
-
-    # for annotation_file in annotation_files:
-    #     print(annotation_file)
-    
-
     return
+
+# TODO: 
+# - create empy annotation for images with no "save.json" file
+# - raise error if no file was uploaded
