@@ -6,6 +6,7 @@ import json
 import shutil
 import copy
 import io
+import re
 
 from datetime import datetime
 from typing import List
@@ -183,7 +184,7 @@ def create_image(project_id: int, files: List[UploadFile] = File(...), db: Sessi
             db.add(db_annotation)
             db.commit()
 
-            db.refresh(db_image)
+            db.refresh(db_image)  # should probably instead go right after commit of db_image
             db_images.append(db_image)
     return db_images
 
@@ -369,65 +370,115 @@ def export_project(project_id: int, background_tasks: BackgroundTasks, db: Sessi
 
 
 def validate_imported_file(zip_file):
-    pass
+    members = zip_file.namelist()
+    if not 'project.json' in members:
+        return False
+
+    with zip_file.open("project.json", "r") as project_zipped:
+        project_meta = json.loads(project_zipped.read())
+        if not set(project_meta.keys()) == set(['version', 'id', 'name', 'description', 'created', 'edited']):
+            return False
+        if not isinstance(project_meta["id"], int):
+            return False
+        if not isinstance(project_meta["version"], str):
+            return False
+        if not isinstance(project_meta["name"], str):
+            return False
+        if not isinstance(project_meta["description"], str):
+            return False
+
+    members.remove('project.json')
+    regex = re.compile(r'^(images|annotations|save)(\\|\/)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(json|JSON|[A-Za-z]{3,4})$', re.I)
+    if not all([bool(regex.fullmatch(member)) for member in members]):
+        return False
+
+    return True
 
 
 @app.post("/import/")
 def import_project(file: UploadFile = File(...), db: Session = Depends(get_db)):
     # receive zip file
-
-    print(file.filename)
     contents = file.file.read()
 
+    # validate it is a zip file
     if not zipfile.is_zipfile(io.BytesIO(contents)):
-        raise HTTPException(status_code=422, detail=f"Uploaded file is not a valid zip file.")
+        raise HTTPException(status_code=422, detail=f"Uploaded file is not a valid zip archive.")
     
-
     zip_file = zipfile.ZipFile(io.BytesIO(contents), "r")
     assert zip_file.testzip() == None
-    zip_file_members = zip_file.namelist()
-    print(zip_file_members)
+    if not validate_imported_file(zip_file):
+        raise HTTPException(status_code=422, detail=f"Uploaded file is not a valid project archive.")
 
-    # TODO: validate this is a valid project export file
+    # add project DB entry
+    with zip_file.open("project.json", "r") as project_zipped:
+        project_meta = json.loads(project_zipped.read())
+        now = datetime.now()
+        db_project = models.Project(
+            name=project_meta["name"], 
+            description=project_meta["description"], 
+            created=now, 
+            edited=now
+        )
+        db.add(db_project)
+        db.commit()
+        db.refresh(db_project)
 
-    # unpack contents of zip file
+    print(db_project.id)
+    members = zip_file.namelist()
+    members.remove('project.json')
 
-    # add project
+    for member in members:
+        basename, filename = os.path.split(member)
+        file_uuid = os.path.splitext(filename)[0]
+        print(basename, filename, file_uuid)
+
+        # extract images and add image DB entries
+        if basename == "images":
+            #zip_file.extract(member, path=config.MEDIA_ROOT)
+            zip_file.read(member)
+
+            db_image = models.Image(name=filename, project_id=db_project.id)
+            db.add(db_image)
+            db.commit()
+            db.refresh(db_image)
+
+        # add annotation DB entries
+        elif basename == "save":
+            with zip_file.open(member, "r") as annotation_file:
+                annotation = json.loads(annotation_file.read())
+                print(annotation)
+
+            db_annotation = models.Annotation(id=db_image.id, data=annotation)
+            db.add(db_annotation)
+            db.commit()
+
+        else:
+            continue
 
 
-    # add images
+    # #uuid_regex = re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', re.I)
+    # #images_names = 
 
-    # add annotations
+    # # extract images and add image DB entries
+    # image_regex = re.compile(r'^images(\\|\/)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[A-Za-z]{3,4}$', re.I)
+    # image_files = list(filter(image_regex.fullmatch, members))
 
-    return 
+    # for image_file in image_files:
+    #     print(image_file)
+    #     zip_file.extract(image_file, path=config.MEDIA_ROOT)
+    #     image_name = 
 
+    #     # add image DB entry
+    #     db_image = models.Image(name=image_name, project_id=db_project.id)
+    #     db.add(db_image)
+    #     db.commit()
 
+    # # add annotation DB entries
+    # annotation_regex = re.compile(r'^save(\\|\/)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(json|JSON)$', re.I)
+    # annotation_files = list(filter(annotation_regex.fullmatch, members))
 
+    # for annotation_file in annotation_files:
+    #     print(annotation_file)
+    
 
-# @app.post("/project/{project_id}/images/", response_model=List[schemas.Image])
-# def create_image(project_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
-#     db_project = db.query(models.Project).get(project_id)
-#     if not db_project:
-#         raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
-#     else:
-#         db_images = []
-#         for file in files:
-#             # upload file to MEDIA_ROOT
-#             _, filext = os.path.splitext(file.filename)
-#             filename = f"{str(uuid.uuid4())}{filext}"
-#             contents = file.file.read()
-#             save_image(filename, contents)
-
-#             # add image DB entry
-#             db_image = models.Image(name=filename, project_id=project_id)
-#             db.add(db_image)
-#             db.commit()
-
-#             # add annotation DB entry
-#             db_annotation = models.Annotation(id=db_image.id)
-#             db.add(db_annotation)
-#             db.commit()
-
-#             db.refresh(db_image)
-#             db_images.append(db_image)
-#     return db_images
+    return

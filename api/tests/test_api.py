@@ -35,11 +35,20 @@ app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 
-@pytest.fixture()
+@pytest.fixture(autouse=True)
 def test_db():
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(autouse=True)
+def cleanup_image_uploads():
+    try:
+        shutil.rmtree("images")
+    except FileNotFoundError:
+        pass
+    
 
 
 ##########################################################################################
@@ -77,7 +86,7 @@ def delete_project(project_id, name, description):
     assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
 
 
-def test_create_and_get_project(test_db):
+def test_create_and_get_project():
     project_id, name, description = create_project()
 
     # get projects
@@ -90,7 +99,7 @@ def test_create_and_get_project(test_db):
     assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
 
 
-def test_create_project_name_null(test_db):
+def test_create_project_name_null():
     response = client.post(
         "/projects/",
         headers={"Content-Type": "application/json", "accept": "application/json"},
@@ -99,17 +108,17 @@ def test_create_project_name_null(test_db):
     assert response.status_code == 422, response.text
 
 
-def test_create_project_description_null(test_db):
+def test_create_project_description_null():
     create_project(name="Name", description=None)
 
 
-def test_try_get_non_existing_project(test_db):
+def test_try_get_non_existing_project():
     project_id = -1
     response = client.get(f"/project/{project_id}")
     assert response.status_code == 404, response.text
 
 
-def test_create_and_delete_project(test_db):
+def test_create_and_delete_project():
     project_id, name, description = create_project()
 
     # delete project
@@ -126,13 +135,13 @@ def test_create_and_delete_project(test_db):
     assert response.status_code == 404
 
 
-def test_try_delete_non_existing_project(test_db):
+def test_try_delete_non_existing_project():
     project_id = -1
     response = client.delete(f"/project/{project_id}")
     assert response.status_code == 404
 
 
-def test_create_and_update_project(test_db):
+def test_create_and_update_project():
     project_id, _, _ = create_project()
 
     new_name = "Name 123"
@@ -152,7 +161,7 @@ def test_create_and_update_project(test_db):
     assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
 
 
-def test_create_and_update_project_name_null(test_db):
+def test_create_and_update_project_name_null():
     project_id, _, _ = create_project()
     response = client.put(
         f"/project/{project_id}",
@@ -162,7 +171,7 @@ def test_create_and_update_project_name_null(test_db):
     assert response.status_code == 422, response.text
 
 
-def test_create_and_update_project_description_null(test_db):
+def test_create_and_update_project_description_null():
     project_id, _, _ = create_project()
 
     new_name = "Name 123"
@@ -181,7 +190,7 @@ def test_create_and_update_project_description_null(test_db):
     assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
 
 
-def test_try_update_non_existing_project(test_db):
+def test_try_update_non_existing_project():
     project_id = -1
     response = client.put(
         f"/project/{project_id}",
@@ -200,11 +209,6 @@ def test_try_update_non_existing_project(test_db):
 
 def create_images(project_id):
     """Helper function to upload and evaluate two images."""
-    # clear image upload directory
-    try:
-        shutil.rmtree("images")
-    except FileNotFoundError:
-        pass
     os.makedirs("images", exist_ok=True)
 
     # upload files
@@ -236,7 +240,7 @@ def load_files(filenames):
             pass
 
 
-def test_create_and_get_images(test_db):
+def test_create_and_get_images():
     # create project
     project_id, _, _ = create_project()
     image_id1, name1, image_id2, name2 = create_images(project_id)
@@ -263,13 +267,13 @@ def test_create_and_get_images(test_db):
     assert set(data[1].keys()) == set(["name", "id", "project_id"])
 
 
-def test_try_get_non_existing_image(test_db):
+def test_try_get_non_existing_image():
     image_id = -1
     response = client.get(f"/image/{image_id}")
     assert response.status_code == 404
 
 
-def test_try_create_image_non_existing_project(test_db):
+def test_try_create_image_non_existing_project():
     project_id = -1
     filenames = ["test_image_1.jpg", "test_image_2.jpg"]
     with open(filenames[0], "rb") as f1, open(filenames[1], "rb") as f2:
@@ -281,13 +285,13 @@ def test_try_create_image_non_existing_project(test_db):
     assert response.status_code == 404, response.text
 
 
-def test_try_create_empty_images_list(test_db):
+def test_try_create_empty_images_list():
     project_id, _, _ = create_project()
     response = client.post(f"/project/{project_id}/images/", files=[])
     assert response.status_code == 422, response.text
 
 
-def test_create_and_delete_image(test_db):
+def test_create_and_delete_image():
     project_id, _, _ = create_project()
     image_id1, name1, image_id2, name2 = create_images(project_id)
 
@@ -320,13 +324,13 @@ def test_create_and_delete_image(test_db):
         load_files([name1, name2])
 
 
-def test_try_delete_non_existing_image(test_db):
+def test_try_delete_non_existing_image():
     image_id = -1
     response = client.delete(f"/image/{image_id}")
     assert response.status_code == 404, response.text
 
 
-def test_try_upload_non_image_file(test_db):
+def test_try_upload_non_image_file():
     project_id, _, _ = create_project()
 
     filename = "test_export_file.zip"
@@ -341,7 +345,7 @@ def test_try_upload_non_image_file(test_db):
         assert data["detail"] == "Uploaded file is not a valid image."
 
 
-def test_delete_project_deletes_images(test_db):
+def test_delete_project_deletes_images():
     """Test if deleting a project also deletes associated images."""
     project_id, _, _ = create_project()
     image_id1, name1, image_id2, name2 = create_images(project_id)
@@ -376,7 +380,7 @@ def test_delete_project_deletes_images(test_db):
         load_files([name1, name2])
 
 
-def test_get_image_file(test_db):
+def test_get_image_file():
     project_id, _, _ = create_project()
     image_id1, _, image_id2, _ = create_images(project_id)
 
@@ -388,8 +392,12 @@ def test_get_image_file(test_db):
             response_image = io.BytesIO(response.content)
             assert response_image.read() == image.read()
 
+        with open("test_image_1_modified.jpg", "rb") as image:
+            response_image = io.BytesIO(response.content)
+            assert response_image.read() != image.read()
 
-def test_get_non_existing_image_file(test_db):
+
+def test_get_non_existing_image_file():
     image_id = -1
     response = client.get(f"/image_file/{image_id}")
     assert response.status_code == 404, response.text
@@ -439,7 +447,7 @@ def update_annotation(image_id, image_name):
     return new_data
 
 
-def test_create_image_creates_annotation(test_db):
+def test_create_image_creates_annotation():
     project_id, _, _ = create_project()
     image_id1, _, image_id2, _ = create_images(project_id)
 
@@ -447,7 +455,7 @@ def test_create_image_creates_annotation(test_db):
         confirm_anotation_exists(image_id)
 
 
-def test_delete_image_deletes_annotation(test_db):
+def test_delete_image_deletes_annotation():
     project_id, _, _ = create_project()
     image_id1, _, image_id2, _ = create_images(project_id)
 
@@ -464,7 +472,7 @@ def test_delete_image_deletes_annotation(test_db):
         assert response.status_code == 404, response.text
 
 
-def test_update_annotation(test_db):
+def test_update_annotation():
     project_id, _, _ = create_project()
     image_id1, image_name1, image_id2, image_name2 = create_images(project_id)
 
@@ -473,7 +481,7 @@ def test_update_annotation(test_db):
         update_annotation(image_id, image_name)
 
 
-def test_get_annotation_ids(test_db):
+def test_get_annotation_ids():
     response = client.get(f"/annotation_ids/")
     assert response.status_code == 200, response.text
     data = response.json()
@@ -518,8 +526,11 @@ def check_export_file(response, project_id, project_name, project_description, i
 
     # check file contents
     for image_name, test_image_name in zip([image_name1, image_name2], ["test_image_1.jpg", "test_image_2.jpg"]):
-        with zip_file.open(f"images/{image_name}", "r") as image_zipped, open(test_image_name, "rb") as image:
-            assert image_zipped.read() == image.read()
+        with zip_file.open(f"images/{image_name}", "r") as image_zipped:
+            with open(test_image_name, "rb") as image:
+                assert image_zipped.read() == image.read()
+            with open("test_image_1_modified.jpg", "rb") as image:
+                assert image_zipped.read() != image.read()
 
     with zip_file.open("project.json", "r") as project_zipped:
         project_meta = json.loads(project_zipped.read())
@@ -533,7 +544,7 @@ def check_export_file(response, project_id, project_name, project_description, i
     return zip_file
 
 
-def test_export_project_without_anotations(test_db):
+def test_export_project_without_anotations():
     project_id, project_name, project_description = create_project()
     _, image_name1, _, image_name2 = create_images(project_id)
 
@@ -550,7 +561,7 @@ def test_export_project_without_anotations(test_db):
         image_name1, image_name2, zip_file_members_expected)
 
     
-def test_export_project_with_anotations(test_db):
+def test_export_project_with_anotations():
     project_id, project_name, project_description = create_project()
     image_id1, image_name1, image_id2, image_name2 = create_images(project_id)
 
@@ -599,7 +610,13 @@ def test_export_project_with_anotations(test_db):
         }
 
 
-def test_export_non_existing_project(test_db):
+def test_export_non_existing_project():
     project_id = -1
     response = client.get(f"/export/{project_id}")
     assert response.status_code == 404, response.text
+
+
+# TODO:
+# - test case for uploading a valid import file (test_export_file.zip)
+# - test case for uploading an invalid file type (e.g. image instead of zip)
+# - test case for uploading an invalid project archive (test_export_file_invalid.zip)
