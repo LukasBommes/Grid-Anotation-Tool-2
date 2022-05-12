@@ -14,6 +14,7 @@ from .. import config
 from ..database import Base
 from ..main import app, get_db
 
+
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
 engine = create_engine(
@@ -47,6 +48,7 @@ def cleanup_image_uploads():
     try:
         shutil.rmtree("images")
     except FileNotFoundError:
+        print("FileNotFoundError")
         pass
     
 
@@ -610,13 +612,183 @@ def test_export_project_with_anotations():
         }
 
 
-def test_export_non_existing_project():
+def test_try_export_non_existing_project():
     project_id = -1
     response = client.get(f"/export/{project_id}")
     assert response.status_code == 404, response.text
 
 
-# TODO:
-# - test case for uploading a valid import file (test_export_file.zip)
-# - test case for uploading an invalid file type (e.g. image instead of zip)
-# - test case for uploading an invalid project archive (test_export_file_invalid.zip)
+def test_import_project():
+    filename = "test_export_file.zip"
+    with open(filename, "rb") as f:
+        file = {"file": (filename, f, "application/zip")}
+        response = client.post(f"/import/", files=file)
+
+    assert response.status_code == 201, response.text
+    data = response.json()
+    assert data["name"] == "Test"
+    assert data["description"] == "dgdg"
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    project_id = data["id"]
+
+    # confirm project exists in database
+    response = client.get(f"/project/{project_id}")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["name"] == "Test"
+    assert data["description"] == "dgdg"
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+
+    # confirm files are uploaded to images directory
+    image_names = [
+        "3cf319e8-f539-42c1-b525-53c850812b5f.jpg",
+        "4b1346fb-6482-4dea-8632-6c4392810759.jpg",
+        "4cce9352-b352-46ab-b021-9b18ee6c3904.jpg",
+        "6f14f9cd-5563-4107-badd-cde66657b2b8.jpg",
+        "6f573e78-f63b-4b4b-8f80-a77666c3e97f.jpg",
+        "7b290960-9f37-4bef-8204-701458e0212a.jpg",
+        "91c9cd46-aff7-4579-b49d-232ec8556381.jpg",
+        "93ca36b4-42b9-4fd7-84f6-caeea1bbe5e7.jpg",
+        "322609a4-d4e4-4e33-a8d6-c2fc2a8b3a5c.jpg",
+        "434074b0-af2c-4c41-a943-a6d4fb843c3c.jpg",
+        "a175e3e6-b3fe-4169-811d-ff3360f6c0a2.jpg",
+        "ae3b21f1-da05-4ed4-8ad5-d44b21b87647.jpg",
+        "ae7893d3-3183-46f5-8f62-ec076dee17c3.jpg",
+        "d667e897-fe4e-46cf-b20c-01ee03b8a409.jpg",
+        "f08327f1-fa14-4e62-87d1-24ac4b869b60.jpg",
+        "ff8e1a82-fe8c-4ad8-b215-b2a117ee3f5c.jpg",
+        "ff928046-124a-4bae-8960-b6488506fd6b.jpg",
+    ]
+    image_files = glob.glob(os.path.join("images", f"project_{project_id}", "*.jpg"))
+    assert set([os.path.basename(image_file) for image_file in image_files]) == set(image_names)
+
+    # confirm database contains images
+    response = client.get(f"/project/{project_id}/images/")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert set([image["name"] for image in data]) == set(image_names)
+    image_ids = {image["name"]: image["id"] for image in data}
+
+    # confirm database contains non-empty annotations for the three annotated images
+    annotated_images = [
+        "434074b0-af2c-4c41-a943-a6d4fb843c3c.jpg", 
+        "3cf319e8-f539-42c1-b525-53c850812b5f.jpg", 
+        "f08327f1-fa14-4e62-87d1-24ac4b869b60.jpg"
+    ]
+    for image_name in image_names:
+        image_id = image_ids[image_name]
+
+        response = client.get(f"/annotation/{image_id}")
+        assert response.status_code == 200, response.text
+        data = response.json()
+        assert data["id"] == image_id
+        assert set(data.keys()) == set(["id", "data"])
+
+        if image_name in annotated_images:
+            assert data["data"] != {}
+        else:
+            assert data["data"] == {}
+
+        if image_name == "434074b0-af2c-4c41-a943-a6d4fb843c3c.jpg":
+            assert data["data"] == {
+                "image": "434074b0-af2c-4c41-a943-a6d4fb843c3c.jpg", 
+                "grid_cells": [
+                    {
+                        "corners": [
+                            {"x": 178.9499601966895, "y": 189.19853424679565, "id": "b821dded-fec6-4a44-8bee-4ebcd3cbe04a"}, 
+                            {"x": 104.26361165171659, "y": 185.05813965794854, "id": "cadbbf42-ac4f-4e37-a252-972bc9234143"},
+                            {"x": 88.86580289476822, "y": 303.52192638479323, "id": "fb86b5e4-505e-44ed-92ef-64d0e4a06911"}, 
+                            {"x": 170.98231931245797, "y": 306.9140027944741, "id": "20a95fdf-1bd3-4603-835a-57db3d201560"}
+                        ], 
+                        "center": {"x": 135.76542351390808, "y": 246.17315077100287}, 
+                        "id": "6f8621e8-cf92-40bd-8327-a70949f9d11e", "truncated": False
+                    }, 
+                    {
+                        "corners": [
+                            {"x": 255.53101640809757, "y": 193.4439659344217, "id": "fa28a709-a430-4c38-9bdc-07dc63daa274"}, 
+                            {"x": 178.9499601966895, "y": 189.19853424679565, "id": "b821dded-fec6-4a44-8bee-4ebcd3cbe04a"}, 
+                            {"x": 170.98231931245797, "y": 306.9140027944741, "id": "20a95fdf-1bd3-4603-835a-57db3d201560"}, 
+                            {"x": 250.49848633033926, "y": 310.1986637384141, "id": "1ab2c76e-bb9d-44f0-9abc-21844c1f8407"}
+                        ], "center": {"x": 213.99044556189608, "y": 249.93879167852637}, 
+                        "id": "36157f15-f2ff-4a26-adcc-45c5d7f6c817", "truncated": False
+                    }, 
+                    {
+                        "corners": [
+                            {"x": 250.49848633033926, "y": 310.1986637384141, "id": "1ab2c76e-bb9d-44f0-9abc-21844c1f8407"}, 
+                            {"x": 170.98231931245797, "y": 306.9140027944741, "id": "20a95fdf-1bd3-4603-835a-57db3d201560"}, 
+                            {"x": 161.88063159242736, "y": 441.38409878718437, "id": "b062f859-08de-4162-9844-bb0beff97476"}, 
+                            {"x": 244.74472704249706, "y": 443.6858792163529, "id": "207f8f6d-6e5e-4b5f-ab1d-c8872c16c8cd"}
+                        ], 
+                        "center": {"x": 207.0265410694304, "y": 375.54566113410635}, 
+                        "id": "e1f8cafc-107b-4208-b8dc-eac4242b9479", "truncated": False
+                    }, 
+                    {
+                        "corners": [
+                            {"x": 170.98231931245797, "y": 306.9140027944741, "id": "20a95fdf-1bd3-4603-835a-57db3d201560"}, 
+                            {"x": 88.86580289476822, "y": 303.52192638479323, "id": "fb86b5e4-505e-44ed-92ef-64d0e4a06911"}, 
+                            {"x": 71.27374942935788, "y": 438.8672409493213, "id": "2d69ddda-9f63-4f0c-9f17-0659c9d5568d"}, 
+                            {"x": 161.88063159242736, "y": 441.38409878718437, "id": "b062f859-08de-4162-9844-bb0beff97476"}
+                        ], 
+                        "center": {"x": 123.25062580725285, "y": 372.67181722894327}, 
+                        "id": "f5b16d93-1af4-4bb5-a6e3-37fbc44806bc", "truncated": False
+                    }
+                ], 
+                "corners": [
+                    {"x": 104.26361165171659, "y": 185.05813965794854, "id": "cadbbf42-ac4f-4e37-a252-972bc9234143"}, 
+                    {"x": 178.9499601966895, "y": 189.19853424679565, "id": "b821dded-fec6-4a44-8bee-4ebcd3cbe04a"}, 
+                    {"x": 255.53101640809757, "y": 193.4439659344217, "id": "fa28a709-a430-4c38-9bdc-07dc63daa274"}, 
+                    {"x": 88.86580289476822, "y": 303.52192638479323, "id": "fb86b5e4-505e-44ed-92ef-64d0e4a06911"}, 
+                    {"x": 170.98231931245797, "y": 306.9140027944741, "id": "20a95fdf-1bd3-4603-835a-57db3d201560"}, 
+                    {"x": 250.49848633033926, "y": 310.1986637384141, "id": "1ab2c76e-bb9d-44f0-9abc-21844c1f8407"}, 
+                    {"x": 71.27374942935788, "y": 438.8672409493213, "id": "2d69ddda-9f63-4f0c-9f17-0659c9d5568d"}, 
+                    {"x": 161.88063159242736, "y": 441.38409878718437, "id": "b062f859-08de-4162-9844-bb0beff97476"}, 
+                    {"x": 244.74472704249706, "y": 443.6858792163529, "id": "207f8f6d-6e5e-4b5f-ab1d-c8872c16c8cd"}
+                ], 
+                "auxlines": [
+                    {"x1": -27.839817914482502, "y1": 177.73470859457717, "x2": 671.30451521046, "y2": 216.4932430535292, "id": "55dd78e4-3587-46bc-b5fd-9045731591d5"}, 
+                    {"x1": -48.89222222708057, "y1": 297.83140555359813, "x2": 698.8506976191512, "y2": 328.7192370102411, "id": "90c8338e-cc38-4818-a020-57c5b02027bf"}, 
+                    {"x1": -50.95399141806052, "y1": 435.4720259257819, "x2": 690.3539635413706, "y2": 456.06391356354385, "id": "633cfd01-88d1-49ab-8c8a-e331d290fff3"}, 
+                    {"x1": 107.34614479723467, "y1": 161.34252174807557, "x2": 67.44936249907084, "y2": 468.29034684846505, "id": "ae4b1a43-8f2f-45ef-8789-d1bf038d2b07"}, 
+                    {"x1": 180.7047445067617, "y1": 163.27301121411577, "x2": 160.75635335767979, "y2": 457.994403029584, "id": "9cc8c825-4898-43e5-944e-bd10e3eacbdb"}, 
+                    {"x1": 256.637330171009, "y1": 167.7774866348762, "x2": 243.76740039740776, "y2": 466.3598573824248, "id": "f9a02421-a28a-4738-b5c5-b7a293834f5e"}
+                ], 
+                "auxcurves": [], 
+                "prev_intersections": [
+                    {"x": 104.26361165171659, "y": 185.05813965794854}, 
+                    {"x": 178.9499601966895, "y": 189.19853424679565}, 
+                    {"x": 255.53101640809757, "y": 193.4439659344217}, 
+                    {"x": 88.86580289476822, "y": 303.52192638479323}, 
+                    {"x": 170.98231931245797, "y": 306.9140027944741}, 
+                    {"x": 250.49848633033926, "y": 310.1986637384141}, 
+                    {"x": 71.27374942935788, "y": 438.8672409493213}, 
+                    {"x": 161.88063159242736, "y": 441.38409878718437}, 
+                    {"x": 244.74472704249706, "y": 443.6858792163529}
+                ]
+            }
+
+    # confirm returned annotation ids are correct
+    response = client.get(f"/annotation_ids/")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    print(data)
+    assert set(data) == set([image_ids[name] for name in annotated_images])
+
+
+def test_try_import_project_invalid_file():
+    filename = "test_export_file_invalid.zip"
+    with open(filename, "rb") as f:
+        file = {"file": (filename, f, "application/zip")}
+        response = client.post(f"/import/", files=file)
+    assert response.status_code == 422, response.text
+    data = response.json()
+    assert data["detail"] == "Uploaded file is not a valid project archive."
+
+
+def test_try_import_project_non_zip_file():
+    filename = "test_image_1.jpg"
+    with open(filename, "rb") as f:
+        file = {"file": (filename, f, "image/jpeg")}
+        response = client.post(f"/import/", files=file)
+    assert response.status_code == 422, response.text
+    data = response.json()
+    assert data["detail"] == "Uploaded file is not a valid zip archive."

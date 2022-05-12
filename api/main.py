@@ -403,7 +403,7 @@ def validate_imported_file(zip_file):
     return True
 
 
-@app.post("/import/", status_code=201)
+@app.post("/import/", response_model=schemas.Project, status_code=201)
 def import_project(file: UploadFile, db: Session = Depends(get_db)):
     # receive zip file
     contents = file.file.read()
@@ -463,3 +463,5 @@ def import_project(file: UploadFile, db: Session = Depends(get_db)):
         db_annotation = models.Annotation(id=db_image.id, data=annotation)
         db.add(db_annotation)
         db.commit()
+
+    return db_project
