@@ -326,6 +326,21 @@ def test_try_delete_non_existing_image(test_db):
     assert response.status_code == 404, response.text
 
 
+def test_try_upload_non_image_file(test_db):
+    project_id, _, _ = create_project()
+
+    filename = "test_export_file.zip"
+    with open(filename, "rb") as f:
+        files = [
+            ("files", (filename, f, "image/jpeg"))
+        ]
+        response = client.post(f"/project/{project_id}/images/", files=files)
+
+        assert response.status_code == 422, response.text
+        data = response.json()
+        assert data["detail"] == "Uploaded file is not a valid image."
+
+
 def test_delete_project_deletes_images(test_db):
     """Test if deleting a project also deletes associated images."""
     project_id, _, _ = create_project()

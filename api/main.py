@@ -5,10 +5,12 @@ import zipfile
 import json
 import shutil
 import copy
+import io
 
 from datetime import datetime
 from typing import List
 
+import filetype
 from fastapi import Depends, FastAPI, HTTPException, File, UploadFile, BackgroundTasks
 from fastapi.responses import FileResponse
 from sqlalchemy import event
@@ -159,10 +161,16 @@ def create_image(project_id: int, files: List[UploadFile] = File(...), db: Sessi
     else:
         db_images = []
         for file in files:
-            # upload file to MEDIA_ROOT
+            # unpack uploaded file
             _, filext = os.path.splitext(file.filename)
             filename = f"{str(uuid.uuid4())}{filext}"
             contents = file.file.read()
+
+            # validate file is an image
+            if not filetype.match(contents, matchers=filetype.image_matchers):
+                raise HTTPException(status_code=422, detail=f"Uploaded file is not a valid image.")
+
+            # place file in MEDIA_ROOT
             save_image(filename, contents)
 
             # add image DB entry
@@ -360,5 +368,66 @@ def export_project(project_id: int, background_tasks: BackgroundTasks, db: Sessi
     )
 
 
-#@app.post("/export/{project_id}", response_model=)
-#def import_project(project_id: int, db: Session = Depends(get_db)):
+def validate_imported_file(zip_file):
+    pass
+
+
+@app.post("/import/")
+def import_project(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    # receive zip file
+
+    print(file.filename)
+    contents = file.file.read()
+
+    if not zipfile.is_zipfile(io.BytesIO(contents)):
+        raise HTTPException(status_code=422, detail=f"Uploaded file is not a valid zip file.")
+    
+
+    zip_file = zipfile.ZipFile(io.BytesIO(contents), "r")
+    assert zip_file.testzip() == None
+    zip_file_members = zip_file.namelist()
+    print(zip_file_members)
+
+    # TODO: validate this is a valid project export file
+
+    # unpack contents of zip file
+
+    # add project
+
+
+    # add images
+
+    # add annotations
+
+    return 
+
+
+
+
+# @app.post("/project/{project_id}/images/", response_model=List[schemas.Image])
+# def create_image(project_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
+#     db_project = db.query(models.Project).get(project_id)
+#     if not db_project:
+#         raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
+#     else:
+#         db_images = []
+#         for file in files:
+#             # upload file to MEDIA_ROOT
+#             _, filext = os.path.splitext(file.filename)
+#             filename = f"{str(uuid.uuid4())}{filext}"
+#             contents = file.file.read()
+#             save_image(filename, contents)
+
+#             # add image DB entry
+#             db_image = models.Image(name=filename, project_id=project_id)
+#             db.add(db_image)
+#             db.commit()
+
+#             # add annotation DB entry
+#             db_annotation = models.Annotation(id=db_image.id)
+#             db.add(db_annotation)
+#             db.commit()
+
+#             db.refresh(db_image)
+#             db_images.append(db_image)
+#     return db_images
