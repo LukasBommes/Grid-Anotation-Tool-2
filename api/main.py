@@ -128,7 +128,7 @@ def get_image_file(image_id: int, db: Session = Depends(get_db)):
     db_image = db.query(models.Image).get(image_id)
     if not db_image:
         raise HTTPException(status_code=404, detail=f"Image with id {db_image} not found")
-    filepath = os.path.join(config.MEDIA_ROOT, db_image.name)
+    filepath = os.path.join(config.MEDIA_ROOT, f"project_{db_image.project_id}", db_image.name)
     return filepath
 
 
@@ -143,16 +143,24 @@ def delete_image(image_id: int, db: Session = Depends(get_db)):
     return db_image
 
 
-def save_image(name, data):
-    filepath = os.path.join(config.MEDIA_ROOT, name)
+def save_image(name, project_id, data):
+    filepath = os.path.join(config.MEDIA_ROOT, f"project_{project_id}", name)
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with open(filepath, 'wb') as f:
         f.write(data)
 
 
-def delete_image(name):
-    filepath = os.path.join(config.MEDIA_ROOT, name)
-    if os.path.exists(filepath):
-        os.remove(filepath)
+def delete_image(name, project_id):
+    image_dir = os.path.join(config.MEDIA_ROOT, f"project_{project_id}")
+    image_file = os.path.join(image_dir, name)
+    try:
+        os.remove(image_file)
+    except FileNotFoundError:
+        pass        
+    try:
+        os.rmdir(image_dir)
+    except (OSError, FileNotFoundError):  # directory not empty or not found
+        pass
 
 
 @app.post("/project/{project_id}/images/", response_model=List[schemas.Image], status_code=201)
@@ -173,7 +181,7 @@ def create_image(project_id: int, files: List[UploadFile] = File(...), db: Sessi
                 raise HTTPException(status_code=422, detail=f"Uploaded file is not a valid image.")
 
             # place file in MEDIA_ROOT
-            save_image(filename, contents)
+            save_image(filename, project_id, contents)
 
             # add image DB entry
             db_image = models.Image(name=filename, project_id=project_id)
@@ -202,15 +210,15 @@ images_to_delete = []
 def receive_after_delete(mapper, connection, target):
     """Register which image files must be deleted."""
     global images_to_delete
-    images_to_delete.append(target.name)
+    images_to_delete.append((target.name, target.project_id))
 
 
 @event.listens_for(Session, 'after_commit')
 def receive_after_commit(session):
     """Delete registered image files."""
     global images_to_delete
-    for image_name in images_to_delete:
-        delete_image(image_name)
+    for image_name, project_id in images_to_delete:
+        delete_image(image_name, project_id)
     images_to_delete = []
 
 
@@ -325,7 +333,7 @@ def export_project(project_id: int, background_tasks: BackgroundTasks, db: Sessi
         for image in images:
 
             # store image files
-            image_filepath = os.path.join(config.MEDIA_ROOT, image.name)
+            image_filepath = os.path.join(config.MEDIA_ROOT, f"project_{project_id}", image.name)
             image_arcname = os.path.join("images", os.path.basename(image_filepath))
             zip_file.write(image_filepath, image_arcname)
 
@@ -433,7 +441,8 @@ def import_project(file: UploadFile, db: Session = Depends(get_db)):
 
         # extract images and add image DB entries
         image_member = os.path.join("images", filename)
-        with open(os.path.join(config.MEDIA_ROOT, filename), "wb") as image_file:
+        os.makedirs(os.path.join(config.MEDIA_ROOT, f"project_{db_project.id}"), exist_ok=True)
+        with open(os.path.join(config.MEDIA_ROOT, f"project_{db_project.id}", filename), "wb") as image_file:
             with zip_file.open(image_member, "r") as image_data:
                 image_file.write(image_data.read())
 

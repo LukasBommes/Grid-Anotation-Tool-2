@@ -221,7 +221,7 @@ def create_images(project_id):
         response = client.post(f"/project/{project_id}/images/", files=files)
 
     # confirm files are uploaded to images directory
-    assert len(glob.glob(os.path.join("images", "*.jpg"))) == 2
+    assert len(glob.glob(os.path.join("images", f"project_{project_id}", "*.jpg"))) == 2
 
     assert response.status_code == 201, response.text
     data = response.json()
@@ -233,9 +233,9 @@ def create_images(project_id):
     return [data[0]["id"], data[0]["name"], data[1]["id"], data[1]["name"]]
 
 
-def load_files(filenames):
-    for name in filenames:
-        filepath = os.path.join(config.MEDIA_ROOT, name)
+def load_images(image_names, project_id):
+    for image_name in image_names:
+        filepath = os.path.join(config.MEDIA_ROOT, f"project_{project_id}", image_name)
         with open(filepath, "rb") as f:
             pass
 
@@ -296,7 +296,7 @@ def test_create_and_delete_image():
     image_id1, name1, image_id2, name2 = create_images(project_id)
 
     # make sure files are in images folder
-    load_files([name1, name2])
+    load_images([name1, name2], project_id)
 
     # delete images
     for image_id, name in zip([image_id1, image_id2], [name1, name2]):
@@ -319,9 +319,9 @@ def test_create_and_delete_image():
         assert response.status_code == 404, response.text
 
     # make sure image files are deleted as well
-    assert len(glob.glob(os.path.join("images", "*.jpg"))) == 0
+    assert len(glob.glob(os.path.join("images", f"project_{project_id}", "*.jpg"))) == 0
     with pytest.raises(FileNotFoundError):
-        load_files([name1, name2])
+        load_images([name1, name2], project_id)
 
 
 def test_try_delete_non_existing_image():
@@ -377,7 +377,7 @@ def test_delete_project_deletes_images():
 
     # make sure image files are deleted as well
     with pytest.raises(FileNotFoundError):
-        load_files([name1, name2])
+        load_images([name1, name2], project_id)
 
 
 def test_get_image_file():
