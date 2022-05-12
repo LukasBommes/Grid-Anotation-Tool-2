@@ -428,35 +428,34 @@ def import_project(file: UploadFile, db: Session = Depends(get_db)):
 
     for member in members:
         basename, filename = os.path.split(member)
-        #file_uuid = os.path.splitext(filename)[0]
-        #print(basename, filename, file_uuid)
+        if basename != "images":
+            continue
 
         # extract images and add image DB entries
-        if basename == "images":
-            # extract image 
-            with open(os.path.join(config.MEDIA_ROOT, filename), "wb") as image_file:
-                with zip_file.open(member, "r") as image_data:
-                    image_file.write(image_data.read())
+        image_member = os.path.join("images", filename)
+        with open(os.path.join(config.MEDIA_ROOT, filename), "wb") as image_file:
+            with zip_file.open(image_member, "r") as image_data:
+                image_file.write(image_data.read())
 
-            db_image = models.Image(name=filename, project_id=db_project.id)
-            db.add(db_image)
-            db.commit()
-            db.refresh(db_image)
+        db_image = models.Image(name=filename, project_id=db_project.id)
+        db.add(db_image)
+        db.commit()
+        db.refresh(db_image)
 
         # add annotation DB entries
-        elif basename == "save":
-            with zip_file.open(member, "r") as annotation_file:
-                annotation = json.loads(annotation_file.read())
-
-            db_annotation = models.Annotation(id=db_image.id, data=annotation)
-            db.add(db_annotation)
-            db.commit()
-
+        image_uuid = os.path.splitext(filename)[0]
+        annotation_member = os.path.join("save", f"{image_uuid}.json")
+        if annotation_member in members:
+            with zip_file.open(annotation_member, "r") as annotation_file:
+                annotation = json.loads(annotation_file.read())     
         else:
-            continue
+            annotation = {}
+
+        db_annotation = models.Annotation(id=db_image.id, data=annotation)
+        db.add(db_annotation)
+        db.commit()
 
     return
 
 # TODO: 
-# - create empy annotation for images with no "save.json" file
 # - raise error if no file was uploaded
