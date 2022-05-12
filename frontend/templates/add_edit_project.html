@@ -197,13 +197,13 @@
         if (images_data.has("files")) {
             var createImagesReq = new XMLHttpRequest();
             createImagesReq.addEventListener("load", function () {
-                console.log("Images created.")
-                console.log(this.responsetext)
-                if (this.status == 201) {                    
+                if (this.status == 201) {   
+                    console.log(project_save_success_msg);                 
                     snackbar.labelText = project_save_success_msg;
                     snackbar.open();
                     redirectHome();
                 } else {
+                    console.log(project_save_error_msg); 
                     snackbar.labelText = project_save_error_msg;    
                     snackbar.open();
                 }
@@ -248,6 +248,7 @@
         if ((event.target.status == 200) || (event.target.status == 201)) {            
             const response = JSON.parse(event.target.responseText);
             if (!images_data.has("files")) {
+                console.log(project_save_success_msg); 
                 snackbar.labelText = project_save_success_msg;
                 snackbar.open();
                 redirectHome();
@@ -261,6 +262,7 @@
                 createImages(project_id, images_data);
             }            
         } else {
+            console.log(project_save_error_msg); 
             snackbar.labelText = project_save_error_msg;    
             snackbar.open();
         }

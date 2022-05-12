@@ -18,14 +18,15 @@
 
                         <!-- Buttons -->
                         <div class="main-container-title-buttons">
-                            <button class="mdc-button mdc-button--icon-leading" onclick="importProjectButtonClicked()">
+                            <label for="import-project-input" class="mdc-button mdc-button- mdc-button--icon-leading import-project-button">
                                 <span class="mdc-button__ripple"></span>
                                 <span class="mdc-button__focus-ring"></span>
                                 <i class="material-icons mdc-button__icon" aria-hidden="true">
                                     upload
                                 </i>
                                 <span class="mdc-button__label">Import Project</span>
-                            </button>
+                            </label>
+                            <input type="file" id="import-project-input" accept="zip,application/octet-stream,application/zip,application/x-zip,application/x-zip-compressed" onchange="importProjectFilesInputChanged(event)">
                             <button class="mdc-button mdc-button--icon-leading" onclick="newProjectButtonClicked()">
                                 <span class="mdc-button__ripple"></span>
                                 <span class="mdc-button__focus-ring"></span>
@@ -87,16 +88,13 @@
 
 {% block script %}
 <script>
-    // TODO:
-    // get request all projects
-    // assemble list with projects (add correct links, etc.)
-    // handle other button clicks (add, delete, edit, annotate)
-
     const API_URL = {{ api_url|tojson }};
     const project_list_menus = {};
 
     const project_delete_success_msg = "Project deleted.";
-    const project_delete_error_msg = "Failed to delete project."
+    const project_delete_error_msg = "Failed to delete project.";
+    const project_imported_success_msg = "Project imported.";
+    const project_imported_error_msg = "Failed to import project";
 
     const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
     const delete_project_dialog = new mdc.dialog.MDCDialog(document.querySelector('#delete-project-dialog'));
@@ -208,13 +206,14 @@
         deleteProjectReq.addEventListener("load", function () {
             console.log(this.responseText);
             if (this.status == 200) {
+                console.log(project_delete_success_msg);
                 snackbar.labelText = project_delete_success_msg;
                 snackbar.open();
             } else {
+                console.log(project_delete_error_msg);
                 snackbar.labelText = project_delete_error_msg;
                 snackbar.open();
             }
-            // refresh project list
             loadProjects();
         });
         deleteProjectReq.open("DELETE", `${API_URL}/project/${project_id}`, true);
@@ -227,14 +226,6 @@
         menu.setAbsolutePosition(event.clientX, event.clientY);
         menu.open = !menu.open;
         event.stopPropagation();
-    }
-
-    function importProjectButtonClicked() {
-
-    }
-
-    function newProjectButtonClicked() {
-        window.location.href = "{{ url_for('add_project') }}";
     }
 
     function annotateProjectClicked(project_id) {
@@ -269,6 +260,33 @@
         deleteProjectDialogEventListener = deleteProject.bind(null, project_id);
         button_yes.addEventListener('click', deleteProjectDialogEventListener);
         delete_project_dialog.open();
+    }
+
+    function importProjectFilesInputChanged(event) {
+        const file = event.target.files[0];
+        var importProjectData = new FormData();
+        importProjectData.append("file", file);
+
+        var importProjectReq = new XMLHttpRequest();
+        importProjectReq.addEventListener("load", function () {
+            if (this.status == 201) {
+                console.log(project_imported_success_msg);
+                snackbar.labelText = project_imported_success_msg;
+                snackbar.open();
+            } else {
+                console.log(project_imported_error_msg);
+                snackbar.labelText = project_imported_error_msg;    
+                snackbar.open();
+            }
+            loadProjects();
+        });
+        importProjectReq.open("POST", `${API_URL}/import/`, true);
+        importProjectReq.send(importProjectData);
+        event.target.value = null;  // to trigger onchange event even if the same file was selected
+    }
+
+    function newProjectButtonClicked() {
+        window.location.href = "{{ url_for('add_project') }}";
     }
 
     function init_mui_elements() {
