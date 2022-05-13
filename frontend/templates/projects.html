@@ -4,8 +4,6 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/projects.css') }}">
 {% endblock %}
 
-{% block appbar_buttons %}{% endblock %}
-
 {% block content %}
 <div class="mdc-layout-grid">
     <div class="mdc-layout-grid__inner">
@@ -76,14 +74,6 @@
     </div>
     <div class="mdc-dialog__scrim"></div>
   </div>
-{% endblock %}
-
-{% block tooltips %}
-<!--<div id="tooltip-id" class="mdc-tooltip" role="tooltip" aria-hidden="true">
-    <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
-      lorem ipsum dolor
-    </div>
-</div>-->
 {% endblock %}
 
 {% block script %}

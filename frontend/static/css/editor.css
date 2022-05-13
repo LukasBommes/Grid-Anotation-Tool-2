@@ -31,8 +31,7 @@
 
 .btn-group .editor-button {
     margin-bottom: 5px;
-    border: 1px solid gray;
-    border-radius: 5px;
+    border-radius: 50%;
     background-color: #e6e6e6;
 }
 

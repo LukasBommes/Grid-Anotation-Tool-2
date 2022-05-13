@@ -4,17 +4,6 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/projects.css') }}">
 {% endblock %}
 
-{% block appbar_buttons %}
-<!--<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Annotation">
-    <div class="mdc-icon-button__ripple"></div>
-    file_download
-</button>
-<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Print this page">
-    <div class="mdc-icon-button__ripple"></div>
-    print
-</button>-->
-{% endblock %}
-
 {% block content %}
 <div class="mdc-layout-grid">
     <div class="mdc-layout-grid__inner">
@@ -100,12 +89,14 @@
 {% block script %}
 <script>
     // TODOS:
-    // - make images deletable
     // - images list pagination
+    // - button to select all images for deletion
+    // - images pagination
     // - show checkmark on already annotated images
     // - validate inputs, e.g. do not allow sending empty strings (show error msg in helper text)
     // - catch errors of XHR requests (show snackbar with generic error message and full error message in console)
     // - enable a detail-view of the image
+    // - show snackbar when redirecting to projects page
 
     const API_URL = {{ api_url|tojson }};
     const mode = {{ mode|tojson }};
@@ -216,7 +207,6 @@
         }
     }
 
-    // problem: only when all images are deleted we must proceed
     function deleteImages() {
         if (image_ids_to_delete.length) {
             console.log("Deleting: "+image_ids_to_delete);
