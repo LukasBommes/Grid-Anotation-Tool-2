@@ -1,0 +1,25 @@
+- allow empty annotations:
+   - allow erasing all annotation objects
+   - in that case store an empty dict as annotation
+   - 
+   
+- register / login feature
+- proper database
+- production-ready deployment with Docker compose and production webservers
+   
+- UI features:
+   Editor:
+   - display project name & details
+   - improve image selection list
+   
+   Project Setup:
+   - display creation & last edited dates
+   - display which images are annotated
+   - tooltips for delete button
+   - allow for deleting all images (single button)
+   
+   Projects List:
+   - pagination
+   - Filtering by creation & last edited dates
+   - Show annotation status with symbol (checmark, hourglas)
+   - 
