@@ -8,7 +8,7 @@ from .. import models, schemas
 from ..dependencies import get_db
 
 
-def create_router(config):
+def create_router(settings):
     
     router = APIRouter(prefix="/api", tags=["annotations"])
 

@@ -19,7 +19,7 @@ from .. import models, schemas
 from ..dependencies import get_db
 
 
-def create_router(config):
+def create_router(settings):
 
     router = APIRouter(prefix="/api", tags=["projects"])
 
@@ -144,7 +144,7 @@ def create_router(config):
             for image in images:
 
                 # store image files
-                image_filepath = os.path.join(config["media_root"], f"project_{project_id}", image.name)
+                image_filepath = os.path.join(settings.MEDIA_ROOT, f"project_{project_id}", image.name)
                 image_arcname = os.path.join("images", os.path.basename(image_filepath))
                 zip_file.write(image_filepath, image_arcname)
 
@@ -252,8 +252,8 @@ def create_router(config):
 
             # extract images and add image DB entries
             image_member = os.path.join("images", filename)
-            os.makedirs(os.path.join(config["media_root"], f"project_{db_project.id}"), exist_ok=True)
-            with open(os.path.join(config["media_root"], f"project_{db_project.id}", filename), "wb") as image_file:
+            os.makedirs(os.path.join(settings.MEDIA_ROOT, f"project_{db_project.id}"), exist_ok=True)
+            with open(os.path.join(settings.MEDIA_ROOT, f"project_{db_project.id}", filename), "wb") as image_file:
                 with zip_file.open(image_member, "r") as image_data:
                     image_file.write(image_data.read())
 

@@ -15,7 +15,7 @@ from ..dependencies import get_db
 images_to_delete = []
 
 
-def create_router(config):
+def create_router(settings):
     
     router = APIRouter(prefix="/api", tags=["images"])
     
@@ -39,7 +39,7 @@ def create_router(config):
         db_image = db.query(models.Image).get(image_id)
         if not db_image:
             raise HTTPException(status_code=404, detail=f"Image with id {db_image} not found")
-        filepath = os.path.join(config["media_root"], f"project_{db_image.project_id}", db_image.name)
+        filepath = os.path.join(settings.MEDIA_ROOT, f"project_{db_image.project_id}", db_image.name)
         return filepath
 
 
@@ -55,14 +55,14 @@ def create_router(config):
 
 
     def save_image(name, project_id, data):
-        filepath = os.path.join(config["media_root"], f"project_{project_id}", name)
+        filepath = os.path.join(settings.MEDIA_ROOT, f"project_{project_id}", name)
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, 'wb') as f:
             f.write(data)
 
 
     def delete_image(name, project_id):
-        image_dir = os.path.join(config["media_root"], f"project_{project_id}")
+        image_dir = os.path.join(settings.MEDIA_ROOT, f"project_{project_id}")
         image_file = os.path.join(image_dir, name)
         try:
             os.remove(image_file)

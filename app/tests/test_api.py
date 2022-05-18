@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from ..config import config
+from ..config import settings
 from ..database import Base
 from ..dependencies import get_db
 from ..main import create_app
@@ -18,12 +18,11 @@ from ..main import create_app
 
 TEST_BASE_DIR = "app/tests"
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{TEST_BASE_DIR}/test.db"
-MEDIA_ROOT = f"{TEST_BASE_DIR}/images"
 
-test_config = config
-test_config["media_root"] = MEDIA_ROOT
+test_settings = settings
+settings.MEDIA_ROOT = f"{TEST_BASE_DIR}/images"
 
-app = create_app(test_config)
+app = create_app(test_settings)
 
 
 engine = create_engine(
@@ -73,7 +72,7 @@ def cleanup_image_uploads():
 def create_project(name="Name", description="Description"):
     """Helper function to create and evaluate a project."""
     response = client.post(
-        "/projects/",
+        "/api/projects/",
         headers={"Content-Type": "application/json", "accept": "application/json"},
         json={"name": name, "description": description},
     )
@@ -89,7 +88,7 @@ def create_project(name="Name", description="Description"):
 
 def delete_project(project_id, name, description):
     """Helper function to delete a project."""
-    response = client.delete(f"/project/{project_id}")
+    response = client.delete(f"/api/project/{project_id}")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["name"] == name
@@ -102,7 +101,7 @@ def test_create_and_get_project():
     project_id, name, description = create_project()
 
     # get projects
-    response = client.get(f"/project/{project_id}")
+    response = client.get(f"/api/project/{project_id}")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["name"] == name
@@ -113,7 +112,7 @@ def test_create_and_get_project():
 
 def test_create_project_name_null():
     response = client.post(
-        "/projects/",
+        "/api/projects/",
         headers={"Content-Type": "application/json", "accept": "application/json"},
         json={"name": None, "description": "My Description"},
     )
@@ -126,7 +125,7 @@ def test_create_project_description_null():
 
 def test_try_get_non_existing_project():
     project_id = -1
-    response = client.get(f"/project/{project_id}")
+    response = client.get(f"/api/project/{project_id}")
     assert response.status_code == 404, response.text
 
 
@@ -137,19 +136,19 @@ def test_create_and_delete_project():
     delete_project(project_id, name, description)
 
     # make sure the project with this project_id has been deleted
-    response = client.get(f"/projects/")
+    response = client.get(f"/api/projects/")
     assert response.status_code == 200, response.text
     data = response.json()
     project_ids = [project["id"] for project in data]
     assert project_id not in project_ids
 
-    response = client.get(f"/project/{project_id}")
+    response = client.get(f"/api/project/{project_id}")
     assert response.status_code == 404
 
 
 def test_try_delete_non_existing_project():
     project_id = -1
-    response = client.delete(f"/project/{project_id}")
+    response = client.delete(f"/api/project/{project_id}")
     assert response.status_code == 404
 
 
@@ -161,7 +160,7 @@ def test_create_and_update_project():
 
     # update project
     response = client.put(
-        f"/project/{project_id}",
+        f"/api/project/{project_id}",
         headers={"Content-Type": "application/json", "accept": "application/json"},
         json={"name": new_name, "description": new_description},
     )
@@ -176,7 +175,7 @@ def test_create_and_update_project():
 def test_create_and_update_project_name_null():
     project_id, _, _ = create_project()
     response = client.put(
-        f"/project/{project_id}",
+        f"/api/project/{project_id}",
         headers={"Content-Type": "application/json", "accept": "application/json"},
         json={"name": None, "description": "Description 123"},
     )
@@ -190,7 +189,7 @@ def test_create_and_update_project_description_null():
     new_description = None
 
     response = client.put(
-        f"/project/{project_id}",
+        f"/api/project/{project_id}",
         headers={"Content-Type": "application/json", "accept": "application/json"},
         json={"name": new_name, "description": new_description},
     )
@@ -205,7 +204,7 @@ def test_create_and_update_project_description_null():
 def test_try_update_non_existing_project():
     project_id = -1
     response = client.put(
-        f"/project/{project_id}",
+        f"/api/project/{project_id}",
         headers={"Content-Type": "application/json", "accept": "application/json"},
         json={"name": "Name 123", "description": "Description 123"},
     )
@@ -231,7 +230,7 @@ def create_images(project_id):
             ("files", (filenames[0], f1, "image/jpeg")),
             ("files", (filenames[1], f2, "image/jpeg"))
         ]
-        response = client.post(f"/project/{project_id}/images/", files=files)
+        response = client.post(f"/api/project/{project_id}/images/", files=files)
 
     # confirm files are uploaded to images directory
     assert len(glob.glob(os.path.join(TEST_BASE_DIR, "images", f"project_{project_id}", "*.jpg"))) == 2
@@ -259,7 +258,7 @@ def test_create_and_get_images():
     image_id1, name1, image_id2, name2 = create_images(project_id)
 
     # get image by image id
-    response = client.get(f"/image/{image_id1}")
+    response = client.get(f"/api/image/{image_id1}")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["name"] == name1
@@ -267,7 +266,7 @@ def test_create_and_get_images():
     assert set(data.keys()) == set(["name", "id", "project_id"])
 
     # get images by project id
-    response = client.get(f"/project/{project_id}/images/")
+    response = client.get(f"/api/project/{project_id}/images/")
     assert response.status_code == 200, response.text
     data = response.json()
     assert type(data) == list
@@ -282,7 +281,7 @@ def test_create_and_get_images():
 
 def test_try_get_non_existing_image():
     image_id = -1
-    response = client.get(f"/image/{image_id}")
+    response = client.get(f"/api/image/{image_id}")
     assert response.status_code == 404
 
 
@@ -295,13 +294,13 @@ def test_try_create_image_non_existing_project():
             ("files", (filenames[0], f1, "image/jpeg")),
             ("files", (filenames[1], f2, "image/jpeg"))
         ]
-        response = client.post(f"/project/{project_id}/images/", files=files)
+        response = client.post(f"/api/project/{project_id}/images/", files=files)
     assert response.status_code == 404, response.text
 
 
 def test_try_create_empty_images_list():
     project_id, _, _ = create_project()
-    response = client.post(f"/project/{project_id}/images/", files=[])
+    response = client.post(f"/api/project/{project_id}/images/", files=[])
     assert response.status_code == 422, response.text
 
 
@@ -314,7 +313,7 @@ def test_create_and_delete_image():
 
     # delete images
     for image_id, name in zip([image_id1, image_id2], [name1, name2]):
-        response = client.delete(f"/image/{image_id}")
+        response = client.delete(f"/api/image/{image_id}")
         data = response.json()
         assert response.status_code == 200, response.text
         assert data["name"] == name
@@ -323,13 +322,13 @@ def test_create_and_delete_image():
         assert set(data.keys()) == set(["name", "id", "project_id"])
 
     # make sure the image with this image_id has been deleted
-    response = client.get(f"/project/{project_id}/images")
+    response = client.get(f"/api/project/{project_id}/images")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data == []
 
     for image_id in [image_id1, image_id2]:
-        response = client.get(f"/image/{image_id}")
+        response = client.get(f"/api/image/{image_id}")
         assert response.status_code == 404, response.text
 
     # make sure image files are deleted as well
@@ -340,7 +339,7 @@ def test_create_and_delete_image():
 
 def test_try_delete_non_existing_image():
     image_id = -1
-    response = client.delete(f"/image/{image_id}")
+    response = client.delete(f"/api/image/{image_id}")
     assert response.status_code == 404, response.text
 
 
@@ -352,7 +351,7 @@ def test_try_upload_non_image_file():
         files = [
             ("files", (os.path.join(TEST_BASE_DIR, filename), f, "image/jpeg"))
         ]
-        response = client.post(f"/project/{project_id}/images/", files=files)
+        response = client.post(f"/api/project/{project_id}/images/", files=files)
 
         assert response.status_code == 422, response.text
         data = response.json()
@@ -365,14 +364,14 @@ def test_delete_project_deletes_images():
     image_id1, name1, image_id2, name2 = create_images(project_id)
 
     # check if images exist
-    response = client.get(f"/image/{image_id1}")
+    response = client.get(f"/api/image/{image_id1}")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["name"] == name1
     assert data["id"] == image_id1
     assert set(data.keys()) == set(["name", "id", "project_id"])
     
-    response = client.get(f"/image/{image_id2}")
+    response = client.get(f"/api/image/{image_id2}")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["name"] == name2
@@ -380,13 +379,13 @@ def test_delete_project_deletes_images():
     assert set(data.keys()) == set(["name", "id", "project_id"])
     
     # delete project
-    response = client.delete(f"/project/{project_id}")
+    response = client.delete(f"/api/project/{project_id}")
     assert response.status_code == 200, response.text
 
     # make sure images are deleted as well
-    response = client.get(f"/image/{image_id1}")
+    response = client.get(f"/api/image/{image_id1}")
     assert response.status_code == 404, response.text
-    response = client.get(f"/image/{image_id2}")
+    response = client.get(f"/api/image/{image_id2}")
     assert response.status_code == 404, response.text
 
     # make sure image files are deleted as well
@@ -401,7 +400,7 @@ def test_get_image_file():
     filenames = ["test_image_1.jpg", "test_image_2.jpg"]
     filenames = [os.path.join(TEST_BASE_DIR, filename) for filename in filenames]
     for image_id, test_image_name in zip([image_id1, image_id2], filenames):
-        response = client.get(f"/image_file/{image_id}")
+        response = client.get(f"/api/image_file/{image_id}")
         assert response.status_code == 200, response.text
 
         with open(test_image_name, "rb") as image:
@@ -415,7 +414,7 @@ def test_get_image_file():
 
 def test_get_non_existing_image_file():
     image_id = -1
-    response = client.get(f"/image_file/{image_id}")
+    response = client.get(f"/api/image_file/{image_id}")
     assert response.status_code == 404, response.text
 
 
@@ -427,7 +426,7 @@ def test_get_non_existing_image_file():
 
 
 def confirm_anotation_exists(image_id):
-    response = client.get(f"/annotation/{image_id}")
+    response = client.get(f"/api/annotation/{image_id}")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["id"] == image_id
@@ -451,7 +450,7 @@ def update_annotation(image_id, image_name):
             }]
     }
     response = client.put(
-        f"/annotation/{image_id}",
+        f"/api/annotation/{image_id}",
         headers={"Content-Type": "application/json", "accept": "application/json"},
         json={"data": new_data},
     )
@@ -480,11 +479,11 @@ def test_delete_image_deletes_annotation():
 
     for image_id in [image_id1, image_id2]:
         # delete image
-        response = client.delete(f"/image/{image_id}")
+        response = client.delete(f"/api/image/{image_id}")
         assert response.status_code == 200, response.text
 
         # make sure related annotation is deleted
-        response = client.get(f"/annotation/{image_id}")
+        response = client.get(f"/api/annotation/{image_id}")
         assert response.status_code == 404, response.text
 
 
@@ -498,7 +497,7 @@ def test_update_annotation():
 
 
 def test_get_annotation_ids():
-    response = client.get(f"/annotation_ids/")
+    response = client.get(f"/api/annotation_ids/")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data == []
@@ -507,7 +506,7 @@ def test_get_annotation_ids():
     image_id1, image_name1, image_id2, image_name2 = create_images(project_id)
 
     # since annotations are empty they should not be listed
-    response = client.get(f"/annotation_ids/")
+    response = client.get(f"/api/annotation_ids/")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data == []
@@ -516,7 +515,7 @@ def test_get_annotation_ids():
     update_annotation(image_id1, image_name1)
 
     # now the updated annotation should be listed
-    response = client.get(f"/annotation_ids/")
+    response = client.get(f"/api/annotation_ids/")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data == [image_id1]
@@ -566,7 +565,7 @@ def test_export_project_without_anotations():
     project_id, project_name, project_description = create_project()
     _, image_name1, _, image_name2 = create_images(project_id)
 
-    response = client.get(f"/export/{project_id}")
+    response = client.get(f"/api/export/{project_id}")
     assert response.status_code == 200, response.text
     
     zip_file_members_expected = [
@@ -586,7 +585,7 @@ def test_export_project_with_anotations():
     new_data1 = update_annotation(image_id1, image_name1)
     new_data2 = update_annotation(image_id2, image_name2)
 
-    response = client.get(f"/export/{project_id}")
+    response = client.get(f"/api/export/{project_id}")
     assert response.status_code == 200, response.text
     
     zip_file_members_expected = [
@@ -630,7 +629,7 @@ def test_export_project_with_anotations():
 
 def test_try_export_non_existing_project():
     project_id = -1
-    response = client.get(f"/export/{project_id}")
+    response = client.get(f"/api/export/{project_id}")
     assert response.status_code == 404, response.text
 
 
@@ -638,7 +637,7 @@ def test_import_project():
     filename = os.path.join(TEST_BASE_DIR, "test_export_file.zip")
     with open(filename, "rb") as f:
         file = {"file": (filename, f, "application/zip")}
-        response = client.post(f"/import/", files=file)
+        response = client.post(f"/api/import/", files=file)
 
     assert response.status_code == 201, response.text
     data = response.json()
@@ -648,7 +647,7 @@ def test_import_project():
     project_id = data["id"]
 
     # confirm project exists in database
-    response = client.get(f"/project/{project_id}")
+    response = client.get(f"/api/project/{project_id}")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["name"] == "Test"
@@ -679,7 +678,7 @@ def test_import_project():
     assert set([os.path.basename(image_file) for image_file in image_files]) == set(image_names)
 
     # confirm database contains images
-    response = client.get(f"/project/{project_id}/images/")
+    response = client.get(f"/api/project/{project_id}/images/")
     assert response.status_code == 200, response.text
     data = response.json()
     assert set([image["name"] for image in data]) == set(image_names)
@@ -694,7 +693,7 @@ def test_import_project():
     for image_name in image_names:
         image_id = image_ids[image_name]
 
-        response = client.get(f"/annotation/{image_id}")
+        response = client.get(f"/api/annotation/{image_id}")
         assert response.status_code == 200, response.text
         data = response.json()
         assert data["id"] == image_id
@@ -783,7 +782,7 @@ def test_import_project():
             }
 
     # confirm returned annotation ids are correct
-    response = client.get(f"/annotation_ids/")
+    response = client.get(f"/api/annotation_ids/")
     assert response.status_code == 200, response.text
     data = response.json()
     print(data)
@@ -794,7 +793,7 @@ def test_try_import_project_invalid_file():
     filename = os.path.join(TEST_BASE_DIR, "test_export_file_invalid.zip")
     with open(filename, "rb") as f:
         file = {"file": (filename, f, "application/zip")}
-        response = client.post(f"/import/", files=file)
+        response = client.post(f"/api/import/", files=file)
     assert response.status_code == 422, response.text
     data = response.json()
     assert data["detail"] == "Uploaded file is not a valid project archive."
@@ -804,7 +803,7 @@ def test_try_import_project_non_zip_file():
     filename = os.path.join(TEST_BASE_DIR, "test_image_1.jpg")
     with open(filename, "rb") as f:
         file = {"file": (filename, f, "image/jpeg")}
-        response = client.post(f"/import/", files=file)
+        response = client.post(f"/api/import/", files=file)
     assert response.status_code == 422, response.text
     data = response.json()
     assert data["detail"] == "Uploaded file is not a valid zip archive."
