@@ -12,7 +12,8 @@ from sqlalchemy.orm import sessionmaker
 
 from ..config import config
 from ..database import Base
-from ..main import create_app, get_db
+from ..dependencies import get_db
+from ..main import create_app
 
 
 TEST_BASE_DIR = "app/tests"
