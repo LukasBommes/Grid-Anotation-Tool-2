@@ -247,7 +247,6 @@ def create_images(project_id):
 
 def load_images(image_names, project_id):
     for image_name in image_names:
-        #filepath = os.path.join(config.MEDIA_ROOT, f"project_{project_id}", image_name)
         filepath = os.path.join(TEST_BASE_DIR, "images", f"project_{project_id}", image_name)
         with open(filepath, "rb") as f:
             pass

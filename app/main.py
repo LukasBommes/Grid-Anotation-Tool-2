@@ -63,7 +63,7 @@ def create_app(config):
     from fastapi.responses import JSONResponse
 
 
-    app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+    app.mount("/static", StaticFiles(directory="app/frontend/static"), name="static")
     templates = Jinja2Templates(directory="app/frontend/templates")
 
 
