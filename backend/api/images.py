@@ -17,7 +17,7 @@ images_to_delete = []
 
 def create_router(settings):
     
-    router = APIRouter(prefix="/api", tags=["images"])
+    router = APIRouter(tags=["images"])
     
 
     @router.get("/project/{project_id}/images/", response_model=List[schemas.Image], status_code=200)

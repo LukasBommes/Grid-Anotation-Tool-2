@@ -9,7 +9,7 @@ class Settings(BaseSettings):
         "http://localhost:9999",
         "http://127.0.0.1:9999",
     ]
-    SQLALCHEMY_DATABASE_URL: str = "sqlite:///./api.db"
+    SQLALCHEMY_DATABASE_URL: str = "sqlite:///./api.db"  #"postgresql://user:password@postgresserver/db"
 
 
 settings = Settings()

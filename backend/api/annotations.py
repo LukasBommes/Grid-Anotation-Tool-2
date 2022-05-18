@@ -10,7 +10,7 @@ from ..dependencies import get_db
 
 def create_router(settings):
     
-    router = APIRouter(prefix="/api", tags=["annotations"])
+    router = APIRouter(tags=["annotations"])
 
 
     @router.get("/annotation_ids/", response_model=List[int], status_code=200)

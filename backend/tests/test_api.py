@@ -17,16 +17,16 @@ from ..main import create_app
 
 
 TEST_BASE_DIR = "backend/tests"
-SQLALCHEMY_DATABASE_URL = f"sqlite:///{TEST_BASE_DIR}/test.db"
 
 test_settings = settings
 settings.MEDIA_ROOT = f"{TEST_BASE_DIR}/images"
+settings.SQLALCHEMY_DATABASE_URL = f"sqlite:///{TEST_BASE_DIR}/test.db"
 
 app = create_app(test_settings)
 
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    settings.SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

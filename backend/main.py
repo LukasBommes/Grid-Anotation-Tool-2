@@ -22,9 +22,9 @@ def create_app(settings):
         allow_headers=["*"],
     )
 
-    app.include_router(projects.create_router(settings))
-    app.include_router(images.create_router(settings))
-    app.include_router(annotations.create_router(settings))
+    app.include_router(projects.create_router(settings), prefix="/api")
+    app.include_router(images.create_router(settings), prefix="/api")
+    app.include_router(annotations.create_router(settings), prefix="/api")
 
     return app
 
