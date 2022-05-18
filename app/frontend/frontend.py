@@ -11,7 +11,7 @@ def create_router(config):
 
 
     @router.get('/', response_class=HTMLResponse)
-    @router.get('/projectsfrontend', response_class=HTMLResponse)
+    @router.get('/projects', response_class=HTMLResponse)
     def projects(request: Request):
         return templates.TemplateResponse("projects.html", {"request": request, "api_url": config["api_url"]})
 

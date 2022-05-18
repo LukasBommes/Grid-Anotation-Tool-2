@@ -21,7 +21,7 @@ from ..dependencies import get_db
 
 def create_router(config):
 
-    router = APIRouter(tags=["projects"])
+    router = APIRouter(prefix="/api", tags=["projects"])
 
 
     ##########################################################################################
