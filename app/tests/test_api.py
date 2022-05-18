@@ -10,12 +10,20 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .. import config
+from ..config import config
 from ..database import Base
-from ..main import app, get_db
+from ..main import create_app, get_db
 
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+TEST_BASE_DIR = "app/tests"
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{TEST_BASE_DIR}/test.db"
+MEDIA_ROOT = f"{TEST_BASE_DIR}/images"
+
+test_config = config
+test_config["media_root"] = MEDIA_ROOT
+
+app = create_app(test_config)
+
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
@@ -33,6 +41,7 @@ def override_get_db():
 
 app.dependency_overrides[get_db] = override_get_db
 
+
 client = TestClient(app)
 
 
@@ -46,7 +55,7 @@ def test_db():
 @pytest.fixture(autouse=True)
 def cleanup_image_uploads():
     try:
-        shutil.rmtree("images")
+        shutil.rmtree(os.path.join(TEST_BASE_DIR, "images"))
     except FileNotFoundError:
         print("FileNotFoundError")
         pass
@@ -211,10 +220,11 @@ def test_try_update_non_existing_project():
 
 def create_images(project_id):
     """Helper function to upload and evaluate two images."""
-    os.makedirs("images", exist_ok=True)
+    os.makedirs(os.path.join(TEST_BASE_DIR, "images"), exist_ok=True)
 
     # upload files
     filenames = ["test_image_1.jpg", "test_image_2.jpg"]
+    filenames = [os.path.join(TEST_BASE_DIR, filename) for filename in filenames]
     with open(filenames[0], "rb") as f1, open(filenames[1], "rb") as f2:
         files = [
             ("files", (filenames[0], f1, "image/jpeg")),
@@ -223,7 +233,7 @@ def create_images(project_id):
         response = client.post(f"/project/{project_id}/images/", files=files)
 
     # confirm files are uploaded to images directory
-    assert len(glob.glob(os.path.join("images", f"project_{project_id}", "*.jpg"))) == 2
+    assert len(glob.glob(os.path.join(TEST_BASE_DIR, "images", f"project_{project_id}", "*.jpg"))) == 2
 
     assert response.status_code == 201, response.text
     data = response.json()
@@ -237,7 +247,8 @@ def create_images(project_id):
 
 def load_images(image_names, project_id):
     for image_name in image_names:
-        filepath = os.path.join(config.MEDIA_ROOT, f"project_{project_id}", image_name)
+        #filepath = os.path.join(config.MEDIA_ROOT, f"project_{project_id}", image_name)
+        filepath = os.path.join(TEST_BASE_DIR, "images", f"project_{project_id}", image_name)
         with open(filepath, "rb") as f:
             pass
 
@@ -278,6 +289,7 @@ def test_try_get_non_existing_image():
 def test_try_create_image_non_existing_project():
     project_id = -1
     filenames = ["test_image_1.jpg", "test_image_2.jpg"]
+    filenames = [os.path.join(TEST_BASE_DIR, filename) for filename in filenames]
     with open(filenames[0], "rb") as f1, open(filenames[1], "rb") as f2:
         files = [
             ("files", (filenames[0], f1, "image/jpeg")),
@@ -321,7 +333,7 @@ def test_create_and_delete_image():
         assert response.status_code == 404, response.text
 
     # make sure image files are deleted as well
-    assert len(glob.glob(os.path.join("images", f"project_{project_id}", "*.jpg"))) == 0
+    assert len(glob.glob(os.path.join(TEST_BASE_DIR, "images", f"project_{project_id}", "*.jpg"))) == 0
     with pytest.raises(FileNotFoundError):
         load_images([name1, name2], project_id)
 
@@ -335,10 +347,10 @@ def test_try_delete_non_existing_image():
 def test_try_upload_non_image_file():
     project_id, _, _ = create_project()
 
-    filename = "test_export_file.zip"
+    filename = os.path.join(TEST_BASE_DIR, "test_export_file.zip")
     with open(filename, "rb") as f:
         files = [
-            ("files", (filename, f, "image/jpeg"))
+            ("files", (os.path.join(TEST_BASE_DIR, filename), f, "image/jpeg"))
         ]
         response = client.post(f"/project/{project_id}/images/", files=files)
 
@@ -386,7 +398,9 @@ def test_get_image_file():
     project_id, _, _ = create_project()
     image_id1, _, image_id2, _ = create_images(project_id)
 
-    for image_id, test_image_name in zip([image_id1, image_id2], ["test_image_1.jpg", "test_image_2.jpg"]):
+    filenames = ["test_image_1.jpg", "test_image_2.jpg"]
+    filenames = [os.path.join(TEST_BASE_DIR, filename) for filename in filenames]
+    for image_id, test_image_name in zip([image_id1, image_id2], filenames):
         response = client.get(f"/image_file/{image_id}")
         assert response.status_code == 200, response.text
 
@@ -394,7 +408,7 @@ def test_get_image_file():
             response_image = io.BytesIO(response.content)
             assert response_image.read() == image.read()
 
-        with open("test_image_1_modified.jpg", "rb") as image:
+        with open(os.path.join(TEST_BASE_DIR, "test_image_1_modified.jpg"), "rb") as image:
             response_image = io.BytesIO(response.content)
             assert response_image.read() != image.read()
 
@@ -527,11 +541,13 @@ def check_export_file(response, project_id, project_name, project_description, i
     assert set(zip_file_members) == set(zip_file_members_expected)
 
     # check file contents
-    for image_name, test_image_name in zip([image_name1, image_name2], ["test_image_1.jpg", "test_image_2.jpg"]):
+    filenames = ["test_image_1.jpg", "test_image_2.jpg"]
+    filenames = [os.path.join(TEST_BASE_DIR, filename) for filename in filenames]
+    for image_name, test_image_name in zip([image_name1, image_name2], filenames):
         with zip_file.open(f"images/{image_name}", "r") as image_zipped:
             with open(test_image_name, "rb") as image:
                 assert image_zipped.read() == image.read()
-            with open("test_image_1_modified.jpg", "rb") as image:
+            with open(os.path.join(TEST_BASE_DIR, "test_image_1_modified.jpg"), "rb") as image:
                 assert image_zipped.read() != image.read()
 
     with zip_file.open("project.json", "r") as project_zipped:
@@ -619,7 +635,7 @@ def test_try_export_non_existing_project():
 
 
 def test_import_project():
-    filename = "test_export_file.zip"
+    filename = os.path.join(TEST_BASE_DIR, "test_export_file.zip")
     with open(filename, "rb") as f:
         file = {"file": (filename, f, "application/zip")}
         response = client.post(f"/import/", files=file)
@@ -659,7 +675,7 @@ def test_import_project():
         "ff8e1a82-fe8c-4ad8-b215-b2a117ee3f5c.jpg",
         "ff928046-124a-4bae-8960-b6488506fd6b.jpg",
     ]
-    image_files = glob.glob(os.path.join("images", f"project_{project_id}", "*.jpg"))
+    image_files = glob.glob(os.path.join(TEST_BASE_DIR, "images", f"project_{project_id}", "*.jpg"))
     assert set([os.path.basename(image_file) for image_file in image_files]) == set(image_names)
 
     # confirm database contains images
@@ -775,7 +791,7 @@ def test_import_project():
 
 
 def test_try_import_project_invalid_file():
-    filename = "test_export_file_invalid.zip"
+    filename = os.path.join(TEST_BASE_DIR, "test_export_file_invalid.zip")
     with open(filename, "rb") as f:
         file = {"file": (filename, f, "application/zip")}
         response = client.post(f"/import/", files=file)
@@ -785,7 +801,7 @@ def test_try_import_project_invalid_file():
 
 
 def test_try_import_project_non_zip_file():
-    filename = "test_image_1.jpg"
+    filename = os.path.join(TEST_BASE_DIR, "test_image_1.jpg")
     with open(filename, "rb") as f:
         file = {"file": (filename, f, "image/jpeg")}
         response = client.post(f"/import/", files=file)
