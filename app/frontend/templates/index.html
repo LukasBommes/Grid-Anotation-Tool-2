@@ -1,0 +1,96 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/main.css') }}">
+  <link rel="shortcut icon" href="{{ url_for('static', path='favicon.ico') }}">
+
+  <!-- Imports for Material Web -->
+  <link rel="stylesheet" href="{{ url_for('static', path='material-components-web/material-components-web.min.css') }}">
+  <script src="{{ url_for('static', path='material-components-web/material-components-web.min.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', path='material-components-web/google-material-icons.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='material-components-web/google-fonts-roboto.css') }}">
+  {% block head %}{% endblock %}
+
+  <title>{% block title %}Grid Annotation Tool{% endblock %}</title>
+</head>
+
+<body class="mdc-typography">
+  <div class="top-app-bar__frame">
+
+    <header class=" mdc-top-app-bar mdc-top-app-bar--fixed">
+      <div class="mdc-top-app-bar__row">
+      <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+          <button class="mdc-icon-button material-icons mdc-top-app-bar__navigation-icon--unbounded" onclick="homeButtonClicked()">grid_view</button>
+          <span class="mdc-top-app-bar__title">Grid Annotation Tool</span>
+      </section>
+      <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
+        {% block appbar_buttons %}{% endblock %}
+      </section>
+      </div>
+    </header>
+
+    <div class="mdc-top-app-bar--fixed-adjust">
+      {% block content %}{% endblock %}
+
+      <!-- Snackbar -->
+      <aside class="mdc-snackbar">
+        <div class="mdc-snackbar__surface" role="status" aria-relevant="additions">
+          <div class="mdc-snackbar__label" aria-atomic="false">
+            Snackbar Text.
+          </div>
+          <div class="mdc-snackbar__actions" aria-atomic="true">
+            <button type="button" class="mdc-button mdc-snackbar__action">
+              <div class="mdc-button__ripple"></div>
+              <span class="mdc-button__label">OK</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  {% block tooltips %}{% endblock %}
+
+  {% block script %}{% endblock %}
+
+  <script>
+    // UUID creation, taken from: https://stackoverflow.com/a/2117523
+    function uuidv4() {
+      return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+      );
+    }
+
+    function htmlToElements(html) {
+      var template = document.createElement('template');
+      template.innerHTML = html;
+      return template.content;
+    }
+
+    function homeButtonClicked() {
+      window.location.href = "{{ url_for('projects') }}";
+    }
+  </script>
+
+  <!-- MUI Web Components -->
+  <script>    
+    const iconButtonRipples = [].map.call(document.querySelectorAll('.app-bar-icon-button'), function(element) {
+        const ripple = new mdc.ripple.MDCRipple(element);
+        ripple.unbounded = true;
+        return ripple;
+    });
+    
+    const textfields = [].map.call(document.querySelectorAll('.mdc-text-field'), function(element) {
+        return new mdc.textField.MDCTextField(element);
+    });
+    
+    const tooltips = [].map.call(document.querySelectorAll('.mdc-tooltip'), function(element) {
+        const tooltip = new mdc.tooltip.MDCTooltip(element);
+        tooltip.setShowDelay(500);
+        tooltip.setHideDelay(0);
+        return tooltip;
+    });
+  </script>
+</body>
+</html>

@@ -12,13 +12,15 @@ from datetime import datetime
 from typing import List
 
 import filetype
-from fastapi import Depends, FastAPI, HTTPException, File, UploadFile, BackgroundTasks
-from fastapi.responses import FileResponse
+from fastapi import Depends, FastAPI, HTTPException, File, UploadFile, BackgroundTasks, Request
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import event
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from . import config, models, schemas
 from .database import SessionLocal, engine
@@ -44,6 +46,52 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+##########################################################################################
+#
+# Frontend
+#
+##########################################################################################
+
+
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
+
+
+app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+templates = Jinja2Templates(directory="app/frontend/templates")
+
+
+@app.get('/', response_class=HTMLResponse)
+@app.get('/projectsfrontend', response_class=HTMLResponse)
+def projects(request: Request):
+    return templates.TemplateResponse("projects.html", {"request": request, "api_url": config.API_URL})
+
+
+@app.get('/add', response_class=HTMLResponse)
+async def add_project(request: Request):
+    return templates.TemplateResponse("add_edit_project.html", {"request": request, "api_url": config.API_URL, "project_id": None, "mode": "add"})
+
+
+@app.get('/get_edit_project_url', response_class=HTMLResponse)
+async def get_edit_project_url(request: Request, project_id: int):
+    return JSONResponse(content=jsonable_encoder({"url": f'/edit/{project_id}'}))
+
+
+@app.get('/edit/{project_id}')
+async def edit_project(request: Request, project_id: int):
+    return templates.TemplateResponse("add_edit_project.html", {"request": request, "api_url": config.API_URL, "project_id": project_id, "mode": "edit"})
+
+
+@app.get('/get_editor_url', response_class=HTMLResponse)
+async def get_editor_url(request: Request, project_id: int):
+    return JSONResponse(content=jsonable_encoder({"url": f'/editor/{project_id}'}))
+
+
+@app.get('/editor/{project_id}', response_class=HTMLResponse)
+async def editor(request: Request, project_id: int):
+    return templates.TemplateResponse("editor.html", {"request": request, "api_url": config.API_URL, "project_id": project_id})
 
 
 ##########################################################################################

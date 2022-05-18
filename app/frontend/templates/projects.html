@@ -1,0 +1,290 @@
+{% extends "index.html" %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/projects.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="mdc-layout-grid">
+    <div class="mdc-layout-grid__inner">
+        <div class="mdc-layout-grid__cell--span-2"></div>
+        <div class="mdc-layout-grid__cell--span-8">                                
+            <div class="mdc-elevation--z4">
+                <div class="main-container">
+                    <div class="main-container-title">
+                        <h1 class="mdc-typography--button">Projects</h1>
+
+                        <!-- Buttons -->
+                        <div class="main-container-title-buttons">
+                            <label for="import-project-input" class="mdc-button mdc-button- mdc-button--icon-leading import-project-button">
+                                <span class="mdc-button__ripple"></span>
+                                <span class="mdc-button__focus-ring"></span>
+                                <i class="material-icons mdc-button__icon" aria-hidden="true">
+                                    upload
+                                </i>
+                                <span class="mdc-button__label">Import Project</span>
+                            </label>
+                            <input type="file" id="import-project-input" accept="zip,application/octet-stream,application/zip,application/x-zip,application/x-zip-compressed" onchange="importProjectFilesInputChanged(event)">
+                            <button class="mdc-button mdc-button--icon-leading" onclick="newProjectButtonClicked()">
+                                <span class="mdc-button__ripple"></span>
+                                <span class="mdc-button__focus-ring"></span>
+                                <i class="material-icons mdc-button__icon" aria-hidden="true">
+                                    add
+                                </i>
+                                <span class="mdc-button__label">New Project</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Project List -->
+                    <ul class="mdc-list" id="projects-list"></ul>
+
+                </div>
+            </div>
+        </div>
+        <div class="mdc-layout-grid__cell--span-2"></div>
+    </div>
+</div>
+
+<!-- Menu Items for Project List -->
+<div id="projects-list-menu-list"></div>
+
+<!-- Delete Project Alert -->
+<div class="mdc-dialog" id="delete-project-dialog">
+    <div class="mdc-dialog__container">
+      <div class="mdc-dialog__surface"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="my-dialog-title"
+        aria-describedby="my-dialog-content">
+        <div class="mdc-dialog__content" id="my-dialog-content">
+          Are you sure you want to delete the project?
+        </div>
+        <div class="mdc-dialog__actions">
+          <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel">
+            <div class="mdc-button__ripple"></div>
+            <span class="mdc-button__label">No, Cancel</span>
+          </button>
+          <button type="button" class="mdc-button mdc-dialog__button" id="delete-project-dialog-button" data-mdc-dialog-action="ok">
+            <div class="mdc-button__ripple"></div>
+            <span class="mdc-button__label">Yes, Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="mdc-dialog__scrim"></div>
+  </div>
+{% endblock %}
+
+{% block script %}
+<script>
+    const API_URL = {{ api_url|tojson }};
+    const project_list_menus = {};
+
+    const project_delete_success_msg = "Project deleted.";
+    const project_delete_error_msg = "Failed to delete project.";
+    const project_imported_success_msg = "Project imported.";
+    const project_imported_error_msg = "Failed to import project";
+
+    const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
+    const delete_project_dialog = new mdc.dialog.MDCDialog(document.querySelector('#delete-project-dialog'));
+    var deleteProjectDialogEventListener;
+
+    function loadProjects() {
+        // clear project list
+        document.getElementById("projects-list").innerHTML = '';
+        document.getElementById("projects-list-menu-list").innerHTML = '';
+        // get projects
+        getAnnotationIds();
+    }
+
+    function getAnnotationIds() {      
+      var getAnnotationIdsReq = new XMLHttpRequest();
+      getAnnotationIdsReq.addEventListener("load", function () {
+        var existing_anotations = JSON.parse(this.responseText);
+        getProjects(existing_anotations);
+      });
+      getAnnotationIdsReq.open("GET", `${API_URL}/annotation_ids/`);
+      getAnnotationIdsReq.send();
+    }
+
+    function addProjectToProjectList(project, num_images, num_annotated) {
+        const html_list_item = `
+            <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image" onclick="annotateProjectClicked(${project.id})">
+                <span class="mdc-list-item__ripple"></span>
+                <span class="mdc-list-item__start"></span>
+                <span class="mdc-list-item__content" id="projects-list-item-${project.id}">
+                    <span class="mdc-list-item__primary-text">${project.name.slice(0, 10)}</span>
+                    <span class="mdc-list-item__secondary-text">${num_annotated} / ${num_images} images annotated</span>
+                </span>
+                <span class="mdc-list-item__end list-item-end-custom">
+                    <button class="mdc-icon-button material-icons" onclick="openMenu(${project.id}, event)">
+                        <div class="mdc-icon-button__ripple"></div>
+                        <span class="mdc-icon-button__focus-ring"></span>
+                        more_vert
+                    </button>
+                </span>
+            </li>`;
+        const html_menu_item = `
+            <div class="mdc-menu mdc-menu-surface" id="projects-list-menu-${project.id}">
+                <ul class="mdc-deprecated-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
+                    <li class="mdc-deprecated-list-item" role="menuitem" onclick="annotateProjectClicked(${project.id})">
+                        <span class="mdc-deprecated-list-item__ripple"></span>
+                        <span class="mdc-deprecated-list-item__text">Annotate</span>
+                        <span class="mdc-deprecated-list-item__meta">
+                            <i class="material-icons menu-icon">edit</i>
+                        </span>
+                    </li>
+                    <li class="mdc-deprecated-list-item" role="menuitem" onclick="setupProjectClicked(${project.id})">
+                        <span class="mdc-deprecated-list-item__ripple"></span>
+                        <span class="mdc-deprecated-list-item__text">Setup</span>
+                        <span class="mdc-deprecated-list-item__meta">
+                            <i class="material-icons menu-icon">build</i>
+                        </span>
+                    </li>
+                    <li class="mdc-deprecated-list-item" role="menuitem" onclick="exportProjectClicked(${project.id})">
+                        <span class="mdc-deprecated-list-item__ripple"></span>
+                        <span class="mdc-deprecated-list-item__text">Export</span>
+                        <span class="mdc-deprecated-list-item__meta">
+                            <i class="material-icons menu-icon">download</i>
+                        </span>
+                    </li>
+                    <li class="mdc-deprecated-list-item" role="menuitem" onclick="deleteProjectClicked(${project.id})">
+                        <span class="mdc-deprecated-list-item__ripple"></span>
+                        <span class="mdc-deprecated-list-item__text">Delete</span>
+                        <span class="mdc-deprecated-list-item__meta">
+                            <i class="material-icons menu-icon">delete</i>
+                        </span>
+                    </li>
+                </ul>
+            </div>`;
+        document.getElementById('projects-list').appendChild(htmlToElements(html_list_item));
+        document.getElementById('projects-list-menu-list').appendChild(htmlToElements(html_menu_item));
+        project_list_menus[project.id] = new mdc.menu.MDCMenu(document.querySelector(`#projects-list-menu-${project.id}`));
+        init_mui_elements();
+    }
+
+    function countAnnotatedImages(images, existing_anotations) {
+        var num_annotated = 0;
+        for (var i = 0; i < images.length; i++) {
+            if (existing_anotations.includes(images[i].id)) {
+                num_annotated++;
+            }
+        }
+        return num_annotated;
+    }
+
+    function getProjects(existing_anotations) {
+        var getProjectsReq = new XMLHttpRequest();
+        getProjectsReq.addEventListener("load", function () {
+            console.log("Projects loaded.")
+            if (this.status == 200) {
+                var response = JSON.parse(this.responseText);
+                response.forEach((project) => {
+                    const num_images = project.images.length;
+                    const num_annotated = countAnnotatedImages(project.images, existing_anotations);
+                    addProjectToProjectList(project, num_images, num_annotated);
+                });                
+            }
+        });
+        getProjectsReq.open("GET", `${API_URL}/projects/`);
+        getProjectsReq.send();
+    }
+
+    function deleteProject(project_id) {
+        var deleteProjectReq = new XMLHttpRequest();
+        deleteProjectReq.addEventListener("load", function () {
+            console.log(this.responseText);
+            if (this.status == 200) {
+                console.log(project_delete_success_msg);
+                snackbar.labelText = project_delete_success_msg;
+                snackbar.open();
+            } else {
+                console.log(project_delete_error_msg);
+                snackbar.labelText = project_delete_error_msg;
+                snackbar.open();
+            }
+            loadProjects();
+        });
+        deleteProjectReq.open("DELETE", `${API_URL}/project/${project_id}`, true);
+        deleteProjectReq.setRequestHeader("Content-Type", "application/json");
+        deleteProjectReq.send();
+    }
+
+    function openMenu(project_id, event) {
+        const menu = project_list_menus[project_id];
+        menu.setAbsolutePosition(event.clientX, event.clientY);
+        menu.open = !menu.open;
+        event.stopPropagation();
+    }
+
+    function annotateProjectClicked(project_id) {
+        var editProjectRedirectReq = new XMLHttpRequest();
+        editProjectRedirectReq.addEventListener("load", function () {
+            if (this.status == 200) {
+                window.location.href = JSON.parse(this.responseText).url;
+            }  
+        });
+        editProjectRedirectReq.open("GET", "{{ url_for('get_editor_url') }}"+"?project_id="+project_id);
+        editProjectRedirectReq.send();
+    }
+
+    function setupProjectClicked(project_id) {
+        var editProjectRedirectReq = new XMLHttpRequest();
+        editProjectRedirectReq.addEventListener("load", function () {
+            if (this.status == 200) {
+                window.location.href = JSON.parse(this.responseText).url;
+            }  
+        });
+        editProjectRedirectReq.open("GET", "{{ url_for('get_edit_project_url') }}"+"?project_id="+project_id);
+        editProjectRedirectReq.send();
+    }
+
+    function exportProjectClicked(project_id) {
+        window.location.href = `${API_URL}/export/${project_id}`;
+    }
+
+    function deleteProjectClicked(project_id) {
+        const button_yes = document.getElementById("delete-project-dialog-button");
+        button_yes.removeEventListener('click', deleteProjectDialogEventListener);
+        deleteProjectDialogEventListener = deleteProject.bind(null, project_id);
+        button_yes.addEventListener('click', deleteProjectDialogEventListener);
+        delete_project_dialog.open();
+    }
+
+    function importProjectFilesInputChanged(event) {
+        const file = event.target.files[0];
+        var importProjectData = new FormData();
+        importProjectData.append("file", file);
+
+        var importProjectReq = new XMLHttpRequest();
+        importProjectReq.addEventListener("load", function () {
+            if (this.status == 201) {
+                console.log(project_imported_success_msg);
+                snackbar.labelText = project_imported_success_msg;
+                snackbar.open();
+            } else {
+                console.log(project_imported_error_msg);
+                snackbar.labelText = project_imported_error_msg;    
+                snackbar.open();
+            }
+            loadProjects();
+        });
+        importProjectReq.open("POST", `${API_URL}/import/`, true);
+        importProjectReq.send(importProjectData);
+        event.target.value = null;  // to trigger onchange event even if the same file was selected
+    }
+
+    function newProjectButtonClicked() {
+        window.location.href = "{{ url_for('add_project') }}";
+    }
+
+    function init_mui_elements() {
+        const listItemRipples = [].map.call(document.querySelectorAll('.mdc-list-item'), function(element) {
+            return new mdc.ripple.MDCRipple(element);
+        });
+    }
+
+    loadProjects();
+</script>
+{% endblock %}
