@@ -16,7 +16,7 @@ from ..dependencies import get_db
 from ..main import create_app
 
 
-TEST_BASE_DIR = "app/tests"
+TEST_BASE_DIR = "backend/tests"
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{TEST_BASE_DIR}/test.db"
 
 test_settings = settings
