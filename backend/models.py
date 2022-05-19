@@ -7,10 +7,10 @@ from .database import Base
 class User(Base):
     __tablename__ = "users"
     username = Column(String, primary_key=True, index=True)
-    hashed_password: Column(String)
-    email: Column(String, nullable=True)
-    full_name: Column(String, nullable=True)
-    disabled: Column(Boolean, nullable=True)
+    hashed_password = Column(String)
+    email = Column(String, nullable=True)
+    full_name = Column(String, nullable=True)
+    disabled = Column(Boolean, nullable=True)
     
     projects = relationship("Project", backref="user", cascade="all, delete")
 

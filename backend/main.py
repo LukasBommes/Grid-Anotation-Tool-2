@@ -3,11 +3,13 @@ from datetime import timedelta
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
 
 from . import models, schemas
 from .database import engine
 from .config import settings
-from .auth import authenticate_user, create_access_token, get_current_active_user, fake_users_db
+from .dependencies import get_db
+from .auth import authenticate_user, create_access_token, fake_users_db
 
 from .api import images, annotations, projects, users
 
@@ -49,8 +51,11 @@ def create_app(settings):
 
 
     @app.post("/api/token", response_model=schemas.Token)
-    async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-        user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    async def login_for_access_token(
+        form_data: OAuth2PasswordRequestForm = Depends(), 
+        db: Session = Depends(get_db)
+    ):
+        user = authenticate_user(db, form_data.username, form_data.password)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -63,15 +68,6 @@ def create_app(settings):
         )
         return {"access_token": access_token, "token_type": "bearer"}
 
-
-    @app.get("/api/users/me/", response_model=schemas.User)
-    async def read_users_me(current_user: schemas.User = Depends(get_current_active_user)):
-        return current_user
-
-
-    @app.get("/api/users/me/items/")
-    async def read_own_items(current_user: schemas.User = Depends(get_current_active_user)):
-        return [{"item_id": "Foo", "owner": current_user.username}]
 
     return app
 
