@@ -14,9 +14,11 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, BackgroundTas
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy import and_
 
 from .. import models, schemas
 from ..dependencies import get_db
+from ..auth import get_current_active_user
 
 
 def create_router(settings):
@@ -32,9 +34,13 @@ def create_router(settings):
 
 
     @router.post("/projects/", response_model=schemas.Project, status_code=201)
-    def create_project(project: schemas.ProjectCreate, db: Session = Depends(get_db)):
+    def create_project(
+        project: schemas.ProjectCreate, 
+        db: Session = Depends(get_db), 
+        current_user: schemas.User = Depends(get_current_active_user)
+    ):
         now = datetime.now()
-        db_project = models.Project(**project.dict(), created=now, edited=now)
+        db_project = models.Project(**project.dict(), created=now, edited=now, username=current_user.username)
         db.add(db_project)
         db.commit()
         db.refresh(db_project)
@@ -42,22 +48,48 @@ def create_router(settings):
 
 
     @router.get("/projects/", response_model=List[schemas.Project], status_code=200)
-    def get_projects(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-        db_projects = db.query(models.Project).offset(skip).limit(limit).all()
+    def get_projects(
+        skip: int = 0, 
+        limit: int = 100, 
+        db: Session = Depends(get_db), 
+        current_user: schemas.User = Depends(get_current_active_user)
+    ):
+        print(f"current_user {current_user.username}")
+        db_projects = db.query(models.Project).filter(
+            models.Project.username == current_user.username
+        ).offset(skip).limit(limit).all()
         return db_projects
 
 
     @router.get("/project/{project_id}", response_model=schemas.Project, status_code=200)
-    def get_project(project_id: int, db: Session = Depends(get_db)):
-        db_project = db.query(models.Project).get(project_id)
+    def get_project(
+        project_id: int, 
+        db: Session = Depends(get_db), 
+        current_user: schemas.User = Depends(get_current_active_user)
+    ):
+        db_project = db.query(models.Project).filter(
+            and_(
+                models.Project.username == current_user.username,
+                models.Project.id == project_id
+            )
+        ).first()
         if not db_project:
             raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
         return db_project
 
 
     @router.delete("/project/{project_id}", response_model=schemas.Project, status_code=200)
-    def delete_project(project_id: int, db: Session = Depends(get_db)):
-        db_project = db.query(models.Project).get(project_id)
+    def delete_project(
+        project_id: int, 
+        db: Session = Depends(get_db), 
+        current_user: schemas.User = Depends(get_current_active_user)
+    ):
+        db_project = db.query(models.Project).filter(
+            and_(
+                models.Project.username == current_user.username,
+                models.Project.id == project_id
+            )
+        ).first()
         if not db_project:
             raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
         else:
@@ -67,8 +99,18 @@ def create_router(settings):
 
 
     @router.put("/project/{project_id}", response_model=schemas.Project, status_code=200)
-    def update_project(project_id: int, project: schemas.ProjectCreate, db: Session = Depends(get_db)):
-        db_project_query = db.query(models.Project).filter(models.Project.id == project_id)
+    def update_project(
+        project_id: int, 
+        project: schemas.ProjectCreate, 
+        db: Session = Depends(get_db), 
+        current_user: schemas.User = Depends(get_current_active_user)
+    ):
+        db_project_query = db.query(models.Project).filter(
+            and_(
+                models.Project.username == current_user.username,
+                models.Project.id == project_id
+            )
+        )
         db_project = db_project_query.first()
         if not db_project:
             raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")

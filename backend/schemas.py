@@ -4,33 +4,6 @@ from typing import List, Optional, Dict, Union
 from pydantic import BaseModel
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: Union[str, None] = None
-
-
-class User(BaseModel):
-    username: str
-    email: Union[str, None] = None
-    full_name: Union[str, None] = None
-    disabled: Union[bool, None] = None
-
-
-class UserCreate(User):
-    password: str
-
-
-class UserInDB(User):
-    hashed_password: str
-
-    class Config:
-        orm_mode = True
-
-
 class AnnotatioBase(BaseModel):
     data: Dict
     username: str
@@ -67,7 +40,6 @@ class Image(ImageBase):
 class ProjectBase(BaseModel):
     name: str
     description: Optional[str] = None
-    username: str
 
 
 class ProjectCreate(ProjectBase):
@@ -79,6 +51,35 @@ class Project(ProjectBase):
     created: datetime
     edited: datetime
     images: List[Image] = []
+    username: str
+
+    class Config:
+        orm_mode = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Union[str, None] = None
+
+
+class User(BaseModel):
+    username: str
+    email: Union[str, None] = None
+    full_name: Union[str, None] = None
+    disabled: Union[bool, None] = None
+    projects: List[Project] = []
+
+
+class UserCreate(User):
+    password: str
+
+
+class UserInDB(User):
+    hashed_password: str
 
     class Config:
         orm_mode = True
