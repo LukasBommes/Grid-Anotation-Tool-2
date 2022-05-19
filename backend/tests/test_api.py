@@ -10,10 +10,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from .. import schemas
+from ..main import create_app
 from ..config import settings
 from ..database import Base
 from ..dependencies import get_db
-from ..main import create_app
+from ..auth import get_current_active_user
 
 
 TEST_BASE_DIR = "backend/tests"
@@ -39,7 +41,18 @@ def override_get_db():
         db.close()
 
 
+def override_get_current_active_user():
+    test_user_dict = dict(
+        username="testuser",
+        email=None,
+        fullname=None,
+        disabled=False,
+    )
+    return schemas.User(**test_user_dict)
+
+
 app.dependency_overrides[get_db] = override_get_db
+app.dependency_overrides[get_current_active_user] = override_get_current_active_user
 
 
 client = TestClient(app)
@@ -59,7 +72,17 @@ def cleanup_image_uploads():
     except FileNotFoundError:
         print("FileNotFoundError")
         pass
+
+
+
+##########################################################################################
+#
+# Authentication
+#
+##########################################################################################
     
+
+
 
 
 ##########################################################################################
@@ -81,7 +104,7 @@ def create_project(name="Name", description="Description"):
     assert data["name"] == name
     assert data["description"] == description
     assert data["images"] == []
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
     project_id = data["id"]
     return project_id, name, description
 
@@ -94,7 +117,7 @@ def delete_project(project_id, name, description):
     assert data["name"] == name
     assert data["description"] == description
     assert data["images"] == []
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
 
 def test_create_and_get_project():
@@ -107,7 +130,7 @@ def test_create_and_get_project():
     assert data["name"] == name
     assert data["description"] == description
     assert data["images"] == []
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
 
 def test_create_project_name_null():
@@ -169,7 +192,7 @@ def test_create_and_update_project():
     assert data["name"] == new_name
     assert data["description"] == new_description
     assert data["images"] == []
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
 
 def test_create_and_update_project_name_null():
@@ -198,7 +221,7 @@ def test_create_and_update_project_description_null():
     assert data["name"] == new_name
     assert data["description"] == new_description
     assert data["images"] == []
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
 
 def test_try_update_non_existing_project():
@@ -238,8 +261,8 @@ def create_images(project_id):
     assert response.status_code == 201, response.text
     data = response.json()
     assert len(data) == 2
-    assert set(data[0].keys()) == set(["name", "id", "project_id"])
-    assert set(data[1].keys()) == set(["name", "id", "project_id"])
+    assert set(data[0].keys()) == set(["name", "id", "project_id", "username"])
+    assert set(data[1].keys()) == set(["name", "id", "project_id", "username"])
     assert data[0]["project_id"] == project_id
     assert data[1]["project_id"] == project_id
     return [data[0]["id"], data[0]["name"], data[1]["id"], data[1]["name"]]
@@ -263,7 +286,7 @@ def test_create_and_get_images():
     data = response.json()
     assert data["name"] == name1
     assert data["id"] == image_id1
-    assert set(data.keys()) == set(["name", "id", "project_id"])
+    assert set(data.keys()) == set(["name", "id", "project_id", "username"])
 
     # get images by project id
     response = client.get(f"/api/project/{project_id}/images/")
@@ -275,8 +298,8 @@ def test_create_and_get_images():
     assert data[1]["id"] == image_id2
     assert data[0]["name"] == name1
     assert data[1]["name"] == name2
-    assert set(data[0].keys()) == set(["name", "id", "project_id"])
-    assert set(data[1].keys()) == set(["name", "id", "project_id"])
+    assert set(data[0].keys()) == set(["name", "id", "project_id", "username"])
+    assert set(data[1].keys()) == set(["name", "id", "project_id", "username"])
 
 
 def test_try_get_non_existing_image():
@@ -319,7 +342,7 @@ def test_create_and_delete_image():
         assert data["name"] == name
         assert data["project_id"] == project_id
         assert data["id"] == image_id
-        assert set(data.keys()) == set(["name", "id", "project_id"])
+        assert set(data.keys()) == set(["name", "id", "project_id", "username"])
 
     # make sure the image with this image_id has been deleted
     response = client.get(f"/api/project/{project_id}/images")
@@ -369,14 +392,14 @@ def test_delete_project_deletes_images():
     data = response.json()
     assert data["name"] == name1
     assert data["id"] == image_id1
-    assert set(data.keys()) == set(["name", "id", "project_id"])
+    assert set(data.keys()) == set(["name", "id", "project_id", "username"])
     
     response = client.get(f"/api/image/{image_id2}")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["name"] == name2
     assert data["id"] == image_id2
-    assert set(data.keys()) == set(["name", "id", "project_id"])
+    assert set(data.keys()) == set(["name", "id", "project_id", "username"])
     
     # delete project
     response = client.delete(f"/api/project/{project_id}")
@@ -431,7 +454,7 @@ def confirm_anotation_exists(image_id):
     data = response.json()
     assert data["id"] == image_id
     assert data["data"] == {}
-    assert set(data.keys()) == set(["id", "data"])
+    assert set(data.keys()) == set(["id", "data", "username"])
 
 
 def update_annotation(image_id, image_name):
@@ -452,13 +475,13 @@ def update_annotation(image_id, image_name):
     response = client.put(
         f"/api/annotation/{image_id}",
         headers={"Content-Type": "application/json", "accept": "application/json"},
-        json={"data": new_data},
+        json={"data": new_data, "username": "testuser"},
     )
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["id"] == image_id
     assert data["data"] == new_data
-    assert set(data.keys()) == set(["id", "data"])
+    assert set(data.keys()) == set(["id", "data", "username"])
     return new_data
 
 
@@ -643,7 +666,7 @@ def test_import_project():
     data = response.json()
     assert data["name"] == "Test"
     assert data["description"] == "dgdg"
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
     project_id = data["id"]
 
     # confirm project exists in database
@@ -652,7 +675,7 @@ def test_import_project():
     data = response.json()
     assert data["name"] == "Test"
     assert data["description"] == "dgdg"
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
     # confirm files are uploaded to images directory
     image_names = [
@@ -697,7 +720,7 @@ def test_import_project():
         assert response.status_code == 200, response.text
         data = response.json()
         assert data["id"] == image_id
-        assert set(data.keys()) == set(["id", "data"])
+        assert set(data.keys()) == set(["id", "data", "username"])
 
         if image_name in annotated_images:
             assert data["data"] != {}

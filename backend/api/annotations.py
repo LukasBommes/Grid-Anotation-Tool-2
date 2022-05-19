@@ -27,13 +27,13 @@ def create_router(settings):
         return annotation_ids
 
 
-    @router.get("/annotations/", response_model=List[schemas.Annotation], status_code=200)
-    def get_annotations(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_active_user)):
-        annotation_ids = []
-        db_annotations = db.query(models.Annotation).filter(
-            models.Annotation.username == current_user.username
-        ).all()
-        return db_annotations
+    # @router.get("/annotations/", response_model=List[schemas.Annotation], status_code=200)
+    # def get_annotations(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_active_user)):
+    #     annotation_ids = []
+    #     db_annotations = db.query(models.Annotation).filter(
+    #         models.Annotation.username == current_user.username
+    #     ).all()
+    #     return db_annotations
 
 
     @router.get("/annotation/{image_id}", response_model=schemas.Annotation, status_code=200)
