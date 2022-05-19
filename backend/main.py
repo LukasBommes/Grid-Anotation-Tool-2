@@ -137,7 +137,7 @@ def create_app(settings):
     app.include_router(images.create_router(settings), prefix="/api", tags=["images"])
     app.include_router(annotations.create_router(settings), prefix="/api", tags=["annotations"])
 
-    @app.post("/token", response_model=Token)
+    @app.post("/api/token", response_model=Token)
     async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
         user = authenticate_user(fake_users_db, form_data.username, form_data.password)
         if not user:
@@ -153,12 +153,12 @@ def create_app(settings):
         return {"access_token": access_token, "token_type": "bearer"}
 
 
-    @app.get("/users/me/", response_model=User)
+    @app.get("/api/users/me/", response_model=User)
     async def read_users_me(current_user: User = Depends(get_current_active_user)):
         return current_user
 
 
-    @app.get("/users/me/items/")
+    @app.get("/api/users/me/items/")
     async def read_own_items(current_user: User = Depends(get_current_active_user)):
         return [{"item_id": "Foo", "owner": current_user.username}]
 

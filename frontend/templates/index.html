@@ -26,6 +26,18 @@
       </section>
       <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
         {% block appbar_buttons %}{% endblock %}
+        <a class="mdc-button mdc-button--icon-leading login-button" href="{{ url_for('login') }}">
+          <span class="mdc-button__ripple"></span>
+          <span class="mdc-button__focus-ring"></span>
+          <i class="material-icons mdc-button__icon" aria-hidden="true">
+              login
+          </i>
+          <span class="mdc-button__label">Login</span>
+        </a>
+        <a class="mdc-button login-button" href="{{ url_for('login') }}">
+          <span class="mdc-button__ripple"></span>
+          <span class="mdc-button__label">Register</span>
+        </a>
       </section>
       </div>
     </header>

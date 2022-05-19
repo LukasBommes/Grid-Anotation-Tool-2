@@ -17,3 +17,8 @@ body {
 .mdc-top-app-bar--fixed-adjust {
   padding-top: 40px !important;
 }
+
+
+.mdc-top-app-bar .login-button {
+  color: white !important;
+}

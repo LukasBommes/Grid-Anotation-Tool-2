@@ -41,3 +41,15 @@ async def get_editor_url(request: Request, project_id: int):
 @app.get('/editor/{project_id}', response_class=HTMLResponse)
 async def editor(request: Request, project_id: int):
     return templates.TemplateResponse("editor.html", {"request": request, "api_url": settings.API_URL, "project_id": project_id})
+
+
+
+
+@app.get('/login/', response_class=HTMLResponse)
+async def login(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request, "api_url": settings.API_URL})
+
+
+@app.get('/registration/', response_class=HTMLResponse)
+async def registration(request: Request):
+    return templates.TemplateResponse("registration.html", {"request": request, "api_url": settings.API_URL})
