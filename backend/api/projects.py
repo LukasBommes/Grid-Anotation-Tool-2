@@ -150,7 +150,12 @@ def create_router(settings):
 
 
     @router.get("/export/{project_id}", status_code=200)
-    def export_project(project_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    def export_project(
+        project_id: int, 
+        background_tasks: BackgroundTasks, 
+        db: Session = Depends(get_db), 
+        current_user: schemas.User = Depends(get_current_active_user)
+    ):
 
         # create temporary zip file
         temp_dir = tempfile.mkdtemp()
@@ -159,7 +164,12 @@ def create_router(settings):
         with zipfile.ZipFile(filepath, mode="w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip_file:
 
             # store project data in zip
-            db_project = db.query(models.Project).get(project_id)
+            db_project = db.query(models.Project).filter(
+                and_(
+                    models.Project.username == current_user.username,
+                    models.Project.id == project_id
+                )
+            ).first()
             if not db_project:
                 raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
 
@@ -182,7 +192,12 @@ def create_router(settings):
             )
 
             # store images and annotations in zip
-            images = db.query(models.Image).filter(models.Image.project_id == project_id).all()
+            images = db.query(models.Image).filter(
+                and_(
+                    models.Image.username == current_user.username,
+                    models.Image.project_id == project_id
+                )
+            ).all()
             for image in images:
 
                 # store image files
@@ -257,7 +272,11 @@ def create_router(settings):
 
 
     @router.post("/import/", response_model=schemas.Project, status_code=201)
-    def import_project(file: UploadFile, db: Session = Depends(get_db)):
+    def import_project(
+        file: UploadFile, 
+        db: Session = Depends(get_db), 
+        current_user: schemas.User = Depends(get_current_active_user)
+    ):
         # receive zip file
         contents = file.file.read()
 
@@ -278,7 +297,8 @@ def create_router(settings):
                 name=project_meta["name"], 
                 description=project_meta["description"], 
                 created=now, 
-                edited=now
+                edited=now,
+                username=current_user.username
             )
             db.add(db_project)
             db.commit()
@@ -299,7 +319,7 @@ def create_router(settings):
                 with zip_file.open(image_member, "r") as image_data:
                     image_file.write(image_data.read())
 
-            db_image = models.Image(name=filename, project_id=db_project.id)
+            db_image = models.Image(name=filename, project_id=db_project.id, username=current_user.username)
             db.add(db_image)
             db.commit()
             db.refresh(db_image)
@@ -313,7 +333,7 @@ def create_router(settings):
             else:
                 annotation = {}
 
-            db_annotation = models.Annotation(id=db_image.id, data=annotation)
+            db_annotation = models.Annotation(id=db_image.id, data=annotation, username=current_user.username)
             db.add(db_annotation)
             db.commit()
 
