@@ -81,6 +81,8 @@ def cleanup_image_uploads():
 ##########################################################################################
 
 
+# TODO: test to create user with invalid credentials (empty strings, too short, etc.)
+
 def create_user(
     username="johndoe", 
     full_name="John Doe", 
@@ -113,8 +115,11 @@ def create_user(
     return user_id, username, full_name, email, password, disabled, password_hash
 
 
-def test_create_user():
-    create_user()
+@pytest.fixture()
+def reset_user_dependency_overwrite():
+    """Reset the test user dependency overwrite after test regardless of exceptions."""
+    yield
+    app.dependency_overrides[get_current_active_user] = override_get_current_active_user
 
 
 @pytest.fixture()
@@ -131,6 +136,10 @@ def create_user_johndoe():
     )
     yield
     app.dependency_overrides[get_current_active_user] = override_get_current_active_user
+
+
+def test_create_user():
+    create_user()
 
 
 def test_delete_current_user(create_user_johndoe):
@@ -198,7 +207,52 @@ def test_update_current_user(create_user_johndoe):
     login(new_username, new_password)
 
 
-def create_and_get_user_projects(username):
+def change_current_user(username, full_name="John Doe", email="johndoe@example.com", disabled=False):
+    app.dependency_overrides[get_current_active_user] = lambda: schemas.User(
+        username=username,
+        full_name=full_name,
+        email=email,
+        disabled=disabled
+    )
+
+
+def test_users_can_access_only_own_projects(reset_user_dependency_overwrite):
+    # create two users
+    username_a = "user_a"
+    username_b = "user_b"
+    create_user(username=username_a)
+    create_user(username=username_b)
+
+    # create projects for user A
+    change_current_user(username=username_a)
+    create_project(name=f"{username_a}_project", description="bla")
+
+    # create projects for user B    
+    change_current_user(username=username_b)
+    create_project(name=f"{username_b}_project", description="bla")
+
+    # make sure users can see only their own projects
+    change_current_user(username=username_a)
+    response = client.get(f"/api/projects/")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["name"] == "user_a_project"
+    assert data[0]["username"] == "user_a"
+    assert set(data[0].keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
+
+    change_current_user(username=username_b)
+    response = client.get(f"/api/projects/")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["name"] == "user_b_project"
+    assert data[0]["username"] == "user_b"
+    assert set(data[0].keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
+
+
+def test_delete_user_deletes_projects(create_user_johndoe):
+    username = "johndoe"
     create_project(name=f"user_{username}_project1", description="bla")
     create_project(name=f"user_{username}_project2", description="bla")
 
@@ -213,33 +267,6 @@ def create_and_get_user_projects(username):
     assert data[1]["username"] == "johndoe"
     assert set(data[1].keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
-
-@pytest.fixture()
-def fixture_users_can_access_only_own_projects():
-    """Creates a user with two projects. Then creates another user and sets him as current user."""
-    username_other = "otheruser"
-    create_user(username=username_other)
-    create_project(name=f"user_{username_other}_project1", description="bla")
-    create_project(name=f"user_{username_other}_project2", description="bla")
-
-    user_id, username, full_name, email, _, disabled, _ = create_user(username="johndoe")
-    app.dependency_overrides[get_current_active_user] = lambda: schemas.User(
-        username=username,
-        full_name=full_name,
-        email=email,
-        disabled=disabled
-    )
-    yield
-    app.dependency_overrides[get_current_active_user] = override_get_current_active_user
-
-
-def test_users_can_access_only_own_projects(fixture_users_can_access_only_own_projects):
-    create_and_get_user_projects("johndoe")
-
-
-def test_delete_user_deletes_projects(create_user_johndoe):
-    create_and_get_user_projects("johndoe")
-
     # delete user john doe
     response = client.delete("/api/current_user/")
     assert response.status_code == 200, response.text
@@ -250,15 +277,21 @@ def test_delete_user_deletes_projects(create_user_johndoe):
     assert response.json() == []
 
 
-
-# TODO: test to create user with invalid credentials (empty strings, too short, etc.)
-
-
 ##########################################################################################
 #
 # Authentication
 #
 ##########################################################################################
+
+
+@pytest.fixture()
+def disable_test_user_overwrite():
+    """Disables the test user dependency overwrite during 
+    test and activates it after test regardless of exceptions.
+    """
+    app.dependency_overrides[get_current_active_user] = get_current_active_user
+    yield
+    app.dependency_overrides[get_current_active_user] = override_get_current_active_user
 
 
 def login_request(username, password):
@@ -305,16 +338,6 @@ def test_login_non_existent_user():
     assert response.status_code == 401, response.text
     data = response.json()
     assert data["detail"] == "Incorrect username or password"
-
-
-@pytest.fixture()
-def disable_test_user_overwrite():
-    """Disables the test user dependency overwrite during 
-    test and activates it after test regardless of exceptions.
-    """
-    app.dependency_overrides[get_current_active_user] = get_current_active_user
-    yield
-    app.dependency_overrides[get_current_active_user] = override_get_current_active_user
 
 
 def test_unauthorized_api_access(disable_test_user_overwrite):
