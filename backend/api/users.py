@@ -64,22 +64,21 @@ def create_router(settings):
         else:
             user_dict = user.dict()
             print(f"user_dict: {user_dict}")
-            # TODO: hash password and update in DB
             user_dict["hashed_password"] = pwd_context.hash(user_dict["password"])
             del user_dict["password"]
-            del user_dict["projects"]
+            #del user_dict["projects"]  # not sure about this
             print(f"user_dict: {user_dict}")
             db_user_query.update(user_dict, synchronize_session=False)
             db.commit()
         return db_user
 
 
-    @router.get("/users/")
-    def get_users(
-        db: Session = Depends(get_db), 
-    ):
-        db_users = db.query(models.User).all()
-        return db_users
+    # @router.get("/users/")
+    # def get_users(
+    #     db: Session = Depends(get_db), 
+    # ):
+    #     db_users = db.query(models.User).all()
+    #     return db_users
 
 
     return router

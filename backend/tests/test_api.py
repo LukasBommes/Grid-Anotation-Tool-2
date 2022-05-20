@@ -183,6 +183,17 @@ def test_update_current_user(create_new_current_user):
     #assert data["images"] == []
     #assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
+    # login with old credentials should fail
+    # ...
+
+    # login with new credentials should succeed
+    # ...
+
+
+#def test_delete_user_deletes_projects():
+
+# TODO: test to create user with invalid credentials (empty strings, too short, etc.)
+
 
 ##########################################################################################
 #
@@ -254,14 +265,10 @@ def test_unauthorized_api_access(disable_test_user_overwrite):
     assert data["detail"] == "Not authenticated"
 
 
-# def test_authorized_api_access():
-#     # temporarily disable the test user overwrite
-#     app.dependency_overrides[get_current_active_user] = get_current_active_user
-
+# def test_authorized_api_access(create_new_current_user):
 #     username = "johndoe"
 #     password = "secret"
-#     create_user(username=username, password=password)
-#     login(username, password)
+#     #login(username, password)
 
 #     response = create_project_request()  # try to create a project
 #     print(response)
@@ -269,12 +276,6 @@ def test_unauthorized_api_access(disable_test_user_overwrite):
 #     assert response.status_code == 401, response.text
 #     data = response.json()
 #     assert data["detail"] == "Not authenticated"
-
-#     app.dependency_overrides[get_current_active_user] = override_get_current_active_user
-
-# try to access route without login
-# Login with johndoe and try to acces routes
-
 
 
 ##########################################################################################
