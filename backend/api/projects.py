@@ -54,7 +54,6 @@ def create_router(settings):
         db: Session = Depends(get_db), 
         current_user: schemas.User = Depends(get_current_active_user)
     ):
-        print(f"current_user {current_user.username}")
         db_projects = db.query(models.Project).filter(
             models.Project.username == current_user.username
         ).offset(skip).limit(limit).all()

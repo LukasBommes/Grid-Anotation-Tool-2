@@ -15,7 +15,7 @@ from ..main import create_app
 from ..config import settings
 from ..database import Base
 from ..dependencies import get_db
-from ..auth import get_current_active_user
+from ..auth import pwd_context, get_current_active_user
 
 
 TEST_BASE_DIR = "backend/tests"
@@ -45,7 +45,7 @@ def override_get_current_active_user():
     test_user_dict = dict(
         username="testuser",
         email=None,
-        fullname=None,
+        full_name=None,
         disabled=False,
     )
     return schemas.User(**test_user_dict)
@@ -74,14 +74,206 @@ def cleanup_image_uploads():
         pass
 
 
+##########################################################################################
+#
+# User API
+#
+##########################################################################################
+
+
+def create_user(
+    username="johndoe", 
+    full_name="John Doe", 
+    email="johndoe@example.com", 
+    password="secret", 
+    disabled=False
+):
+    response = client.post(
+        "/api/users/",
+        headers={"Content-Type": "application/json", "accept": "application/json"},
+        json={
+            "username": username,
+            "full_name": full_name,
+            "email": email,
+            "password": password,
+            "disabled": disabled
+        },
+    )
+    assert response.status_code == 201, response.text
+    data = response.json()
+    assert data["username"] == username
+    assert data["full_name"] == full_name
+    assert data["email"] == email
+    assert data["disabled"] == disabled
+    assert data["projects"] == []
+    assert pwd_context.verify(password, data["hashed_password"])
+    assert set(data.keys()) == set(["username", "full_name", "email", "disabled", "hashed_password", "projects"])
+    password_hash = data["hashed_password"]
+    return username, full_name, email, password, disabled, password_hash
+
+
+def test_create_user():
+    create_user()
+
+
+@pytest.fixture()
+def create_new_current_user():
+    """Creates a new user and sets it as current user. Reactivates the 
+    test user dependency overwrite after test regardless of exceptions.
+    """
+    username, full_name, email, _, disabled, _ = create_user()
+    app.dependency_overrides[get_current_active_user] = lambda: schemas.User(
+        username=username,
+        full_name=full_name,
+        email=email,
+        disabled=disabled
+    )
+    yield
+    app.dependency_overrides[get_current_active_user] = override_get_current_active_user
+
+
+def test_delete_current_user(create_new_current_user):
+    # login should succeed
+    username = "johndoe"
+    password = "secret"
+    login(username, password)
+
+    # delete user
+    response = client.delete("/api/current_user/")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["username"] == username
+    assert data["full_name"] == "John Doe"
+    assert data["email"] == "johndoe@example.com"
+    assert data["disabled"] == False
+    assert data["projects"] == []
+    assert pwd_context.verify(password, data["hashed_password"])
+
+    # login should now fail
+    response = login_request(username, password)
+    assert response.status_code == 401, response.text
+    data = response.json()
+    assert data["detail"] == "Incorrect username or password"
+
+
+def test_update_current_user(create_new_current_user):
+    # login should succeed
+    username = "johndoe"
+    password = "secret"
+    login(username, password)
+
+    # change username and password
+    response = client.put(
+        f"/api/current_user/",
+        headers={"Content-Type": "application/json", "accept": "application/json"},
+        json={
+            "username": "johndoe_changed",
+            "full_name": "John Doe",
+            "email": "johndoe@example.com",
+            "password": "newsecret",
+            "disabled": False
+        },
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()
+    print(data)
+    assert False
+    #assert data["name"] == new_name
+    #assert data["description"] == new_description
+    #assert data["images"] == []
+    #assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
+
 
 ##########################################################################################
 #
 # Authentication
 #
 ##########################################################################################
-    
 
+
+def login_request(username, password):
+    response = client.post(
+        "/api/token",
+        data={
+            "username": username,
+            "password": password,
+        },
+    )
+    return response
+
+
+def login(username, password):
+    response = login_request(username, password)
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert isinstance(data["access_token"], str)
+    assert data["token_type"] == "bearer"
+    assert set(data.keys()) == set(["access_token", "token_type"])
+
+
+def test_login_correct_credentials():
+    username = "johndoe"
+    password = "secret"
+    create_user(username=username, password=password)
+    login(username, password)
+
+
+def test_login_incorrect_credentials():
+    username = "johndoe"
+    password = "secret"
+    create_user(username=username, password=password)
+    response = login_request(username, "wrongsecret")
+    assert response.status_code == 401, response.text
+    data = response.json()
+    assert data["detail"] == "Incorrect username or password"
+
+
+def test_login_non_existent_user():
+    username = "johndoe"
+    password = "secret"
+    response = login_request(username, password)
+    assert response.status_code == 401, response.text
+    data = response.json()
+    assert data["detail"] == "Incorrect username or password"
+
+
+@pytest.fixture()
+def disable_test_user_overwrite():
+    """Disables the test user dependency overwrite during 
+    test and activates it after test regardless of exceptions.
+    """
+    app.dependency_overrides[get_current_active_user] = get_current_active_user
+    yield
+    app.dependency_overrides[get_current_active_user] = override_get_current_active_user
+
+
+def test_unauthorized_api_access(disable_test_user_overwrite):
+    response = create_project_request()  # try to create a project without being authorized
+    assert response.status_code == 401, response.text
+    data = response.json()
+    assert data["detail"] == "Not authenticated"
+
+
+# def test_authorized_api_access():
+#     # temporarily disable the test user overwrite
+#     app.dependency_overrides[get_current_active_user] = get_current_active_user
+
+#     username = "johndoe"
+#     password = "secret"
+#     create_user(username=username, password=password)
+#     login(username, password)
+
+#     response = create_project_request()  # try to create a project
+#     print(response)
+#     assert False
+#     assert response.status_code == 401, response.text
+#     data = response.json()
+#     assert data["detail"] == "Not authenticated"
+
+#     app.dependency_overrides[get_current_active_user] = override_get_current_active_user
+
+# try to access route without login
+# Login with johndoe and try to acces routes
 
 
 
@@ -92,13 +284,18 @@ def cleanup_image_uploads():
 ##########################################################################################
 
 
-def create_project(name="Name", description="Description"):
-    """Helper function to create and evaluate a project."""
+def create_project_request(name="Name", description="Description"):
     response = client.post(
         "/api/projects/",
         headers={"Content-Type": "application/json", "accept": "application/json"},
         json={"name": name, "description": description},
     )
+    return response
+
+
+def create_project(name="Name", description="Description"):
+    """Helper function to create and evaluate a project."""
+    response = create_project_request(name, description)
     assert response.status_code == 201, response.text
     data = response.json()
     assert data["name"] == name

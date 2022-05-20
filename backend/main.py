@@ -22,10 +22,10 @@ def create_app(settings):
     )
 
     app.include_router(users.create_router(settings), prefix="/api", tags=["users"])
+    app.include_router(authentication.create_router(settings), prefix="/api", tags=["authentication"])
     app.include_router(projects.create_router(settings), prefix="/api", tags=["projects"])
     app.include_router(images.create_router(settings), prefix="/api", tags=["images"])
-    app.include_router(annotations.create_router(settings), prefix="/api", tags=["annotations"])
-    app.include_router(authentication.create_router(settings), prefix="/api", tags=["authentication"])
+    app.include_router(annotations.create_router(settings), prefix="/api", tags=["annotations"])    
 
     return app
 
