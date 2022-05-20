@@ -78,6 +78,7 @@ class UserCreate(User):
 
 
 class UserInDB(User):
+    id: int
     hashed_password: str
     projects: List[Project] = []
 

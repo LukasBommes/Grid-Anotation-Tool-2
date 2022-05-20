@@ -107,9 +107,10 @@ def create_user(
     assert data["disabled"] == disabled
     assert data["projects"] == []
     assert pwd_context.verify(password, data["hashed_password"])
-    assert set(data.keys()) == set(["username", "full_name", "email", "disabled", "hashed_password", "projects"])
+    assert set(data.keys()) == set(["username", "id", "full_name", "email", "disabled", "hashed_password", "projects"])
     password_hash = data["hashed_password"]
-    return username, full_name, email, password, disabled, password_hash
+    user_id = data["id"]
+    return user_id, username, full_name, email, password, disabled, password_hash
 
 
 def test_create_user():
@@ -121,7 +122,7 @@ def create_new_current_user():
     """Creates a new user and sets it as current user. Reactivates the 
     test user dependency overwrite after test regardless of exceptions.
     """
-    username, full_name, email, _, disabled, _ = create_user()
+    user_id, username, full_name, email, _, disabled, _ = create_user()
     app.dependency_overrides[get_current_active_user] = lambda: schemas.User(
         username=username,
         full_name=full_name,
@@ -148,6 +149,7 @@ def test_delete_current_user(create_new_current_user):
     assert data["disabled"] == False
     assert data["projects"] == []
     assert pwd_context.verify(password, data["hashed_password"])
+    assert set(data.keys()) == set(["username", "id", "full_name", "email", "disabled", "hashed_password", "projects"])
 
     # login should now fail
     response = login_request(username, password)
@@ -163,34 +165,44 @@ def test_update_current_user(create_new_current_user):
     login(username, password)
 
     # change username and password
+    new_username = "johndoe_changed"
+    new_password = "newsecret"
     response = client.put(
         f"/api/current_user/",
         headers={"Content-Type": "application/json", "accept": "application/json"},
         json={
-            "username": "johndoe_changed",
+            "username": new_username,
             "full_name": "John Doe",
             "email": "johndoe@example.com",
-            "password": "newsecret",
+            "password": new_password,
             "disabled": False
         },
     )
     assert response.status_code == 200, response.text
-    data = response.json()
-    print(data)
-    assert False
-    #assert data["name"] == new_name
-    #assert data["description"] == new_description
-    #assert data["images"] == []
-    #assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
+    data = response.json()    
+    assert data["username"] == new_username
+    assert data["full_name"] == "John Doe"
+    assert data["email"] == "johndoe@example.com"
+    assert data["disabled"] == False
+    assert data["projects"] == []
+    assert pwd_context.verify(new_password, data["hashed_password"])
+    assert set(data.keys()) == set(["username", "id", "full_name", "email", "disabled", "hashed_password", "projects"])
 
     # login with old credentials should fail
-    # ...
+    response = login_request(username, password)
+    assert response.status_code == 401, response.text
+    data = response.json()
+    assert data["detail"] == "Incorrect username or password"
 
     # login with new credentials should succeed
-    # ...
+    login(new_username, new_password)
 
 
 #def test_delete_user_deletes_projects():
+
+
+#def test_users_can_access_only_own_projects():
+
 
 # TODO: test to create user with invalid credentials (empty strings, too short, etc.)
 

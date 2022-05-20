@@ -25,7 +25,7 @@ def get_password_hash(password):
 
 
 def get_user(db, username: str):
-    db_user = db.query(models.User).get(username)
+    db_user = db.query(models.User).filter(models.User.username == username).first()
     if db_user:
         return db_user
 

@@ -39,7 +39,7 @@ def create_router(settings):
         current_user: schemas.User = Depends(get_current_active_user)
     ):
         username = current_user.username
-        db_user = db.query(models.User).get(username)
+        db_user = db.query(models.User).filter(models.User.username == username).first()
         if not db_user:
             raise HTTPException(status_code=404, detail=f"User with username {username} not found")
         else:
@@ -66,7 +66,6 @@ def create_router(settings):
             print(f"user_dict: {user_dict}")
             user_dict["hashed_password"] = pwd_context.hash(user_dict["password"])
             del user_dict["password"]
-            #del user_dict["projects"]  # not sure about this
             print(f"user_dict: {user_dict}")
             db_user_query.update(user_dict, synchronize_session=False)
             db.commit()
