@@ -26,15 +26,15 @@
       </section>
       <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
         {% block appbar_buttons %}{% endblock %}
-        <a class="mdc-button mdc-button--icon-leading login-button" href="{{ url_for('login') }}">
+        <a id="login-button" class="mdc-button mdc-button--icon-leading login-button" onclick="loginButtonClicked()">
           <span class="mdc-button__ripple"></span>
           <span class="mdc-button__focus-ring"></span>
-          <i class="material-icons mdc-button__icon" aria-hidden="true">
+          <i id="login-button-icon" class="material-icons mdc-button__icon" aria-hidden="true">
               login
           </i>
-          <span class="mdc-button__label">Login</span>
+          <span id="login-button-label" class="mdc-button__label">Login</span>
         </a>
-        <a class="mdc-button login-button" href="{{ url_for('login') }}">
+        <a class="mdc-button login-button" href="{{ url_for('registration') }}">
           <span class="mdc-button__ripple"></span>
           <span class="mdc-button__label">Register</span>
         </a>
@@ -64,7 +64,51 @@
 
   {% block tooltips %}{% endblock %}
 
-  {% block script %}{% endblock %}
+  <!-- Handle Login State -->
+  <script>
+    function userIsLoggedIn() {
+      const access_token = localStorage.getItem('access_token');
+      if (!access_token) {
+        return false
+      }
+      // check if access token is not expired yet
+
+      return true
+    }
+      
+    function redirectToLogin() {
+      window.location.href = "{{ url_for('login') }}";
+    }
+
+    function loginButtonClicked() {
+      if (userIsLoggedIn()) {
+        logout();
+      } else {
+        redirectToLogin();
+      }
+    }
+
+    setLoginButton();
+
+    function setLoginButton() {
+      const login_button_label = document.getElementById("login-button-label");
+      const login_button_icon = document.getElementById("login-button-icon");
+      if (userIsLoggedIn()) {
+        console.log("setting button")
+        login_button_label.innerHTML = "Sign out";
+        login_button_icon.innerHTML = "logout";
+      } else {
+        login_button_label.innerHTML = "Login";
+        login_button_icon.innerHTML = "login";
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('access_token');
+      console.log("Logged out");
+      redirectToLogin();
+    }
+  </script>
 
   <script>
     // UUID creation, taken from: https://stackoverflow.com/a/2117523
@@ -104,5 +148,7 @@
         return tooltip;
     });
   </script>
+
+  {% block script %}{% endblock %}
 </body>
 </html>

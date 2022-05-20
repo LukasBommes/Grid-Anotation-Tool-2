@@ -11,44 +11,42 @@
         <div class="mdc-layout-grid__cell--span-8">                                
             <div class="mdc-elevation--z4">
                 <div class="main-container">
-                    <div class="main-container-title">
-                        <h1 class="mdc-typography--button">Login</h1>
+                    <h1 class="mdc-typography--button">Login</h1>
 
-                        <!-- Login form -->
-                        <div class="form-row">
-                            <div class="mdc-text-field mdc-text-field--outlined" id="text-field-username">
-                                <input class="mdc-text-field__input" id="text-field-username-input">
-                                <div class="mdc-notched-outline">
-                                    <div class="mdc-notched-outline__leading"></div>
-                                    <div class="mdc-notched-outline__notch">
-                                        <label for="text-field-username-input" class="mdc-floating-label" id="text-field-username-label">Name</label>
-                                    </div>
-                                    <div class="mdc-notched-outline__trailing"></div>
+                    <!-- Login form -->
+                    <div class="form-row">
+                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-username">
+                            <input class="mdc-text-field__input" id="text-field-username-input">
+                            <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__notch">
+                                    <label for="text-field-username-input" class="mdc-floating-label" id="text-field-username-label">Name</label>
                                 </div>
-                            </div>
-                        </div>                        
-                        <div class="form-row">
-                            <div class="mdc-text-field mdc-text-field--outlined" id="text-field-password">
-                                <input type="password" class="mdc-text-field__input" id="text-field-password-input">
-                                <div class="mdc-notched-outline">
-                                    <div class="mdc-notched-outline__leading"></div>
-                                    <div class="mdc-notched-outline__notch">
-                                        <label for="text-field-password-input" class="mdc-floating-label" id="text-field-password-label">Password</label>
-                                    </div>
-                                    <div class="mdc-notched-outline__trailing"></div>
-                                </div>
+                                <div class="mdc-notched-outline__trailing"></div>
                             </div>
                         </div>
-                        <div class="form-row">
-                            <button class="mdc-button mdc-button--raised mdc-button--icon-leading" onclick="login()">
-                                <span class="mdc-button__ripple"></span>
-                                <span class="mdc-button__focus-ring"></span>
-                                <i class="material-icons mdc-button__icon" aria-hidden="true">
-                                    login
-                                </i>
-                                <span class="mdc-button__label">Login</span>
-                            </button>
+                    </div>                        
+                    <div class="form-row">
+                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-password">
+                            <input type="password" class="mdc-text-field__input" id="text-field-password-input">
+                            <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__notch">
+                                    <label for="text-field-password-input" class="mdc-floating-label" id="text-field-password-label">Password</label>
+                                </div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                            </div>
                         </div>
+                    </div>
+                    <div class="form-row">
+                        <button class="mdc-button mdc-button--raised mdc-button--icon-leading" onclick="login()">
+                            <span class="mdc-button__ripple"></span>
+                            <span class="mdc-button__focus-ring"></span>
+                            <i class="material-icons mdc-button__icon" aria-hidden="true">
+                                login
+                            </i>
+                            <span class="mdc-button__label">Login</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -60,55 +58,44 @@
 
 {% block script %}
 <script>
-    // TODO:
-    // check if token is stored
-    // make a test request to server to check if token is valid
-    // if no, forward to login page (window.location.href = {{ url_for('login') }};)
-    // else, set user state to "logged in" and adapt all the buttons (e.g. login -> logout)
+    if (!userIsLoggedIn()) {
+        const API_URL = {{ api_url|tojson }};
 
-    const API_URL = {{ api_url|tojson }};
+        function login() {
+            const username = document.getElementById('text-field-username-input').value;
+            const password = document.getElementById('text-field-password-input').value
+            console.log("username: "+username+" password: "+password);
 
-    function login() {
-        const username = document.getElementById('text-field-username-input').value;
-        const password = document.getElementById('text-field-password-input').value
-        console.log("username: "+username+" password: "+password);
+            // TODO: client-side validation of inputs
 
-        // TODO: client-side validation of inputs
+            const login_form_data = new FormData();
+            login_form_data.append("username", username);
+            login_form_data.append("password", password);
 
-        const login_form_data = new FormData();
-        login_form_data.append("username", username);
-        login_form_data.append("password", password);
+            var loginReq = new XMLHttpRequest();
+            loginReq.addEventListener("load", function () {
+                console.log(this.responseText);
+                console.log(this.status);
+                if (this.status == 200) {
+                    var response = JSON.parse(this.responseText);
+                    localStorage.setItem('access_token', response["access_token"]);
+                    console.log("Set JWT acces token: "+response["access_token"]);
+                    redirectToProjects();
+                } 
+                else if (this.status == 401) {
 
-        var loginReq = new XMLHttpRequest();
-        loginReq.addEventListener("load", function () {
-            console.log(this.responseText);
-            console.log(this.status);
-            if (this.status == 200) {
-                var response = JSON.parse(this.responseText);
-                localStorage.setItem('access_token', response["access_token"]);
-                console.log("Set JWT acces token: "+response["access_token"]);
-            } 
-            else if (this.status == 401) {
+                }
+                else {
+                    console.log("Error"); 
+                }
+            });
+            loginReq.open("POST", `${API_URL}/token`, true);
+            loginReq.send(login_form_data);
+        }
 
-            }
-            else {
-                console.log("Error"); 
-            }
-        });
-        loginReq.open("POST", `${API_URL}/token`, true);
-        loginReq.send(login_form_data);
-
-
-        // make post request to "API_URL/token"
-        // store token in cookie
-        // set user state to "logged in"
-
-
-        // for each request made read the cookie
-    }
-
-    function logout() {
-        console.log("logging out");
-    }
+        function redirectToProjects() {
+            window.location.href = "{{ url_for('projects') }}";
+        }
+    } 
 </script>
 {% endblock %}
