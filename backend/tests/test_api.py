@@ -201,7 +201,57 @@ def test_update_current_user(create_new_current_user):
 #def test_delete_user_deletes_projects():
 
 
-#def test_users_can_access_only_own_projects():
+# @pytest.fixture()
+# def fixture_users_can_access_only_own_projects():
+#     """Creates a user with two projects. Then creates another user and sets him as current user."""
+#     username_other = "otheruser"
+#     create_user(username=username_other)
+#     create_project(name=f"user_{username_other}_project1", description="bla")
+#     create_project(name=f"user_{username_other}_project2", description="bla")
+
+#     user_id, username, full_name, email, _, disabled, _ = create_user()
+#     app.dependency_overrides[get_current_active_user] = lambda: schemas.User(
+#         username=username,
+#         full_name=full_name,
+#         email=email,
+#         disabled=disabled
+#     )
+#     yield
+#     app.dependency_overrides[get_current_active_user] = override_get_current_active_user
+
+
+def change_current_user():
+    user_id, username, full_name, email, _, disabled, _ = create_user()
+    app.dependency_overrides[get_current_active_user] = lambda: schemas.User(
+        username=username,
+        full_name=full_name,
+        email=email,
+        disabled=disabled
+    )
+    yield
+    app.dependency_overrides[get_current_active_user] = override_get_current_active_user
+
+
+
+# def test_users_can_access_only_own_projects(fixture_users_can_access_only_own_projects):
+#     username = "johndoe"
+#     create_project(name=f"user_{username}_project1", description="bla")
+#     create_project(name=f"user_{username}_project2", description="bla")
+
+#     response = client.get(f"/api/projects/")
+#     assert response.status_code == 200, response.text
+#     data = response.json()
+
+#     print(data)
+#     assert False
+#     assert data["name"] == name
+#     assert data["description"] == description
+#     assert data["images"] == []
+#     assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
+
+
+
+
 
 
 # TODO: test to create user with invalid credentials (empty strings, too short, etc.)
