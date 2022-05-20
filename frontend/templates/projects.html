@@ -103,14 +103,14 @@
         }
 
         function getAnnotationIds() {      
-        var getAnnotationIdsReq = new XMLHttpRequest();
-        getAnnotationIdsReq.addEventListener("load", function () {
-            var existing_anotations = JSON.parse(this.responseText);
-            getProjects(existing_anotations);
-        });
-        getAnnotationIdsReq.open("GET", `${API_URL}/annotation_ids/`);
-        getAnnotationIdsReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
-        getAnnotationIdsReq.send();
+            var getAnnotationIdsReq = new XMLHttpRequest();
+            getAnnotationIdsReq.addEventListener("load", function () {
+                var existing_anotations = JSON.parse(this.responseText);
+                getProjects(existing_anotations);
+            });
+            getAnnotationIdsReq.open("GET", `${API_URL}/annotation_ids/`);
+            getAnnotationIdsReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
+            getAnnotationIdsReq.send();
         }
 
         function addProjectToProjectList(project, num_images, num_annotated) {

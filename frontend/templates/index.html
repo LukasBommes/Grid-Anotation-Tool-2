@@ -66,12 +66,21 @@
 
   <!-- Handle Login State -->
   <script>
+    const API_URL = {{ api_url|tojson }};
+
     function userIsLoggedIn() {
       const access_token = localStorage.getItem('access_token');
       if (!access_token) {
         return false
       }
       // check if access token is not expired yet
+      var isTokenValidReq = new XMLHttpRequest();
+      isTokenValidReq.addEventListener("load", function () {
+          var response = JSON.parse(this.responseText);
+          console.log(response);
+      });
+      isTokenValidReq.open("GET", `${API_URL}/isvalid/${access_token}`);
+      isTokenValidReq.send();
 
       return true
     }

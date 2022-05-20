@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..dependencies import get_db
-from ..auth import authenticate_user, create_access_token
+from ..auth import authenticate_user, create_access_token, token_valid
 
 
 def create_router(settings):
@@ -32,6 +32,11 @@ def create_router(settings):
             data={"sub": user.username}, expires_delta=access_token_expires
         )
         return {"access_token": access_token, "token_type": "bearer"}
+
+
+    @router.get("/isvalid/{token}")
+    async def check_token_validity(token: str):        
+        return {"isvalid": token_valid(token)}
 
     
     return router
