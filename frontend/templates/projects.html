@@ -105,6 +105,7 @@
         getProjects(existing_anotations);
       });
       getAnnotationIdsReq.open("GET", `${API_URL}/annotation_ids/`);
+      getAnnotationIdsReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
       getAnnotationIdsReq.send();
     }
 
@@ -188,6 +189,7 @@
             }
         });
         getProjectsReq.open("GET", `${API_URL}/projects/`);
+        getProjectsReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         getProjectsReq.send();
     }
 
@@ -208,6 +210,7 @@
         });
         deleteProjectReq.open("DELETE", `${API_URL}/project/${project_id}`, true);
         deleteProjectReq.setRequestHeader("Content-Type", "application/json");
+        deleteProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         deleteProjectReq.send();
     }
 
@@ -226,6 +229,7 @@
             }  
         });
         editProjectRedirectReq.open("GET", "{{ url_for('get_editor_url') }}"+"?project_id="+project_id);
+        editProjectRedirectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         editProjectRedirectReq.send();
     }
 
@@ -237,6 +241,7 @@
             }  
         });
         editProjectRedirectReq.open("GET", "{{ url_for('get_edit_project_url') }}"+"?project_id="+project_id);
+        editProjectRedirectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         editProjectRedirectReq.send();
     }
 
@@ -271,6 +276,7 @@
             loadProjects();
         });
         importProjectReq.open("POST", `${API_URL}/import/`, true);
+        importProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         importProjectReq.send(importProjectData);
         event.target.value = null;  // to trigger onchange event even if the same file was selected
     }

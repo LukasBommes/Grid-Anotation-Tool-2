@@ -162,6 +162,7 @@
         getImages();
       });
       getAnnotationIdsReq.open("GET", `${API_URL}/annotation_ids/`);
+      getAnnotationIdsReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
       getAnnotationIdsReq.send();
     }
     getAnnotationIds();
@@ -188,6 +189,7 @@
         });
       });
       getImagesReq.open("GET", `${API_URL}/project/${project_id}/images/`);
+      getImagesReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
       getImagesReq.send();
     }
 
@@ -329,6 +331,7 @@
             }
         });
         getAnnotationReq.open("GET", `${API_URL}/annotation/${selected_image["id"]}`);
+        getAnnotationReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         getAnnotationReq.send();
       }
     });
@@ -980,6 +983,7 @@
       });
       saveAnnotationReq.open("PUT", `${API_URL}/annotation/${image_id}`, true);
       saveAnnotationReq.setRequestHeader("Content-Type", "application/json");
+      saveAnnotationReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
       saveAnnotationReq.send(JSON.stringify({"data": json_data}));
     }
   });
@@ -1001,6 +1005,7 @@
             }  
         });
         editProjectRedirectReq.open("GET", "{{ url_for('get_edit_project_url') }}"+"?project_id="+project_id);
+        editProjectRedirectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         editProjectRedirectReq.send();
     }
 </script>

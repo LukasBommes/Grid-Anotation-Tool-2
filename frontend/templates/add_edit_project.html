@@ -142,6 +142,7 @@
                 }
             });
             getProjectReq.open("GET", `${API_URL}/project/${project_id}`);
+            getProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
             getProjectReq.send();
         }
     }
@@ -209,6 +210,7 @@
                 }
             });
             createImagesReq.open("POST", `${API_URL}/project/${project_id}/images/`, true);
+            createImagesReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
             createImagesReq.send(images_data);
         } else {
             deleteImages();
@@ -220,7 +222,10 @@
             console.log("Deleting: "+image_ids_to_delete);
             Promise.all(image_ids_to_delete.map(image_id => 
                 fetch(`${API_URL}/image/${image_id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: new Headers({
+                        'Authorization': 'Bearer ' + localStorage.getItem("access_token")
+                    }),
                 })
                 .then(response => { return response })
                 .catch(error => console.log(error))
@@ -254,6 +259,7 @@
         createProjectReq.addEventListener("load", listener.bind(null, images_data, null));
         createProjectReq.open("POST", `${API_URL}/projects/`, true);
         createProjectReq.setRequestHeader("Content-Type", "application/json");
+        createProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         createProjectReq.send(JSON.stringify(project_data));
     }
 
@@ -262,6 +268,7 @@
         updateProjectReq.addEventListener("load", listener.bind(null, images_data, project_id));
         updateProjectReq.open("PUT", `${API_URL}/project/${project_id}`, true);
         updateProjectReq.setRequestHeader("Content-Type", "application/json");
+        updateProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         updateProjectReq.send(JSON.stringify(project_data));
     }
 
