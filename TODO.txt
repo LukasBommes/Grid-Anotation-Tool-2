@@ -6,6 +6,12 @@ IMPORTANT Authentication:
 - reset token validity to 30 minutes (currently set to 1 minute)
 
 
+Deployment:
+- get docker compose to work
+- docker secrets for JWT secret
+- use postgresSQL or mysql instead of sqlite
+
+
 
 - allow empty annotations:
    - allow erasing all annotation objects

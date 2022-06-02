@@ -192,11 +192,34 @@
             }
         }
 
+        async function getImageUrl(apiUrl, image_id) {
+            const url = `${apiUrl}/image_file/${image_id}`;
+            const options = {
+                method: 'GET',
+                headers: new Headers({
+                    'Authorization': 'Bearer ' + localStorage.getItem("access_token")
+                })
+            }
+
+            let response = await fetch(url, options);
+
+            if (response.status == 200) {
+                const imageBlob = await response.blob()
+                const imageURL = URL.createObjectURL(imageBlob);
+                return imageURL;
+            }
+            else {
+                throw new Error(`Failed to get image with id ${image_id}`);
+            }
+        }
+
         function setImagesList(images) {
             updateImageListTitle(images.length > 0);
             const imagesList = document.getElementById('images-list');
             images.forEach((image) => {
-                addImageToImageList(image.id, true, `${API_URL}/image_file/${image.id}`, "image-already-uploaded");
+                getImageUrl(API_URL, image.id).then(imageURL => {
+                    addImageToImageList(image.id, true, imageURL, "image-already-uploaded");
+                })
             });
         }
 
