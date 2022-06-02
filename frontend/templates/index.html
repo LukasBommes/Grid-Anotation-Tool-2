@@ -150,6 +150,27 @@
     function homeButtonClicked() {
       window.location.href = "{{ url_for('projects') }}";
     }
+
+    async function getImageUrl(image_id) {
+        const url = `${API_URL}/image_file/${image_id}`;
+        const options = {
+            method: 'GET',
+            headers: new Headers({
+                'Authorization': 'Bearer ' + localStorage.getItem("access_token")
+            })
+        }
+
+        let response = await fetch(url, options);
+
+        if (response.status == 200) {
+            const imageBlob = await response.blob()
+            const imageURL = URL.createObjectURL(imageBlob);
+            return imageURL;
+        }
+        else {
+            throw new Error(`Failed to get image with id ${image_id}`);
+        }
+    }
   </script>
 
   <!-- MUI Web Components -->
