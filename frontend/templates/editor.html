@@ -243,10 +243,15 @@
       var g_element = svg.append("g")
           .attr("id", "g_element");
 
+      var image_element = svg.select("#g_element")
+          .append('image');
+
+      // set image
       selected_image = JSON.parse(document.getElementById("images_selection").value);
-      svg.select("#g_element")
-        .append('image')
-        .attr('href', `${API_URL}/image_file/${selected_image["id"]}`);
+      const image_id = selected_image["id"];
+      getImageUrl(image_id).then(imageURL => {
+        image_element.attr('href', imageURL);
+      });      
 
       // image zoom and translation
       var zoom_handler = d3.zoom()
@@ -271,7 +276,9 @@
         var initial_transform = d3.zoomIdentity.translate(img_offset_x, img_offset_y);
         svg.call(zoom_handler.transform, initial_transform);
       }
-      img.src = `${API_URL}/image_file/${selected_image["id"]}`;
+      getImageUrl(image_id).then(imageURL => {
+        img.src = imageURL;
+      });
 
       // add lines connecting the center cursor with the nearest four corners
       for (var i = 0; i < 4; i++) {
@@ -978,6 +985,7 @@
       var saveAnnotationReq = new XMLHttpRequest();
       saveAnnotationReq.addEventListener("load", function () {
         console.log("Annotations saved.")
+        console.log(this.responseText)
         // TODO: in case of error show error message (flash)
       });
       saveAnnotationReq.open("PUT", `${API_URL}/annotation/${image_id}`, true);

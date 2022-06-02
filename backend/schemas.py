@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 class AnnotatioBase(BaseModel):
     data: Dict
-    username: str
 
 
 class AnnotationCreate(AnnotatioBase):
@@ -15,6 +14,7 @@ class AnnotationCreate(AnnotatioBase):
 
 class Annotation(AnnotatioBase):
     id: int
+    username: str
 
     class Config:
         orm_mode = True
