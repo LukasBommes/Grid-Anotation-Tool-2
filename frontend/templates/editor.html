@@ -127,9 +127,13 @@
   // - add link and tooltip to export button
   // - add buttons to return to project list and project details
 
-  $(document).ready(function() {
-    const project_id = {{ project_id|tojson }};
+  const project_id = {{ project_id|tojson }};
 
+  entrypoint(() => {
+      editor(project_id);
+  });
+
+  function editor(project_id) {
     var selected_image = {"id": null, "name": null};
     var existing_anotations = [];
     var img_width, img_height;
@@ -993,11 +997,7 @@
       saveAnnotationReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
       saveAnnotationReq.send(JSON.stringify({"data": json_data}));
     }
-  });
-</script>
-
-<script>
-  const project_id = {{ project_id|tojson }};
+  }
 
   function exportProjectClicked() {
     window.location.href = `${API_URL}/export/${project_id}`;
