@@ -58,44 +58,40 @@
 
 {% block script %}
 <script>
-    if (!userIsLoggedIn()) {
-        const API_URL = {{ api_url|tojson }};
+    function login() {
+        const username = document.getElementById('text-field-username-input').value;
+        const password = document.getElementById('text-field-password-input').value
+        console.log("username: "+username+" password: "+password);
 
-        function login() {
-            const username = document.getElementById('text-field-username-input').value;
-            const password = document.getElementById('text-field-password-input').value
-            console.log("username: "+username+" password: "+password);
+        // TODO: client-side validation of inputs
 
-            // TODO: client-side validation of inputs
+        const login_form_data = new FormData();
+        login_form_data.append("username", username);
+        login_form_data.append("password", password);
 
-            const login_form_data = new FormData();
-            login_form_data.append("username", username);
-            login_form_data.append("password", password);
+        var loginReq = new XMLHttpRequest();
+        loginReq.addEventListener("load", function () {
+            console.log(this.responseText);
+            console.log(this.status);
+            if (this.status == 200) {
+                var response = JSON.parse(this.responseText);
+                localStorage.setItem('access_token', response["access_token"]);
+                console.log("Set JWT acces token: "+response["access_token"]);
+                redirectToProjects();
+            } 
+            else if (this.status == 401) {
 
-            var loginReq = new XMLHttpRequest();
-            loginReq.addEventListener("load", function () {
-                console.log(this.responseText);
-                console.log(this.status);
-                if (this.status == 200) {
-                    var response = JSON.parse(this.responseText);
-                    localStorage.setItem('access_token', response["access_token"]);
-                    console.log("Set JWT acces token: "+response["access_token"]);
-                    redirectToProjects();
-                } 
-                else if (this.status == 401) {
+            }
+            else {
+                console.log("Error"); 
+            }
+        });
+        loginReq.open("POST", `${API_URL}/token`, true);
+        loginReq.send(login_form_data);
+    }
 
-                }
-                else {
-                    console.log("Error"); 
-                }
-            });
-            loginReq.open("POST", `${API_URL}/token`, true);
-            loginReq.send(login_form_data);
-        }
-
-        function redirectToProjects() {
-            window.location.href = "{{ url_for('projects') }}";
-        }
-    } 
+    function redirectToProjects() {
+        window.location.href = "{{ url_for('projects') }}";
+    }
 </script>
 {% endblock %}

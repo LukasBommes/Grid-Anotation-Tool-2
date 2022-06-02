@@ -78,224 +78,220 @@
 
 {% block script %}
 <script>
-    if (!userIsLoggedIn()) {
-        redirectToLogin()
-    } 
-    else {
-        const API_URL = {{ api_url|tojson }};
-        const project_list_menus = {};
+    const project_list_menus = {};
 
-        const project_delete_success_msg = "Project deleted.";
-        const project_delete_error_msg = "Failed to delete project.";
-        const project_imported_success_msg = "Project imported.";
-        const project_imported_error_msg = "Failed to import project";
+    const project_delete_success_msg = "Project deleted.";
+    const project_delete_error_msg = "Failed to delete project.";
+    const project_imported_success_msg = "Project imported.";
+    const project_imported_error_msg = "Failed to import project";
 
-        const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
-        const delete_project_dialog = new mdc.dialog.MDCDialog(document.querySelector('#delete-project-dialog'));
-        var deleteProjectDialogEventListener;
+    const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
+    const delete_project_dialog = new mdc.dialog.MDCDialog(document.querySelector('#delete-project-dialog'));
+    var deleteProjectDialogEventListener;
 
-        function loadProjects() {
-            // clear project list
-            document.getElementById("projects-list").innerHTML = '';
-            document.getElementById("projects-list-menu-list").innerHTML = '';
-            // get projects
-            getAnnotationIds();
-        }
-
-        function getAnnotationIds() {      
-            var getAnnotationIdsReq = new XMLHttpRequest();
-            getAnnotationIdsReq.addEventListener("load", function () {
-                var existing_anotations = JSON.parse(this.responseText);
-                getProjects(existing_anotations);
-            });
-            getAnnotationIdsReq.open("GET", `${API_URL}/annotation_ids/`);
-            getAnnotationIdsReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
-            getAnnotationIdsReq.send();
-        }
-
-        function addProjectToProjectList(project, num_images, num_annotated) {
-            const html_list_item = `
-                <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image" onclick="annotateProjectClicked(${project.id})">
-                    <span class="mdc-list-item__ripple"></span>
-                    <span class="mdc-list-item__start"></span>
-                    <span class="mdc-list-item__content" id="projects-list-item-${project.id}">
-                        <span class="mdc-list-item__primary-text">${project.name.slice(0, 10)}</span>
-                        <span class="mdc-list-item__secondary-text">${num_annotated} / ${num_images} images annotated</span>
-                    </span>
-                    <span class="mdc-list-item__end list-item-end-custom">
-                        <button class="mdc-icon-button material-icons" onclick="openMenu(${project.id}, event)">
-                            <div class="mdc-icon-button__ripple"></div>
-                            <span class="mdc-icon-button__focus-ring"></span>
-                            more_vert
-                        </button>
-                    </span>
-                </li>`;
-            const html_menu_item = `
-                <div class="mdc-menu mdc-menu-surface" id="projects-list-menu-${project.id}">
-                    <ul class="mdc-deprecated-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
-                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="annotateProjectClicked(${project.id})">
-                            <span class="mdc-deprecated-list-item__ripple"></span>
-                            <span class="mdc-deprecated-list-item__text">Annotate</span>
-                            <span class="mdc-deprecated-list-item__meta">
-                                <i class="material-icons menu-icon">edit</i>
-                            </span>
-                        </li>
-                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="setupProjectClicked(${project.id})">
-                            <span class="mdc-deprecated-list-item__ripple"></span>
-                            <span class="mdc-deprecated-list-item__text">Setup</span>
-                            <span class="mdc-deprecated-list-item__meta">
-                                <i class="material-icons menu-icon">build</i>
-                            </span>
-                        </li>
-                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="exportProjectClicked(${project.id})">
-                            <span class="mdc-deprecated-list-item__ripple"></span>
-                            <span class="mdc-deprecated-list-item__text">Export</span>
-                            <span class="mdc-deprecated-list-item__meta">
-                                <i class="material-icons menu-icon">download</i>
-                            </span>
-                        </li>
-                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="deleteProjectClicked(${project.id})">
-                            <span class="mdc-deprecated-list-item__ripple"></span>
-                            <span class="mdc-deprecated-list-item__text">Delete</span>
-                            <span class="mdc-deprecated-list-item__meta">
-                                <i class="material-icons menu-icon">delete</i>
-                            </span>
-                        </li>
-                    </ul>
-                </div>`;
-            document.getElementById('projects-list').appendChild(htmlToElements(html_list_item));
-            document.getElementById('projects-list-menu-list').appendChild(htmlToElements(html_menu_item));
-            project_list_menus[project.id] = new mdc.menu.MDCMenu(document.querySelector(`#projects-list-menu-${project.id}`));
-            init_mui_elements();
-        }
-
-        function countAnnotatedImages(images, existing_anotations) {
-            var num_annotated = 0;
-            for (var i = 0; i < images.length; i++) {
-                if (existing_anotations.includes(images[i].id)) {
-                    num_annotated++;
-                }
-            }
-            return num_annotated;
-        }
-
-        function getProjects(existing_anotations) {
-            var getProjectsReq = new XMLHttpRequest();
-            getProjectsReq.addEventListener("load", function () {
-                console.log("Projects loaded.")
-                if (this.status == 200) {
-                    var response = JSON.parse(this.responseText);
-                    response.forEach((project) => {
-                        const num_images = project.images.length;
-                        const num_annotated = countAnnotatedImages(project.images, existing_anotations);
-                        addProjectToProjectList(project, num_images, num_annotated);
-                    });                
-                }
-            });
-            getProjectsReq.open("GET", `${API_URL}/projects/`);
-            getProjectsReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
-            getProjectsReq.send();
-        }
-
-        function deleteProject(project_id) {
-            var deleteProjectReq = new XMLHttpRequest();
-            deleteProjectReq.addEventListener("load", function () {
-                console.log(this.responseText);
-                if (this.status == 200) {
-                    console.log(project_delete_success_msg);
-                    snackbar.labelText = project_delete_success_msg;
-                    snackbar.open();
-                } else {
-                    console.log(project_delete_error_msg);
-                    snackbar.labelText = project_delete_error_msg;
-                    snackbar.open();
-                }
-                loadProjects();
-            });
-            deleteProjectReq.open("DELETE", `${API_URL}/project/${project_id}`, true);
-            deleteProjectReq.setRequestHeader("Content-Type", "application/json");
-            deleteProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
-            deleteProjectReq.send();
-        }
-
-        function openMenu(project_id, event) {
-            const menu = project_list_menus[project_id];
-            menu.setAbsolutePosition(event.clientX, event.clientY);
-            menu.open = !menu.open;
-            event.stopPropagation();
-        }
-
-        function annotateProjectClicked(project_id) {
-            var editProjectRedirectReq = new XMLHttpRequest();
-            editProjectRedirectReq.addEventListener("load", function () {
-                if (this.status == 200) {
-                    window.location.href = JSON.parse(this.responseText).url;
-                }  
-            });
-            editProjectRedirectReq.open("GET", "{{ url_for('get_editor_url') }}"+"?project_id="+project_id);
-            editProjectRedirectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
-            editProjectRedirectReq.send();
-        }
-
-        function setupProjectClicked(project_id) {
-            var editProjectRedirectReq = new XMLHttpRequest();
-            editProjectRedirectReq.addEventListener("load", function () {
-                if (this.status == 200) {
-                    window.location.href = JSON.parse(this.responseText).url;
-                }  
-            });
-            editProjectRedirectReq.open("GET", "{{ url_for('get_edit_project_url') }}"+"?project_id="+project_id);
-            editProjectRedirectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
-            editProjectRedirectReq.send();
-        }
-
-        function exportProjectClicked(project_id) {
-            window.location.href = `${API_URL}/export/${project_id}`;
-        }
-
-        function deleteProjectClicked(project_id) {
-            const button_yes = document.getElementById("delete-project-dialog-button");
-            button_yes.removeEventListener('click', deleteProjectDialogEventListener);
-            deleteProjectDialogEventListener = deleteProject.bind(null, project_id);
-            button_yes.addEventListener('click', deleteProjectDialogEventListener);
-            delete_project_dialog.open();
-        }
-
-        function importProjectFilesInputChanged(event) {
-            const file = event.target.files[0];
-            var importProjectData = new FormData();
-            importProjectData.append("file", file);
-
-            var importProjectReq = new XMLHttpRequest();
-            importProjectReq.addEventListener("load", function () {
-                if (this.status == 201) {
-                    console.log(project_imported_success_msg);
-                    snackbar.labelText = project_imported_success_msg;
-                    snackbar.open();
-                } else {
-                    console.log(project_imported_error_msg);
-                    snackbar.labelText = project_imported_error_msg;    
-                    snackbar.open();
-                }
-                loadProjects();
-            });
-            importProjectReq.open("POST", `${API_URL}/import/`, true);
-            importProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
-            importProjectReq.send(importProjectData);
-            event.target.value = null;  // to trigger onchange event even if the same file was selected
-        }
-
-        function newProjectButtonClicked() {
-            window.location.href = "{{ url_for('add_project') }}";
-        }
-
-        function init_mui_elements() {
-            const listItemRipples = [].map.call(document.querySelectorAll('.mdc-list-item'), function(element) {
-                return new mdc.ripple.MDCRipple(element);
-            });
-        }
-
+    entrypoint(() => {
         loadProjects();
+    });
+
+    function loadProjects() {
+        // clear project list
+        document.getElementById("projects-list").innerHTML = '';
+        document.getElementById("projects-list-menu-list").innerHTML = '';
+        // get projects
+        getAnnotationIds();
+    }
+
+    function getAnnotationIds() {      
+        var getAnnotationIdsReq = new XMLHttpRequest();
+        getAnnotationIdsReq.addEventListener("load", function () {
+            var existing_anotations = JSON.parse(this.responseText);
+            getProjects(existing_anotations);
+        });
+        getAnnotationIdsReq.open("GET", `${API_URL}/annotation_ids/`);
+        getAnnotationIdsReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
+        getAnnotationIdsReq.send();
+    }
+
+    function addProjectToProjectList(project, num_images, num_annotated) {
+        const html_list_item = `
+            <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image" onclick="annotateProjectClicked(${project.id})">
+                <span class="mdc-list-item__ripple"></span>
+                <span class="mdc-list-item__start"></span>
+                <span class="mdc-list-item__content" id="projects-list-item-${project.id}">
+                    <span class="mdc-list-item__primary-text">${project.name.slice(0, 10)}</span>
+                    <span class="mdc-list-item__secondary-text">${num_annotated} / ${num_images} images annotated</span>
+                </span>
+                <span class="mdc-list-item__end list-item-end-custom">
+                    <button class="mdc-icon-button material-icons" onclick="openMenu(${project.id}, event)">
+                        <div class="mdc-icon-button__ripple"></div>
+                        <span class="mdc-icon-button__focus-ring"></span>
+                        more_vert
+                    </button>
+                </span>
+            </li>`;
+        const html_menu_item = `
+            <div class="mdc-menu mdc-menu-surface" id="projects-list-menu-${project.id}">
+                <ul class="mdc-deprecated-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
+                    <li class="mdc-deprecated-list-item" role="menuitem" onclick="annotateProjectClicked(${project.id})">
+                        <span class="mdc-deprecated-list-item__ripple"></span>
+                        <span class="mdc-deprecated-list-item__text">Annotate</span>
+                        <span class="mdc-deprecated-list-item__meta">
+                            <i class="material-icons menu-icon">edit</i>
+                        </span>
+                    </li>
+                    <li class="mdc-deprecated-list-item" role="menuitem" onclick="setupProjectClicked(${project.id})">
+                        <span class="mdc-deprecated-list-item__ripple"></span>
+                        <span class="mdc-deprecated-list-item__text">Setup</span>
+                        <span class="mdc-deprecated-list-item__meta">
+                            <i class="material-icons menu-icon">build</i>
+                        </span>
+                    </li>
+                    <li class="mdc-deprecated-list-item" role="menuitem" onclick="exportProjectClicked(${project.id})">
+                        <span class="mdc-deprecated-list-item__ripple"></span>
+                        <span class="mdc-deprecated-list-item__text">Export</span>
+                        <span class="mdc-deprecated-list-item__meta">
+                            <i class="material-icons menu-icon">download</i>
+                        </span>
+                    </li>
+                    <li class="mdc-deprecated-list-item" role="menuitem" onclick="deleteProjectClicked(${project.id})">
+                        <span class="mdc-deprecated-list-item__ripple"></span>
+                        <span class="mdc-deprecated-list-item__text">Delete</span>
+                        <span class="mdc-deprecated-list-item__meta">
+                            <i class="material-icons menu-icon">delete</i>
+                        </span>
+                    </li>
+                </ul>
+            </div>`;
+        document.getElementById('projects-list').appendChild(htmlToElements(html_list_item));
+        document.getElementById('projects-list-menu-list').appendChild(htmlToElements(html_menu_item));
+        project_list_menus[project.id] = new mdc.menu.MDCMenu(document.querySelector(`#projects-list-menu-${project.id}`));
+        init_mui_elements();
+    }
+
+    function countAnnotatedImages(images, existing_anotations) {
+        var num_annotated = 0;
+        for (var i = 0; i < images.length; i++) {
+            if (existing_anotations.includes(images[i].id)) {
+                num_annotated++;
+            }
+        }
+        return num_annotated;
+    }
+
+    function getProjects(existing_anotations) {
+        var getProjectsReq = new XMLHttpRequest();
+        getProjectsReq.addEventListener("load", function () {
+            console.log("Projects loaded.")
+            if (this.status == 200) {
+                var response = JSON.parse(this.responseText);
+                response.forEach((project) => {
+                    const num_images = project.images.length;
+                    const num_annotated = countAnnotatedImages(project.images, existing_anotations);
+                    addProjectToProjectList(project, num_images, num_annotated);
+                });                
+            }
+        });
+        getProjectsReq.open("GET", `${API_URL}/projects/`);
+        getProjectsReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
+        getProjectsReq.send();
+    }
+
+    function deleteProject(project_id) {
+        var deleteProjectReq = new XMLHttpRequest();
+        deleteProjectReq.addEventListener("load", function () {
+            console.log(this.responseText);
+            if (this.status == 200) {
+                console.log(project_delete_success_msg);
+                snackbar.labelText = project_delete_success_msg;
+                snackbar.open();
+            } else {
+                console.log(project_delete_error_msg);
+                snackbar.labelText = project_delete_error_msg;
+                snackbar.open();
+            }
+            loadProjects();
+        });
+        deleteProjectReq.open("DELETE", `${API_URL}/project/${project_id}`, true);
+        deleteProjectReq.setRequestHeader("Content-Type", "application/json");
+        deleteProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
+        deleteProjectReq.send();
+    }
+
+    function openMenu(project_id, event) {
+        const menu = project_list_menus[project_id];
+        menu.setAbsolutePosition(event.clientX, event.clientY);
+        menu.open = !menu.open;
+        event.stopPropagation();
+    }
+
+    function annotateProjectClicked(project_id) {
+        var editProjectRedirectReq = new XMLHttpRequest();
+        editProjectRedirectReq.addEventListener("load", function () {
+            if (this.status == 200) {
+                window.location.href = JSON.parse(this.responseText).url;
+            }  
+        });
+        editProjectRedirectReq.open("GET", "{{ url_for('get_editor_url') }}"+"?project_id="+project_id);
+        editProjectRedirectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
+        editProjectRedirectReq.send();
+    }
+
+    function setupProjectClicked(project_id) {
+        var editProjectRedirectReq = new XMLHttpRequest();
+        editProjectRedirectReq.addEventListener("load", function () {
+            if (this.status == 200) {
+                window.location.href = JSON.parse(this.responseText).url;
+            }  
+        });
+        editProjectRedirectReq.open("GET", "{{ url_for('get_edit_project_url') }}"+"?project_id="+project_id);
+        editProjectRedirectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
+        editProjectRedirectReq.send();
+    }
+
+    function exportProjectClicked(project_id) {
+        window.location.href = `${API_URL}/export/${project_id}`;
+    }
+
+    function deleteProjectClicked(project_id) {
+        const button_yes = document.getElementById("delete-project-dialog-button");
+        button_yes.removeEventListener('click', deleteProjectDialogEventListener);
+        deleteProjectDialogEventListener = deleteProject.bind(null, project_id);
+        button_yes.addEventListener('click', deleteProjectDialogEventListener);
+        delete_project_dialog.open();
+    }
+
+    function importProjectFilesInputChanged(event) {
+        const file = event.target.files[0];
+        var importProjectData = new FormData();
+        importProjectData.append("file", file);
+
+        var importProjectReq = new XMLHttpRequest();
+        importProjectReq.addEventListener("load", function () {
+            if (this.status == 201) {
+                console.log(project_imported_success_msg);
+                snackbar.labelText = project_imported_success_msg;
+                snackbar.open();
+            } else {
+                console.log(project_imported_error_msg);
+                snackbar.labelText = project_imported_error_msg;    
+                snackbar.open();
+            }
+            loadProjects();
+        });
+        importProjectReq.open("POST", `${API_URL}/import/`, true);
+        importProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
+        importProjectReq.send(importProjectData);
+        event.target.value = null;  // to trigger onchange event even if the same file was selected
+    }
+
+    function newProjectButtonClicked() {
+        window.location.href = "{{ url_for('add_project') }}";
+    }
+
+    function init_mui_elements() {
+        const listItemRipples = [].map.call(document.querySelectorAll('.mdc-list-item'), function(element) {
+            return new mdc.ripple.MDCRipple(element);
+        });
     }
 </script>
 {% endblock %}
