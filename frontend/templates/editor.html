@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block appbar_buttons %}
-<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Project" aria-describedby="tooltip-export-project" onclick="exportProjectClicked()">
+<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Project" aria-describedby="tooltip-export-project" onclick="exportThisProjectClicked()">
     <div class="mdc-icon-button__ripple"></div>
     file_download
 </button>
@@ -999,8 +999,8 @@
     }
   }
 
-  function exportProjectClicked() {
-    window.location.href = `${API_URL}/export/${project_id}`;
+  function exportThisProjectClicked() {
+    exportProjectClicked(project_id);
   }
 
   function setupProjectClicked() {

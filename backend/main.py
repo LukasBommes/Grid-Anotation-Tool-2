@@ -19,6 +19,7 @@ def create_app(settings):
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["Content-Disposition"],
     )
 
     app.include_router(users.create_router(settings), prefix="/api", tags=["users"])

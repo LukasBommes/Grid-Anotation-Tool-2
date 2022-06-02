@@ -248,10 +248,6 @@
         editProjectRedirectReq.send();
     }
 
-    function exportProjectClicked(project_id) {
-        window.location.href = `${API_URL}/export/${project_id}`;
-    }
-
     function deleteProjectClicked(project_id) {
         const button_yes = document.getElementById("delete-project-dialog-button");
         button_yes.removeEventListener('click', deleteProjectDialogEventListener);

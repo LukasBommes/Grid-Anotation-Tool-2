@@ -151,6 +151,42 @@
       window.location.href = "{{ url_for('projects') }}";
     }
 
+    async function exportProjectClicked(project_id) {
+      const url = `${API_URL}/export/${project_id}`;
+      const options = {
+        method: 'GET',
+        headers: new Headers({
+            'Authorization': 'Bearer ' + localStorage.getItem("access_token")
+        })
+      }
+
+      let response = await fetch(url, options);
+
+      if (response.status == 200) {
+        // get filename
+        const header = response.headers.get('content-disposition');
+        const disposition = response.headers.get('Content-Disposition');
+        filename = disposition.split(/;(.+)/)[1].split(/=(.+)/)[1];
+        if (filename.toLowerCase().startsWith("utf-8''")) {
+          filename = decodeURIComponent(filename.replace("utf-8''", ''));
+        } else {
+          filename = filename.replace(/['"]/g, '');
+        }
+        // get data
+        const fileBlob = await response.blob();
+        // download file
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(fileBlob);
+        a.download = filename;
+        document.body.appendChild(a); // append the element to the dom, otherwise it won't work in Firefox
+        a.click();
+        a.remove();
+      }
+      else {
+          throw new Error(`Failed to export project with id ${project_id}`);
+      }
+    }
+
     async function getImageUrl(image_id) {
         const url = `${API_URL}/image_file/${image_id}`;
         const options = {
@@ -163,7 +199,7 @@
         let response = await fetch(url, options);
 
         if (response.status == 200) {
-            const imageBlob = await response.blob()
+            const imageBlob = await response.blob();
             const imageURL = URL.createObjectURL(imageBlob);
             return imageURL;
         }
