@@ -147,8 +147,12 @@
       return template.content;
     }
 
+    function redirectToProjects() {
+        window.location.href = "{{ url_for('projects') }}";
+    }
+
     function homeButtonClicked() {
-      window.location.href = "{{ url_for('projects') }}";
+      window.location.href = redirectToProjects();
     }
 
     async function exportProjectClicked(project_id) {

@@ -20,7 +20,7 @@
                             <div class="mdc-notched-outline">
                                 <div class="mdc-notched-outline__leading"></div>
                                 <div class="mdc-notched-outline__notch">
-                                    <label for="text-field-username-input" class="mdc-floating-label" id="text-field-username-label">Name</label>
+                                    <label for="text-field-username-input" class="mdc-floating-label" id="text-field-username-label">Username</label>
                                 </div>
                                 <div class="mdc-notched-outline__trailing"></div>
                             </div>
@@ -60,7 +60,7 @@
 <script>
     function login() {
         const username = document.getElementById('text-field-username-input').value;
-        const password = document.getElementById('text-field-password-input').value
+        const password = document.getElementById('text-field-password-input').value;
         console.log("username: "+username+" password: "+password);
 
         // TODO: client-side validation of inputs
@@ -88,10 +88,6 @@
         });
         loginReq.open("POST", `${API_URL}/token`, true);
         loginReq.send(login_form_data);
-    }
-
-    function redirectToProjects() {
-        window.location.href = "{{ url_for('projects') }}";
     }
 </script>
 {% endblock %}

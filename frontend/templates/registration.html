@@ -1,0 +1,142 @@
+{% extends "index.html" %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/projects.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="mdc-layout-grid">
+    <div class="mdc-layout-grid__inner">
+        <div class="mdc-layout-grid__cell--span-2"></div>
+        <div class="mdc-layout-grid__cell--span-8">                                
+            <div class="mdc-elevation--z4">
+                <div class="main-container">
+                    <h1 class="mdc-typography--button">Registration</h1>
+
+                    <!-- Resgitration form -->
+                    <div class="form-row">
+                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-username">
+                            <input class="mdc-text-field__input" id="text-field-username-input">
+                            <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__notch">
+                                    <label for="text-field-username-input" class="mdc-floating-label" id="text-field-username-label">Username</label>
+                                </div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-fullname">
+                            <input class="mdc-text-field__input" id="text-field-fullname-input">
+                            <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__notch">
+                                    <label for="text-field-fullname-input" class="mdc-floating-label" id="text-field-fullname-label">Full Name</label>
+                                </div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                            </div>
+                        </div>
+                    </div>   
+                    <div class="form-row">
+                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-email">
+                            <input class="mdc-text-field__input" id="text-field-email-input">
+                            <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__notch">
+                                    <label for="text-field-email-input" class="mdc-floating-label" id="text-field-email-label">Email Address</label>
+                                </div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                            </div>
+                        </div>
+                    </div>                       
+                    <div class="form-row">
+                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-password">
+                            <input type="password" class="mdc-text-field__input" id="text-field-password-input">
+                            <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__notch">
+                                    <label for="text-field-password-input" class="mdc-floating-label" id="text-field-password-label">Password</label>
+                                </div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <button class="mdc-button mdc-button--raised" onclick="register()">
+                            <span class="mdc-button__ripple"></span>
+                            <span class="mdc-button__focus-ring"></span>
+                            <span class="mdc-button__label">Create Account</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mdc-layout-grid__cell--span-2"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+
+    async function createUser(userData) {
+        const url = `${API_URL}/users/`;
+        const options = {
+            method: 'POST',
+            body: JSON.stringify(userData),
+            headers: new Headers({
+                'Content-Type': 'application/json'
+            }),
+        }
+
+        let response = await fetch(url, options);
+
+        // TODO: handle validation errors...
+        if (response.status == 201) {
+            console.log("Created new user")
+            console.log(response);
+            //redirectToProjects();
+        }
+        else {
+            throw new Error(`Failed to create new user`);
+        }
+    }
+
+    function register() {
+        const username = document.getElementById('text-field-username-input').value;
+        const password = document.getElementById('text-field-password-input').value;
+        const fullname = document.getElementById('text-field-fullname-input').value;
+        const email = document.getElementById('text-field-email-input').value;
+        console.log("username: "+username+" password: "+password);
+
+        // TODO: client-side validation of inputs
+
+        const user_data = {
+            "username": username,
+            "email": email,
+            "full_name": fullname,
+            "disabled": false,
+            "password": password,
+        };       
+
+        createUser(user_data);
+
+        // var createUserReq = new XMLHttpRequest();
+        // createUserReq.addEventListener("load", function () {
+        //     console.log(this.responseText);
+        //     console.log(this.status);
+        //     if (this.status == 201) {
+        //         console.log("Created new user")
+        //         redirectToProjects();
+        //     }
+        //     else {
+        //         console.log("Error"); 
+        //     }
+        // });
+        // createUserReq.open("POST", `${API_URL}/users/`, true);
+        // createUserReq.setRequestHeader("Content-Type", "application/json");
+        // createUserReq.send(JSON.stringify(user_data));
+    }
+</script>
+{% endblock %}
