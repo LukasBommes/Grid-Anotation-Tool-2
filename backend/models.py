@@ -9,9 +9,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    email = Column(String, nullable=True)
-    full_name = Column(String, nullable=True)
-    disabled = Column(Boolean, nullable=True)
+    email = Column(String)
+    full_name = Column(String)
+    disabled = Column(Boolean)
     
     projects = relationship("Project", backref="user", cascade="all, delete")
 

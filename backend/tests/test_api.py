@@ -83,7 +83,7 @@ def cleanup_image_uploads():
 
 # TODO: test to create user with invalid credentials (empty strings, too short, etc.)
 
-def create_user(
+def create_user_request(
     username="johndoe", 
     full_name="John Doe", 
     email="johndoe@example.com", 
@@ -102,6 +102,24 @@ def create_user(
             "disabled": disabled
         },
     )
+    return response
+
+
+def create_user(
+    username="johndoe", 
+    full_name="John Doe", 
+    email="johndoe@example.com", 
+    password="secret12&!",
+    disabled=False
+):
+    response = create_user_request(
+        username,
+        full_name,
+        email,
+        password,
+        disabled
+    )
+
     assert response.status_code == 201, response.text
     data = response.json()
     assert data["username"] == username
@@ -141,6 +159,27 @@ def create_user_johndoe():
 
 def test_create_user():
     create_user()
+
+
+def test_try_recreate_same_user():
+    response = create_user_request(
+        username="johndoe", 
+        full_name="John Doe", 
+        email="johndoe@example.com", 
+        password="secret12&!",
+        disabled=False
+    )
+    assert response.status_code == 201, response.text
+    response = create_user_request(
+        username="johndoe", 
+        full_name="John Doe", 
+        email="johndoe@example.com", 
+        password="secret12&!",
+        disabled=False
+    )
+    assert response.status_code == 409, response.text
+    data = response.json()
+    assert data["detail"] == "User with username johndoe already exists"
 
 
 def test_delete_current_user(create_user_johndoe):

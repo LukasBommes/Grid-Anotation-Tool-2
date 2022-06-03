@@ -23,6 +23,11 @@ def create_router(settings):
     @router.post("/users/", response_model=schemas.UserInDB, status_code=201)
     def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         user_dict = user.dict()
+        # raise error if user already exists
+        db_user = db.query(models.User).filter(models.User.username == user_dict['username']).first()
+        if db_user:
+            raise HTTPException(status_code=409, detail=f"User with username {user_dict['username']} already exists")
+        # else create new user
         password = user_dict.get("password")
         del user_dict["password"]
         user_dict["hashed_password"] = pwd_context.hash(password)
