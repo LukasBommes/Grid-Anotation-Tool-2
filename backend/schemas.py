@@ -5,15 +5,15 @@ from pydantic import BaseModel, EmailStr, ValidationError, validator
 from pydantic.types import constr
 
 
-class AnnotatioBase(BaseModel):
+class AnnotationBase(BaseModel):
     data: Dict
 
 
-class AnnotationCreate(AnnotatioBase):
+class AnnotationCreate(AnnotationBase):
     pass
 
 
-class Annotation(AnnotatioBase):
+class Annotation(AnnotationBase):
     id: int
     username: str
 

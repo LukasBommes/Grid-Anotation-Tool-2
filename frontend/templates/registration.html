@@ -14,8 +14,8 @@
                     <h1 class="mdc-typography--button">Registration</h1>
 
                     <!-- Resgitration form -->
-                    <div class="form-row">
-                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-username">
+                    <div class="form-row">                       
+                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-username">                            
                             <input class="mdc-text-field__input" id="text-field-username-input">
                             <div class="mdc-notched-outline">
                                 <div class="mdc-notched-outline__leading"></div>
@@ -25,6 +25,9 @@
                                 <div class="mdc-notched-outline__trailing"></div>
                             </div>
                         </div>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-username-error" aria-hidden="true"></div>
+                        </div>                                            
                     </div>
                     <div class="form-row">
                         <div class="mdc-text-field mdc-text-field--outlined" id="text-field-fullname">
@@ -37,6 +40,9 @@
                                 <div class="mdc-notched-outline__trailing"></div>
                             </div>
                         </div>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-fullname-error" aria-hidden="true"></div>
+                        </div> 
                     </div>   
                     <div class="form-row">
                         <div class="mdc-text-field mdc-text-field--outlined" id="text-field-email">
@@ -49,6 +55,9 @@
                                 <div class="mdc-notched-outline__trailing"></div>
                             </div>
                         </div>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-email-error" aria-hidden="true"></div>
+                        </div> 
                     </div>                       
                     <div class="form-row">
                         <div class="mdc-text-field mdc-text-field--outlined" id="text-field-password">
@@ -61,6 +70,9 @@
                                 <div class="mdc-notched-outline__trailing"></div>
                             </div>
                         </div>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-password-error" aria-hidden="true"></div>
+                        </div> 
                     </div>
                     <div class="form-row">
                         <div class="mdc-text-field mdc-text-field--outlined" id="text-field-password-repeated">
@@ -73,6 +85,9 @@
                                 <div class="mdc-notched-outline__trailing"></div>
                             </div>
                         </div>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-password-repeated-error" aria-hidden="true"></div>
+                        </div> 
                     </div>
                     <div class="form-row">
                         <button class="mdc-button mdc-button--raised" onclick="register()">
@@ -92,6 +107,14 @@
 {% block script %}
 <script>
 
+    const textFields = {
+        username: new mdc.textField.MDCTextField(document.querySelector('#text-field-username')),
+        full_name: new mdc.textField.MDCTextField(document.querySelector('#text-field-fullname')),
+        email: new mdc.textField.MDCTextField(document.querySelector('#text-field-email')),
+        password: new mdc.textField.MDCTextField(document.querySelector('#text-field-password')),
+        password_repeated: new mdc.textField.MDCTextField(document.querySelector('#text-field-password-repeated')),
+    }
+
     async function createUser(userData) {
         const url = `${API_URL}/users/`;
         const options = {
@@ -106,12 +129,23 @@
 
         // TODO: handle validation errors...
         if (response.status == 201) {
-            console.log("Created new user")
-            console.log(response);
-            //redirectToProjects();
-        }
-        else {
-            throw new Error(`Failed to create new user`);
+            console.log("Created new user");
+            redirectToProjects();
+        } else if(response.status == 409) {
+            // user already exists
+            const error = await response.json();
+            textFields.username.helperTextContent = error["detail"];
+            textFields.username.valid = false;
+        } else {
+            // field validation errors
+            const errors = await response.json();
+            console.log(errors);
+            errors["detail"].forEach((error) => {
+                const fieldname = error.loc[1];
+                console.log(fieldname);
+                textFields[fieldname].helperTextContent = error.msg;
+                textFields[fieldname].valid = false;                
+            });
         }
     }
 
