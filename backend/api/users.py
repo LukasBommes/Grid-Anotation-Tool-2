@@ -26,6 +26,7 @@ def create_router(settings):
         password = user_dict.get("password")
         del user_dict["password"]
         user_dict["hashed_password"] = pwd_context.hash(password)
+        del user_dict["password_repeated"]
         db_user = models.User(**user_dict)
         db.add(db_user)
         db.commit()
@@ -63,10 +64,9 @@ def create_router(settings):
             raise HTTPException(status_code=404, detail=f"User with username {username} not found")
         else:
             user_dict = user.dict()
-            print(f"user_dict: {user_dict}")
             user_dict["hashed_password"] = pwd_context.hash(user_dict["password"])
             del user_dict["password"]
-            print(f"user_dict: {user_dict}")
+            del user_dict["password_repeated"]
             db_user_query.update(user_dict, synchronize_session=False)
             db.commit()
         return db_user

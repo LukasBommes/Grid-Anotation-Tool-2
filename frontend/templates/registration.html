@@ -63,6 +63,18 @@
                         </div>
                     </div>
                     <div class="form-row">
+                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-password-repeated">
+                            <input type="password" class="mdc-text-field__input" id="text-field-password-repeated-input">
+                            <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__notch">
+                                    <label for="text-field-password-repeated-input" class="mdc-floating-label" id="text-field-password-repeated-label">Repeat Password</label>
+                                </div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
                         <button class="mdc-button mdc-button--raised" onclick="register()">
                             <span class="mdc-button__ripple"></span>
                             <span class="mdc-button__focus-ring"></span>
@@ -106,6 +118,7 @@
     function register() {
         const username = document.getElementById('text-field-username-input').value;
         const password = document.getElementById('text-field-password-input').value;
+        const password_repeated = document.getElementById('text-field-password-repeated-input').value;
         const fullname = document.getElementById('text-field-fullname-input').value;
         const email = document.getElementById('text-field-email-input').value;
         console.log("username: "+username+" password: "+password);
@@ -118,25 +131,10 @@
             "full_name": fullname,
             "disabled": false,
             "password": password,
-        };       
+            "password_repeated": password_repeated,
+        };
 
         createUser(user_data);
-
-        // var createUserReq = new XMLHttpRequest();
-        // createUserReq.addEventListener("load", function () {
-        //     console.log(this.responseText);
-        //     console.log(this.status);
-        //     if (this.status == 201) {
-        //         console.log("Created new user")
-        //         redirectToProjects();
-        //     }
-        //     else {
-        //         console.log("Error"); 
-        //     }
-        // });
-        // createUserReq.open("POST", `${API_URL}/users/`, true);
-        // createUserReq.setRequestHeader("Content-Type", "application/json");
-        // createUserReq.send(JSON.stringify(user_data));
     }
 </script>
 {% endblock %}

@@ -44,8 +44,8 @@ def override_get_db():
 def override_get_current_active_user():
     test_user_dict = dict(
         username="testuser",
-        email=None,
-        full_name=None,
+        email="mail@example.com",
+        full_name="Test User",
         disabled=False,
     )
     return schemas.User(**test_user_dict)
@@ -87,7 +87,7 @@ def create_user(
     username="johndoe", 
     full_name="John Doe", 
     email="johndoe@example.com", 
-    password="secret", 
+    password="secret12&!",
     disabled=False
 ):
     response = client.post(
@@ -98,6 +98,7 @@ def create_user(
             "full_name": full_name,
             "email": email,
             "password": password,
+            "password_repeated": password,
             "disabled": disabled
         },
     )
@@ -145,7 +146,7 @@ def test_create_user():
 def test_delete_current_user(create_user_johndoe):
     # login should succeed
     username = "johndoe"
-    password = "secret"
+    password = "secret12&!"
     login(username, password)
 
     # delete user
@@ -170,12 +171,12 @@ def test_delete_current_user(create_user_johndoe):
 def test_update_current_user(create_user_johndoe):
     # login should succeed
     username = "johndoe"
-    password = "secret"
+    password = "secret12&!"
     login(username, password)
 
     # change username and password
-    new_username = "johndoe_changed"
-    new_password = "newsecret"
+    new_username = "johndoeChanged"
+    new_password = "newsecret12&!"
     response = client.put(
         f"/api/current_user/",
         headers={"Content-Type": "application/json", "accept": "application/json"},
@@ -184,6 +185,7 @@ def test_update_current_user(create_user_johndoe):
             "full_name": "John Doe",
             "email": "johndoe@example.com",
             "password": new_password,
+            "password_repeated": new_password,
             "disabled": False
         },
     )
@@ -218,8 +220,8 @@ def change_current_user(username, full_name="John Doe", email="johndoe@example.c
 
 def test_users_can_access_only_own_projects(reset_user_dependency_overwrite):
     # create two users
-    username_a = "user_a"
-    username_b = "user_b"
+    username_a = "userA"
+    username_b = "userB"
     create_user(username=username_a)
     create_user(username=username_b)
 
@@ -237,8 +239,8 @@ def test_users_can_access_only_own_projects(reset_user_dependency_overwrite):
     assert response.status_code == 200, response.text
     data = response.json()
     assert len(data) == 1
-    assert data[0]["name"] == "user_a_project"
-    assert data[0]["username"] == "user_a"
+    assert data[0]["name"] == "userA_project"
+    assert data[0]["username"] == "userA"
     assert set(data[0].keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
     change_current_user(username=username_b)
@@ -246,8 +248,8 @@ def test_users_can_access_only_own_projects(reset_user_dependency_overwrite):
     assert response.status_code == 200, response.text
     data = response.json()
     assert len(data) == 1
-    assert data[0]["name"] == "user_b_project"
-    assert data[0]["username"] == "user_b"
+    assert data[0]["name"] == "userB_project"
+    assert data[0]["username"] == "userB"
     assert set(data[0].keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
 
@@ -316,16 +318,16 @@ def login(username, password):
 
 def test_login_correct_credentials():
     username = "johndoe"
-    password = "secret"
+    password = "secret12&!"
     create_user(username=username, password=password)
     login(username, password)
 
 
 def test_login_incorrect_credentials():
     username = "johndoe"
-    password = "secret"
+    password = "secret12&!"
     create_user(username=username, password=password)
-    response = login_request(username, "wrongsecret")
+    response = login_request(username, "wrongsecret&!")
     assert response.status_code == 401, response.text
     data = response.json()
     assert data["detail"] == "Incorrect username or password"
@@ -333,7 +335,7 @@ def test_login_incorrect_credentials():
 
 def test_login_non_existent_user():
     username = "johndoe"
-    password = "secret"
+    password = "secret12&!"
     response = login_request(username, password)
     assert response.status_code == 401, response.text
     data = response.json()
