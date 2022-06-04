@@ -113,13 +113,15 @@
     }
 
     function addProjectToProjectList(project, num_images, num_annotated) {
+        const created = new Date(project.created).toLocaleString("en-GB"); 
+        const edited = new Date(project.edited).toLocaleString("en-GB");
         const html_list_item = `
             <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image" onclick="annotateProjectClicked(${project.id})">
                 <span class="mdc-list-item__ripple"></span>
                 <span class="mdc-list-item__start"></span>
                 <span class="mdc-list-item__content" id="projects-list-item-${project.id}">
-                    <span class="mdc-list-item__primary-text">${project.name.slice(0, 10)}</span>
-                    <span class="mdc-list-item__secondary-text">${num_annotated} / ${num_images} images annotated</span>
+                    <span class="mdc-list-item__primary-text">${project.name}</span>
+                    <span class="mdc-list-item__secondary-text">${num_annotated} / ${num_images} images annotated | created ${created} | modified ${edited}</span>
                 </span>
                 <span class="mdc-list-item__end list-item-end-custom">
                     <button class="mdc-icon-button material-icons" onclick="openMenu(${project.id}, event)">
