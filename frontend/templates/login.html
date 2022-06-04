@@ -96,16 +96,16 @@
         } else if(response.status == 401) {
             // wrong credentials
             const error = await response.json();
-
             const alertBannerText = document.querySelector(".alert-banner-text");
             alertBannerText.innerHTML = error["detail"];
             const alertBanner = document.querySelector(".alert-banner");
             alertBanner.style.display = "flex";
-
-        } else {
+        } else if(response.status == 422) {
             // field validation errors
             const errors = await response.json();
             parseValidationErrors(textFields, errors);            
+        } else {
+            throw new Error("Unknown error when logging in.")
         }
     }
 

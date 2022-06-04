@@ -135,10 +135,12 @@
             const error = await response.json();
             textFields.username.helperTextContent = error["detail"];
             textFields.username.valid = false;
-        } else {
+        } else if(response.status == 422) {
             // field validation errors
             const errors = await response.json();
             parseValidationErrors(textFields, errors);            
+        } else {
+            throw new Error("Unknown error when creating user.")
         }
     }
 

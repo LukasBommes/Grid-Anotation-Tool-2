@@ -25,6 +25,9 @@
                                 <div class="mdc-notched-outline__trailing"></div>
                             </div>
                         </div>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-name-error" aria-hidden="true"></div>
+                        </div>
                     </div>
 
                     <!-- Description Textarea -->
@@ -41,6 +44,9 @@
                             <textarea class="mdc-text-field__input" rows="4" cols="40" aria-label="Label" id="text-field-description-input"></textarea>
                             </span>
                         </label>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-description-error" aria-hidden="true"></div>
+                        </div>
                     </div>
 
                     <!-- Image Upload -->
@@ -114,6 +120,11 @@
     const project_save_error_msg = "Failed to save project."
 
     const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
+
+    const textFields = {
+        name: new mdc.textField.MDCTextField(document.querySelector('#text-field-name')),
+        description: new mdc.textField.MDCTextField(document.querySelector('#text-field-description'))
+    }
 
     var image_ids_to_upload = [];
     var image_files_to_upload = {};
@@ -286,6 +297,9 @@
             } else {
                 createImages(project_id, images_data);
             }            
+        } else if (event.target.status == 422) {
+            const errors = JSON.parse(event.target.responseText);
+            parseValidationErrors(textFields, errors);
         } else {
             console.log(project_save_error_msg); 
             snackbar.labelText = project_save_error_msg;    

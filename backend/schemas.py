@@ -44,7 +44,7 @@ class Image(ImageBase):
 
 class ProjectBase(BaseModel):
     name: constr(strip_whitespace=True, min_length=1, max_length=1024, strict=True)
-    description: Optional[constr(strip_whitespace=True, min_length=1, max_length=9999, strict=True)] = None
+    description: Optional[constr(strip_whitespace=True, max_length=9999, strict=True)] = None
 
 
 class ProjectCreate(ProjectBase):
