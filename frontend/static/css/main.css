@@ -18,6 +18,9 @@ body {
   padding-top: 40px !important;
 }
 
+.mdc-top-app-bar__title {
+  cursor: pointer;
+}
 
 .mdc-top-app-bar .login-button {
   color: white !important;
