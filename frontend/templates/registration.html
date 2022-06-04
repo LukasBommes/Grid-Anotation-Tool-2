@@ -127,7 +127,6 @@
 
         let response = await fetch(url, options);
 
-        // TODO: handle validation errors...
         if (response.status == 201) {
             console.log("Created new user");
             redirectToProjects();
@@ -139,13 +138,7 @@
         } else {
             // field validation errors
             const errors = await response.json();
-            console.log(errors);
-            errors["detail"].forEach((error) => {
-                const fieldname = error.loc[1];
-                console.log(fieldname);
-                textFields[fieldname].helperTextContent = error.msg;
-                textFields[fieldname].valid = false;                
-            });
+            parseValidationErrors(textFields, errors);            
         }
     }
 

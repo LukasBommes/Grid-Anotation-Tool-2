@@ -13,6 +13,14 @@
                 <div class="main-container">
                     <h1 class="mdc-typography--button">Login</h1>
 
+                    <!-- Error Banner -->
+                    <div class="alert-banner" style="display: none;">
+                        <h2 class="mdc-typography--body1 alert-banner-text"></h2>
+                        <i class="material-icons mdc-button__icon" aria-hidden="true" onclick='this.parentElement.style.display = "none";'>
+                            clear
+                        </i>
+                    </div>
+
                     <!-- Login form -->
                     <div class="form-row">
                         <div class="mdc-text-field mdc-text-field--outlined" id="text-field-username">
@@ -25,6 +33,9 @@
                                 <div class="mdc-notched-outline__trailing"></div>
                             </div>
                         </div>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-username-error" aria-hidden="true"></div>
+                        </div>
                     </div>                        
                     <div class="form-row">
                         <div class="mdc-text-field mdc-text-field--outlined" id="text-field-password">
@@ -36,6 +47,9 @@
                                 </div>
                                 <div class="mdc-notched-outline__trailing"></div>
                             </div>
+                        </div>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-password-error" aria-hidden="true"></div>
                         </div>
                     </div>
                     <div class="form-row">
@@ -58,36 +72,52 @@
 
 {% block script %}
 <script>
+
+    const textFields = {
+        username: new mdc.textField.MDCTextField(document.querySelector('#text-field-username')),
+        password: new mdc.textField.MDCTextField(document.querySelector('#text-field-password'))
+    }
+
+    async function loginUser(userData) {
+        const url = `${API_URL}/token`;
+        const options = {
+            method: 'POST',
+            body: userData,
+        }
+
+        let response = await fetch(url, options);
+
+        if (response.status == 200) {
+            var data = await response.json();
+            localStorage.setItem('access_token', data["access_token"]);
+            console.log("Set JWT acces token: "+data["access_token"]);
+            console.log("User logged in");
+            redirectToProjects();
+        } else if(response.status == 401) {
+            // wrong credentials
+            const error = await response.json();
+
+            const alertBannerText = document.querySelector(".alert-banner-text");
+            alertBannerText.innerHTML = error["detail"];
+            const alertBanner = document.querySelector(".alert-banner");
+            alertBanner.style.display = "flex";
+
+        } else {
+            // field validation errors
+            const errors = await response.json();
+            parseValidationErrors(textFields, errors);            
+        }
+    }
+
     function login() {
         const username = document.getElementById('text-field-username-input').value;
         const password = document.getElementById('text-field-password-input').value;
-        console.log("username: "+username+" password: "+password);
-
-        // TODO: client-side validation of inputs
 
         const login_form_data = new FormData();
         login_form_data.append("username", username);
         login_form_data.append("password", password);
 
-        var loginReq = new XMLHttpRequest();
-        loginReq.addEventListener("load", function () {
-            console.log(this.responseText);
-            console.log(this.status);
-            if (this.status == 200) {
-                var response = JSON.parse(this.responseText);
-                localStorage.setItem('access_token', response["access_token"]);
-                console.log("Set JWT acces token: "+response["access_token"]);
-                redirectToProjects();
-            } 
-            else if (this.status == 401) {
-
-            }
-            else {
-                console.log("Error"); 
-            }
-        });
-        loginReq.open("POST", `${API_URL}/token`, true);
-        loginReq.send(login_form_data);
+        loginUser(login_form_data);
     }
 </script>
 {% endblock %}

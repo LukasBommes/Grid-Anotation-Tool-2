@@ -155,6 +155,15 @@
       redirectToProjects();
     }
 
+    function parseValidationErrors(textFields, errors) {
+        errors["detail"].forEach((error) => {
+            const fieldname = error.loc[1];
+            console.log(fieldname);
+            textFields[fieldname].helperTextContent = error.msg;
+            textFields[fieldname].valid = false;                
+        });
+    }
+
     async function exportProjectClicked(project_id) {
       const url = `${API_URL}/export/${project_id}`;
       const options = {

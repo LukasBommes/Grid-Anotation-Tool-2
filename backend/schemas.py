@@ -2,7 +2,11 @@ from datetime import datetime
 from typing import List, Optional, Dict, Union
 
 from pydantic import BaseModel, EmailStr, ValidationError, validator
-from pydantic.types import constr
+from pydantic.types import constr, conint
+
+
+UserNameStr = constr(strip_whitespace=True, min_length=1, max_length=1024, strict=True)
+IdInt = conint(ge=0, strict=True)
 
 
 class AnnotationBase(BaseModel):
@@ -14,8 +18,8 @@ class AnnotationCreate(AnnotationBase):
 
 
 class Annotation(AnnotationBase):
-    id: int
-    username: str
+    id: IdInt
+    username: UserNameStr
 
     class Config:
         orm_mode = True
@@ -30,17 +34,17 @@ class ImageCreate(ImageBase):
 
 
 class Image(ImageBase):
-    id: int
-    project_id: int
-    username: str
+    id: IdInt
+    project_id: IdInt
+    username: UserNameStr
 
     class Config:
         orm_mode = True
 
 
 class ProjectBase(BaseModel):
-    name: str
-    description: Optional[str] = None
+    name: constr(strip_whitespace=True, min_length=1, max_length=1024, strict=True)
+    description: Optional[constr(strip_whitespace=True, min_length=1, max_length=9999, strict=True)] = None
 
 
 class ProjectCreate(ProjectBase):
@@ -48,11 +52,11 @@ class ProjectCreate(ProjectBase):
 
 
 class Project(ProjectBase):
-    id: int
+    id: IdInt
     created: datetime
     edited: datetime
     images: List[Image] = []
-    username: str
+    username: UserNameStr
 
     class Config:
         orm_mode = True
@@ -64,13 +68,13 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    username: Union[str, None] = None
+    username: Union[UserNameStr, None] = None
 
 
 class User(BaseModel):
-    username: constr(strip_whitespace=True, min_length=1, max_length=255, strict=True)
+    username: UserNameStr
     email: EmailStr
-    full_name: constr(min_length=1, max_length=255, strict=True)
+    full_name: constr(min_length=1, max_length=1024, strict=True)
     disabled: bool = False
 
     @validator('username')
@@ -81,8 +85,8 @@ class User(BaseModel):
 
 
 class UserCreate(User):
-    password: constr(min_length=8, max_length=256, strict=True)
-    password_repeated: constr(min_length=8, max_length=256, strict=True)
+    password: constr(min_length=8, max_length=1024, strict=True)
+    password_repeated: constr(min_length=8, max_length=1024, strict=True)
 
     @validator('password')
     def password_valid(cls, value):
@@ -98,7 +102,7 @@ class UserCreate(User):
 
 
 class UserInDB(User):
-    id: int
+    id: IdInt
     hashed_password: str
     projects: List[Project] = []
 
