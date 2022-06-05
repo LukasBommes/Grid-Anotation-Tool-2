@@ -2,7 +2,6 @@
 
 {% block head %}
 <script type=text/javascript src="{{ url_for('static', path='d3.v5.min.js') }}"></script>
-<script type=text/javascript src="{{ url_for('static', path='jquery-3.5.0.min.js') }}"></script>
 <script type=text/javascript src="{{ url_for('static', path='2D.js') }}"></script>
 <script type=text/javascript src="{{ url_for('static', path='mousetrap-1.6.5.min.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/editor.css') }}">
@@ -120,7 +119,6 @@
 {% block script %}
 <script>
   // TODO:
-  // - get rid of jquery
   // - display project info (name, number of images, number of annotated images, last edited, created, description, etc.)
   // - style button group and image selection according to material ui guidelines
   // - add buttons for prev/next image
@@ -204,16 +202,16 @@
             auxlines.length > 0 || auxcurves.length > 0)) {
         //if (selected_image["name"] != null) {    // with thisline simply changing the selection will save annotations
             save_to_json(selected_image["id"]);
-            $("#"+splitext(selected_image["name"])).css("background-color", "#ebc334");
+            document.getElementById(splitext(selected_image["name"])).style.backgroundColor = "#ebc334";
         }
         selected_image_has_changes = false;
       }
     }
 
-    // save before page reload
-    $(window).bind('beforeunload', function(){
+    window.addEventListener('beforeunload', (event) => {
+      event.preventDefault();
       save();
-      console.log("Saved annotation before reload.")
+      console.log("Saved annotation before reload.");
     });
 
     function reset_objects() {
@@ -233,7 +231,7 @@
       selected_image_has_changes = true;
     }
 
-    $("#images_selection").change(function() {
+    function images_selection_changed() {
       // save annotations of previous image before changing the image
       save();
 
@@ -250,7 +248,7 @@
 
       // when changing image mark the auxline button as active
       remove_active_tag(buttons_drawing);
-      $("#btn-draw-auxline").addClass("btn-active");
+      document.getElementById("btn-draw-auxline").classList.add("btn-active")
 
       var g_element = svg.append("g")
           .attr("id", "g_element");
@@ -352,7 +350,8 @@
         getAnnotationReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         getAnnotationReq.send();
       }
-    });
+    }
+    document.getElementById("images_selection").addEventListener("change", images_selection_changed);
 
     svg = d3.select('svg');
 
