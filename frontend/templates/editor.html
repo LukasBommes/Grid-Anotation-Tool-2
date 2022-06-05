@@ -135,6 +135,7 @@
 
   function editor(project_id) {
     var selected_image = {"id": null, "name": null};
+    var selected_image_has_changes = false;
     var existing_anotations = [];
     var img_width, img_height;
     var marker_mode = "auxline"
@@ -198,12 +199,15 @@
 
     // saves annotation data to file
     function save() {
+      if (selected_image_has_changes) {
         if (selected_image["name"] != null && (pv_modules.length > 0 || corners.length > 0 ||
             auxlines.length > 0 || auxcurves.length > 0)) {
         //if (selected_image["name"] != null) {    // with thisline simply changing the selection will save annotations
             save_to_json(selected_image["id"]);
             $("#"+splitext(selected_image["name"])).css("background-color", "#ebc334");
         }
+        selected_image_has_changes = false;
+      }
     }
 
     // save before page reload
@@ -224,6 +228,10 @@
         btns_other[i].classList.remove("btn-active")
       }
     };
+
+    function selected_image_changed() {
+      selected_image_has_changes = true;
+    }
 
     $("#images_selection").change(function() {
       // save annotations of previous image before changing the image
@@ -491,6 +499,7 @@
           .style("fill-opacity", 0)
           .style("stroke", null);
         compute_intersections(prev_intersections);
+        selected_image_changed();
         draw();
         console.log("Computed new corners as intersections of auxiliary lines.");
       } else if (btn.id == 'btn-mark-module-partially-visible') {
@@ -508,6 +517,7 @@
       if (marker_mode == "corner") {
         corners.push({x: img_pos_x, y: img_pos_y, id: uuidv4()});
         console.log("Placed a new corner marker at (", img_pos_x, ",", img_pos_y, ")");
+        selected_image_changed();
         draw();
       }
       else if (marker_mode == "center") {
@@ -524,7 +534,8 @@
           // store the new pv module
           pv_modules.push({"corners": neighbours, "center": center_point, "id": uuidv4(), "truncated": false});
           console.log("Placed a new grid cell at (", center_point.x, ",", center_point.y, ")");
-          draw();
+          selected_image_changed();
+          draw();          
         }
       }
       else if (marker_mode == "auxline") {
@@ -540,6 +551,7 @@
           console.log("Placed auxiliary line from (", temp_auxline_pts[0].x, ",",
             temp_auxline_pts[0].y, ") to (", temp_auxline_pts[1].x, ",", temp_auxline_pts[1].y, ")");
           temp_auxline_pts = [];
+          selected_image_changed();
           draw();
         }
       }
@@ -549,6 +561,7 @@
           auxcurves.push({points: temp_auxcurve_pts, id: uuidv4()});
           temp_auxcurve_pts = [];
           console.log("Placed auxiliary curve");
+          selected_image_changed();
           draw();
         }
       }
@@ -685,6 +698,7 @@
             pv_modules.push({"corners": neighbours_manual_selection, "center": center_point, "id": uuidv4(), "truncated": false});
             console.log("Placed a new grid cell at (", center_point.x, ",", center_point.y, ")");
             neighbours_manual_selection = [];
+            selected_image_changed();
             draw();
           }
         }
@@ -712,6 +726,7 @@
           }
         }
       }
+      selected_image_changed();
       draw();
     }
 
@@ -729,6 +744,7 @@
       }
       // update line endpoint
       d3.select(this).attr("cx", d.cx = d3.event.x).attr("cy", d.cy = d3.event.y);
+      selected_image_changed();
       draw();
     }
 
@@ -761,6 +777,7 @@
       }
       // update line point
       d3.select(this).attr("cx", d3.event.x).attr("cy", d3.event.y);
+      selected_image_changed();
       draw();
     }
 
@@ -828,6 +845,7 @@
         } else if (this.classList.contains("auxcurve-erase")) {
           erase_auxcurve(this);
         }
+        selected_image_changed();
         draw();
       }
     };
@@ -842,6 +860,7 @@
             pv_modules[i]["truncated"] = !truncated;
           }
         }
+        selected_image_changed();
         draw();
         save();
       }
