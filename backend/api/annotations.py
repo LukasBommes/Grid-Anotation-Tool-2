@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,6 +9,8 @@ from sqlalchemy import and_
 from .. import models, schemas
 from ..dependencies import get_db
 from ..auth import get_current_active_user
+from .images import get_image_
+from .projects import get_project_
 
 
 def create_router(settings):
@@ -52,6 +55,12 @@ def create_router(settings):
         if not db_annotation:
             raise HTTPException(status_code=404, detail=f"Annotation with id {image_id} not found")
         else:
+            # update project last edited data
+            db_image = get_image_(image_id, db, current_user)
+            db_project, _ = get_project_(db_image.project_id, db, current_user)
+            db_project.edited = datetime.now()
+
+            # update annotation
             annotation_dict = annotation.dict()
             db_annotation_query.update(annotation_dict, synchronize_session=False)
             db.commit()

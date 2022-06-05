@@ -16,6 +16,18 @@ from ..auth import get_current_active_user
 images_to_delete = []
 
 
+def get_image_(image_id, db, current_user):
+    db_image = db.query(models.Image).filter(
+        and_(
+            models.Image.username == current_user.username,
+            models.Image.id == image_id
+        )
+    ).first()
+    if not db_image:
+        raise HTTPException(status_code=404, detail=f"Image with id {db_image} not found")
+    return db_image
+
+
 def create_router(settings):
     
     router = APIRouter()
@@ -44,15 +56,7 @@ def create_router(settings):
         db: Session = Depends(get_db),
         current_user: schemas.User = Depends(get_current_active_user)
     ):
-        db_image = db.query(models.Image).filter(
-            and_(
-                models.Image.username == current_user.username,
-                models.Image.id == image_id
-            )
-        ).first()
-        if not db_image:
-            raise HTTPException(status_code=404, detail=f"Image with id {db_image} not found")
-        return db_image
+        return get_image_(image_id, db, current_user)
 
 
     @router.get("/image_file/{image_id}", response_class=FileResponse, status_code=200)

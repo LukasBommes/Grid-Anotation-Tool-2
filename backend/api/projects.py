@@ -21,6 +21,19 @@ from ..dependencies import get_db
 from ..auth import get_current_active_user
 
 
+def get_project_(project_id, db, current_user):
+    db_project_query = db.query(models.Project).filter(
+        and_(
+            models.Project.username == current_user.username,
+            models.Project.id == project_id
+        )
+    )
+    db_project = db_project_query.first()
+    if not db_project:
+        raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
+    return db_project, db_project_query
+
+
 def create_router(settings):
 
     router = APIRouter()
@@ -66,14 +79,7 @@ def create_router(settings):
         db: Session = Depends(get_db), 
         current_user: schemas.User = Depends(get_current_active_user)
     ):
-        db_project = db.query(models.Project).filter(
-            and_(
-                models.Project.username == current_user.username,
-                models.Project.id == project_id
-            )
-        ).first()
-        if not db_project:
-            raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
+        db_project, _ = get_project_(project_id, db, current_user)
         return db_project
 
 
@@ -83,17 +89,9 @@ def create_router(settings):
         db: Session = Depends(get_db), 
         current_user: schemas.User = Depends(get_current_active_user)
     ):
-        db_project = db.query(models.Project).filter(
-            and_(
-                models.Project.username == current_user.username,
-                models.Project.id == project_id
-            )
-        ).first()
-        if not db_project:
-            raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
-        else:
-            db.delete(db_project)
-            db.commit()
+        db_project, _ = get_project_(project_id, db, current_user)
+        db.delete(db_project)
+        db.commit()
         return db_project
 
 
@@ -104,20 +102,11 @@ def create_router(settings):
         db: Session = Depends(get_db), 
         current_user: schemas.User = Depends(get_current_active_user)
     ):
-        db_project_query = db.query(models.Project).filter(
-            and_(
-                models.Project.username == current_user.username,
-                models.Project.id == project_id
-            )
-        )
-        db_project = db_project_query.first()
-        if not db_project:
-            raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
-        else:
-            project_dict = project.dict()
-            project_dict.update({"edited": datetime.now()})
-            db_project_query.update(project_dict, synchronize_session=False)
-            db.commit()
+        db_project, db_project_query = get_project_(project_id, db, current_user)
+        project_dict = project.dict()
+        project_dict.update({"edited": datetime.now()})
+        db_project_query.update(project_dict, synchronize_session=False)
+        db.commit()
         return db_project
 
 
@@ -163,14 +152,7 @@ def create_router(settings):
         with zipfile.ZipFile(filepath, mode="w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip_file:
 
             # store project data in zip
-            db_project = db.query(models.Project).filter(
-                and_(
-                    models.Project.username == current_user.username,
-                    models.Project.id == project_id
-                )
-            ).first()
-            if not db_project:
-                raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
+            db_project, _ = get_project_(project_id, db, current_user)
 
             project_meta = {
                 "version": "v1.0",  # version of the export file spec
