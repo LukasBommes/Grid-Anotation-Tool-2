@@ -19,14 +19,12 @@
 {% endblock %}
 
 {% block content %}
-<div id="controls">
-    <label for="images_selection">Select Image:</label>
-    <select name="images_selection" id="images_selection" size="15"></select>
+<div class="mdc-elevation--z4" id="images-selection-container" style="width: 200px; margin-bottom: 50px; position: absolute; z-index: 1000; background-color: white;">
+  <ul id="images-selection-list" class="mdc-deprecated-list mdc-deprecated-list--dense" role="listbox"></ul>
 </div>
 
 <div class="btn-group" id="drawing-actions">
   <button id='btn-draw-auxline' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-draw-auxline">
-    <!--<div class="mdc-icon-button__ripple"></div>-->
     <span class="mdc-icon-button__focus-ring"></span>
     remove
   </button>
@@ -127,6 +125,9 @@
 
   const project_id = {{ project_id|tojson }};
 
+  const imagesSelectionList = new mdc.list.MDCList(document.getElementById('images-selection-list'));
+  imagesSelectionList.singleSelection = true;
+
   entrypoint(() => {
       editor(project_id);
   });
@@ -156,6 +157,28 @@
       return filename.split('.').slice(0, -1).join('.')
     }
 
+    function addImageToImagesList(image) {
+        const html_list_item = `
+          <li id="images-selection-list-${image.id}" data-image-id="${image.id}" data-image-name="${image.name}" class="mdc-deprecated-list-item" role="option">
+            <span class="mdc-deprecated-list-item__ripple"></span>
+            <span class="mdc-deprecated-list-item__text">${splitext(image.name).slice(0, 8)}</span>
+            <span class="mdc-deprecated-list-item__meta">
+              <i class="material-icons menu-icon" style="color:green; visibility: hidden;">check</i>
+            </span>
+          </li>`;
+        document.getElementById('images-selection-list').appendChild(htmlToElements(html_list_item));
+    }
+
+    function setImageAnnotationStatus(image_id, annotated) {
+      const listElement = document.getElementById(`images-selection-list-${image_id}`);
+      var icon = listElement.querySelector('.menu-icon');
+      if (annotated) {        
+        icon.style.visibility = "visible";
+      } else {
+        icon.style.visibility = "hidden";
+      }
+    }
+
     // determine which image is already annotated and color selection box background
     function getAnnotationIds() {      
       var getAnnotationIdsReq = new XMLHttpRequest();
@@ -174,20 +197,10 @@
       var getImagesReq = new XMLHttpRequest();
       getImagesReq.addEventListener("load", function () {
         var response = JSON.parse(this.responseText);
-        var images_selection = document.getElementById("images_selection");
         response.foreach(function(image) {
-          var option = new Option(
-            splitext(image.name).slice(0, 8), 
-            JSON.stringify({
-              "id": image.id, 
-              "name": image.name
-            })
-          );
-          option.id = splitext(image.name);
-          if (existing_anotations.includes(image.id)) {
-            option.style.backgroundColor = "#ebc334";
-          }
-          images_selection.appendChild(option);
+          addImageToImagesList(image);
+          const annotated = existing_anotations.includes(image.id);
+          setImageAnnotationStatus(image.id, annotated);
         });
       });
       getImagesReq.open("GET", `${API_URL}/project/${project_id}/images/`);
@@ -202,7 +215,7 @@
             auxlines.length > 0 || auxcurves.length > 0)) {
         //if (selected_image["name"] != null) {    // with thisline simply changing the selection will save annotations
             save_to_json(selected_image["id"]);
-            document.getElementById(splitext(selected_image["name"])).style.backgroundColor = "#ebc334";
+            setImageAnnotationStatus(selected_image["id"], true);
         }
         selected_image_has_changes = false;
       }
@@ -231,7 +244,7 @@
       selected_image_has_changes = true;
     }
 
-    function images_selection_changed() {
+    function images_selection_changed(event) {
       // save annotations of previous image before changing the image
       save();
 
@@ -257,7 +270,12 @@
           .append('image');
 
       // set image
-      selected_image = JSON.parse(document.getElementById("images_selection").value);
+      const selectedListIdx = imagesSelectionList.selectedIndex;
+      selected_image = {
+        id: event.target.children[selectedListIdx].dataset.imageId,
+        name: event.target.children[selectedListIdx].dataset.imageName
+      }
+
       const image_id = selected_image["id"];
       getImageUrl(image_id).then(imageURL => {
         image_element.attr('href', imageURL);
@@ -351,7 +369,7 @@
         getAnnotationReq.send();
       }
     }
-    document.getElementById("images_selection").addEventListener("change", images_selection_changed);
+    document.getElementById('images-selection-list').addEventListener("MDCList:selectionChange", images_selection_changed);
 
     svg = d3.select('svg');
 
