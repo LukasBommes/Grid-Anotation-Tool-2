@@ -1,9 +1,5 @@
 version: "3.8"
 
-# TODO: 
-# - persistent volume for storing images
-# - postgressql database
-
 services:
 
   db:
@@ -37,16 +33,15 @@ services:
     depends_on:
       - db
     environment:
-       - PORT=8000
-       - PYTHONPATH=/backend
-       - APP_MODULE=backend.main:app
-       - PRE_START_PATH=/backend/prestart.sh
-       - SQLALCHEMY_DATABASE_URL=postgresql://pv_module_extractor:9XWC97uf4fwCN7kp@db/pv_module_extractor
-       - MEDIA_ROOT=/images
+      - PORT=8000
+      - PYTHONPATH=/backend
+      - APP_MODULE=backend.main:app
+      - PRE_START_PATH=/backend/prestart.sh
+      - BACKEND_DATABASE_URL=postgresql://pv_module_extractor:9XWC97uf4fwCN7kp@db/pv_module_extractor
+      - BACKEND_MEDIA_ROOT=/images
+      - BACKEND_CORS_ORIGINS=["http://localhost:9999", "http://127.0.0.1:9999", "http://localhost", "http://127.0.0.1"]
     command: /start-reload.sh  # production: /start.sh
-    # deploy:
-    #   restart_policy:
-    #     condition: on-failure
+    restart: always
     networks:
       - grid_anotation_tool
 
@@ -61,14 +56,12 @@ services:
       - db
       - backend
     environment:
-       - PORT=9999
-       - PYTHONPATH=/frontend
-       - APP_MODULE=frontend.main:app
-       - PRE_START_PATH=/frontend/prestart.sh
+      - PORT=9999
+      - PYTHONPATH=/frontend
+      - APP_MODULE=frontend.main:app
+      - PRE_START_PATH=/frontend/prestart.sh
     command: /start-reload.sh  # production: /start.sh
-    #deploy:
-    #  restart_policy:
-    #    condition: on-failure
+    restart: always
     networks:
       - grid_anotation_tool
 

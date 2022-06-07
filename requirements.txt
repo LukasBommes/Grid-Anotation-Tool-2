@@ -10,3 +10,4 @@ email-validator==1.2.1
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 psycopg2==2.9.3
+requests==2.27.1

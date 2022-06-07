@@ -22,13 +22,13 @@ TEST_BASE_DIR = "backend/tests"
 
 test_settings = settings
 settings.MEDIA_ROOT = f"{TEST_BASE_DIR}/images"
-settings.SQLALCHEMY_DATABASE_URL = f"sqlite:///{TEST_BASE_DIR}/test.db"
+settings.DATABASE_URL = f"sqlite:///{TEST_BASE_DIR}/test.db"
 
 app = create_app(test_settings)
 
 
 engine = create_engine(
-    settings.SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    settings.DATABASE_URL, connect_args={"check_same_thread": False}
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

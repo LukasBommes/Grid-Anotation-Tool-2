@@ -1,27 +1,23 @@
-### Activate Python Virtual Environment
+### Installation
 
-source env/bin/activate
-
-### Run backend API (development server)
-
-Activate virtual environment.
+From project root run
 
 ```
-Grid-Annotation-Tool-v3$ uvicorn backend.main:app --reload
+sudo docker-compose build
 ```
 
-### Run backend API Tests
+### Run Grid Annotation Tool
 
-Activate virtual environment.
-
-```
-Grid-Annotation-Tool-v3$ pytest
-```
-
-### Run frontend (development server)
-
-Activate virtual environment.
+From project root run
 
 ```
-Grid-Annotation-Tool-v3$ uvicorn frontend.main:app --port 9999 --reload
+sudo docker-compose up
+```
+
+### Run tests
+
+Make sure the Grid Annotation Tool is running. Then, from project root, run
+
+```
+sudo docker exec -it grid-annotation-tool-v3_backend_1 pytest
 ```
