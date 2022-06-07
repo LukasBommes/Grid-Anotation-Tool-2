@@ -42,6 +42,7 @@ services:
        - APP_MODULE=backend.main:app
        - PRE_START_PATH=/backend/prestart.sh
        - SQLALCHEMY_DATABASE_URL=postgresql://pv_module_extractor:9XWC97uf4fwCN7kp@db/pv_module_extractor
+       - MEDIA_ROOT=/images
     command: /start-reload.sh  # production: /start.sh
     # deploy:
     #   restart_policy:
