@@ -1,11 +1,5 @@
 __pycache__
 .pytest_cache
 *.db
-env
-images/
-api/tests/images/
 example_images/
-old/
-frontend/annotations/
-frontend/save/
-frontend/uploads/
+docker/secrets/

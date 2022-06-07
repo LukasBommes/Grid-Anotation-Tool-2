@@ -23,7 +23,7 @@ services:
       - grid_anotation_tool
 
   backend:
-    build: .
+    build: docker
     ports:
       - "8000:8000"
     volumes:
@@ -46,7 +46,7 @@ services:
       - grid_anotation_tool
 
   frontend:
-    build: .
+    build: docker
     ports:
       - "9999:9999"
     volumes:
@@ -64,6 +64,11 @@ services:
     restart: always
     networks:
       - grid_anotation_tool
+
+# secrets:
+#   db_user:
+#     file: ./docker/secrets/db_password.txt
+#   db_password:
 
 volumes:
   # postgres DB data
