@@ -78,7 +78,6 @@
 
 {% block script %}
 <script>
-    const API_URL = {{ api_url|tojson }};
     const project_list_menus = {};
 
     const project_delete_success_msg = "Project deleted.";
@@ -90,6 +89,10 @@
     const delete_project_dialog = new mdc.dialog.MDCDialog(document.querySelector('#delete-project-dialog'));
     var deleteProjectDialogEventListener;
 
+    entrypoint(() => {
+        loadProjects();
+    });
+
     function loadProjects() {
         // clear project list
         document.getElementById("projects-list").innerHTML = '';
@@ -99,23 +102,26 @@
     }
 
     function getAnnotationIds() {      
-      var getAnnotationIdsReq = new XMLHttpRequest();
-      getAnnotationIdsReq.addEventListener("load", function () {
-        var existing_anotations = JSON.parse(this.responseText);
-        getProjects(existing_anotations);
-      });
-      getAnnotationIdsReq.open("GET", `${API_URL}/annotation_ids/`);
-      getAnnotationIdsReq.send();
+        var getAnnotationIdsReq = new XMLHttpRequest();
+        getAnnotationIdsReq.addEventListener("load", function () {
+            var existing_anotations = JSON.parse(this.responseText);
+            getProjects(existing_anotations);
+        });
+        getAnnotationIdsReq.open("GET", `${API_URL}/annotation_ids/`);
+        getAnnotationIdsReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
+        getAnnotationIdsReq.send();
     }
 
     function addProjectToProjectList(project, num_images, num_annotated) {
+        const created = new Date(project.created).toLocaleString("en-GB"); 
+        const edited = new Date(project.edited).toLocaleString("en-GB");
         const html_list_item = `
             <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image" onclick="annotateProjectClicked(${project.id})">
                 <span class="mdc-list-item__ripple"></span>
                 <span class="mdc-list-item__start"></span>
                 <span class="mdc-list-item__content" id="projects-list-item-${project.id}">
-                    <span class="mdc-list-item__primary-text">${project.name.slice(0, 10)}</span>
-                    <span class="mdc-list-item__secondary-text">${num_annotated} / ${num_images} images annotated</span>
+                    <span class="mdc-list-item__primary-text">${project.name}</span>
+                    <span class="mdc-list-item__secondary-text">${num_annotated} / ${num_images} images annotated | created ${created} | modified ${edited}</span>
                 </span>
                 <span class="mdc-list-item__end list-item-end-custom">
                     <button class="mdc-icon-button material-icons" onclick="openMenu(${project.id}, event)">
@@ -188,6 +194,7 @@
             }
         });
         getProjectsReq.open("GET", `${API_URL}/projects/`);
+        getProjectsReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         getProjectsReq.send();
     }
 
@@ -208,6 +215,7 @@
         });
         deleteProjectReq.open("DELETE", `${API_URL}/project/${project_id}`, true);
         deleteProjectReq.setRequestHeader("Content-Type", "application/json");
+        deleteProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         deleteProjectReq.send();
     }
 
@@ -226,6 +234,7 @@
             }  
         });
         editProjectRedirectReq.open("GET", "{{ url_for('get_editor_url') }}"+"?project_id="+project_id);
+        editProjectRedirectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         editProjectRedirectReq.send();
     }
 
@@ -237,11 +246,8 @@
             }  
         });
         editProjectRedirectReq.open("GET", "{{ url_for('get_edit_project_url') }}"+"?project_id="+project_id);
+        editProjectRedirectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         editProjectRedirectReq.send();
-    }
-
-    function exportProjectClicked(project_id) {
-        window.location.href = `${API_URL}/export/${project_id}`;
     }
 
     function deleteProjectClicked(project_id) {
@@ -271,6 +277,7 @@
             loadProjects();
         });
         importProjectReq.open("POST", `${API_URL}/import/`, true);
+        importProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         importProjectReq.send(importProjectData);
         event.target.value = null;  // to trigger onchange event even if the same file was selected
     }
@@ -284,7 +291,5 @@
             return new mdc.ripple.MDCRipple(element);
         });
     }
-
-    loadProjects();
 </script>
 {% endblock %}

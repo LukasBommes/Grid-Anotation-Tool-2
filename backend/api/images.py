@@ -6,13 +6,26 @@ import filetype
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import event
+from sqlalchemy import event, and_
 
 from .. import models, schemas
 from ..dependencies import get_db
+from ..auth import get_current_active_user
 
 
 images_to_delete = []
+
+
+def get_image_(image_id, db, current_user):
+    db_image = db.query(models.Image).filter(
+        and_(
+            models.Image.username == current_user.username,
+            models.Image.id == image_id
+        )
+    ).first()
+    if not db_image:
+        raise HTTPException(status_code=404, detail=f"Image with id {db_image} not found")
+    return db_image
 
 
 def create_router(settings):
@@ -21,22 +34,43 @@ def create_router(settings):
     
 
     @router.get("/project/{project_id}/images/", response_model=List[schemas.Image], status_code=200)
-    def get_images(project_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-        images = db.query(models.Image).filter(models.Image.project_id == project_id).offset(skip).limit(limit).all()
+    def get_images(
+        project_id: int, 
+        skip: int = 0, 
+        limit: int = 100, 
+        db: Session = Depends(get_db),
+        current_user: schemas.User = Depends(get_current_active_user)
+    ):
+        images = db.query(models.Image).filter(
+            and_(
+                models.Image.username == current_user.username,
+                models.Image.project_id == project_id
+            )
+        ).offset(skip).limit(limit).all()
         return images
 
 
     @router.get("/image/{image_id}", response_model=schemas.Image, status_code=200)
-    def get_image(image_id: int, db: Session = Depends(get_db)):
-        db_image = db.query(models.Image).get(image_id)
-        if not db_image:
-            raise HTTPException(status_code=404, detail=f"Image with id {db_image} not found")
-        return db_image
+    def get_image(
+        image_id: int, 
+        db: Session = Depends(get_db),
+        current_user: schemas.User = Depends(get_current_active_user)
+    ):
+        return get_image_(image_id, db, current_user)
 
 
     @router.get("/image_file/{image_id}", response_class=FileResponse, status_code=200)
-    def get_image_file(image_id: int, db: Session = Depends(get_db)):
-        db_image = db.query(models.Image).get(image_id)
+    def get_image_file(
+        image_id: int, 
+        db: Session = Depends(get_db),
+        current_user: schemas.User = Depends(get_current_active_user)
+    ):
+        db_image = db.query(models.Image).filter(
+            and_(
+                models.Image.username == current_user.username,
+                models.Image.id == image_id
+            )
+        ).first()
         if not db_image:
             raise HTTPException(status_code=404, detail=f"Image with id {db_image} not found")
         filepath = os.path.join(settings.MEDIA_ROOT, f"project_{db_image.project_id}", db_image.name)
@@ -44,8 +78,17 @@ def create_router(settings):
 
 
     @router.delete("/image/{image_id}", response_model=schemas.Image, status_code=200)
-    def delete_image(image_id: int, db: Session = Depends(get_db)):
-        db_image = db.query(models.Image).get(image_id)
+    def delete_image(
+        image_id: int, 
+        db: Session = Depends(get_db),
+        current_user: schemas.User = Depends(get_current_active_user)
+    ):
+        db_image = db.query(models.Image).filter(
+            and_(
+                models.Image.username == current_user.username,
+                models.Image.id == image_id
+            )
+        ).first()
         if not db_image:
             raise HTTPException(status_code=404, detail=f"Image with id {db_image} not found")
         else:
@@ -75,8 +118,18 @@ def create_router(settings):
 
 
     @router.post("/project/{project_id}/images/", response_model=List[schemas.Image], status_code=201)
-    def create_image(project_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
-        db_project = db.query(models.Project).get(project_id)
+    def create_image(
+        project_id: int, 
+        files: List[UploadFile] = File(...), 
+        db: Session = Depends(get_db),
+        current_user: schemas.User = Depends(get_current_active_user)
+    ):
+        db_project = db.query(models.Project).filter(
+            and_(
+                models.Project.username == current_user.username,
+                models.Project.id == project_id
+            )
+        ).first()
         if not db_project:
             raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
         else:
@@ -95,12 +148,12 @@ def create_router(settings):
                 save_image(filename, project_id, contents)
 
                 # add image DB entry
-                db_image = models.Image(name=filename, project_id=project_id)
+                db_image = models.Image(name=filename, project_id=project_id, username=current_user.username)
                 db.add(db_image)
                 db.commit()
 
                 # add annotation DB entry
-                db_annotation = models.Annotation(id=db_image.id)
+                db_annotation = models.Annotation(id=db_image.id, username=current_user.username)
                 db.add(db_annotation)
                 db.commit()
 

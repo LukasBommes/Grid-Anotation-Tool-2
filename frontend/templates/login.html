@@ -1,0 +1,123 @@
+{% extends "index.html" %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/projects.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="mdc-layout-grid">
+    <div class="mdc-layout-grid__inner">
+        <div class="mdc-layout-grid__cell--span-2"></div>
+        <div class="mdc-layout-grid__cell--span-8">                                
+            <div class="mdc-elevation--z4">
+                <div class="main-container">
+                    <h1 class="mdc-typography--button">Login</h1>
+
+                    <!-- Error Banner -->
+                    <div class="alert-banner" style="display: none;">
+                        <h2 class="mdc-typography--body1 alert-banner-text"></h2>
+                        <i class="material-icons mdc-button__icon" aria-hidden="true" onclick='this.parentElement.style.display = "none";'>
+                            clear
+                        </i>
+                    </div>
+
+                    <!-- Login form -->
+                    <div class="form-row">
+                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-username">
+                            <input class="mdc-text-field__input" id="text-field-username-input">
+                            <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__notch">
+                                    <label for="text-field-username-input" class="mdc-floating-label" id="text-field-username-label">Username</label>
+                                </div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                            </div>
+                        </div>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-username-error" aria-hidden="true"></div>
+                        </div>
+                    </div>                        
+                    <div class="form-row">
+                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-password">
+                            <input type="password" class="mdc-text-field__input" id="text-field-password-input">
+                            <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__notch">
+                                    <label for="text-field-password-input" class="mdc-floating-label" id="text-field-password-label">Password</label>
+                                </div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                            </div>
+                        </div>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-password-error" aria-hidden="true"></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <button class="mdc-button mdc-button--raised mdc-button--icon-leading" onclick="login()">
+                            <span class="mdc-button__ripple"></span>
+                            <span class="mdc-button__focus-ring"></span>
+                            <i class="material-icons mdc-button__icon" aria-hidden="true">
+                                login
+                            </i>
+                            <span class="mdc-button__label">Login</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mdc-layout-grid__cell--span-2"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+
+    const textFields = {
+        username: new mdc.textField.MDCTextField(document.querySelector('#text-field-username')),
+        password: new mdc.textField.MDCTextField(document.querySelector('#text-field-password'))
+    }
+
+    async function loginUser(userData) {
+        const url = `${API_URL}/token`;
+        const options = {
+            method: 'POST',
+            body: userData,
+        }
+
+        let response = await fetch(url, options);
+
+        if (response.status == 200) {
+            var data = await response.json();
+            localStorage.setItem('access_token', data["access_token"]);
+            console.log("Set JWT acces token: "+data["access_token"]);
+            console.log("User logged in");
+            redirectToProjects();
+        } else if(response.status == 401) {
+            // wrong credentials
+            const error = await response.json();
+            const alertBannerText = document.querySelector(".alert-banner-text");
+            alertBannerText.innerHTML = error["detail"];
+            const alertBanner = document.querySelector(".alert-banner");
+            alertBanner.style.display = "flex";
+        } else if(response.status == 422) {
+            // field validation errors
+            const errors = await response.json();
+            parseValidationErrors(textFields, errors);            
+        } else {
+            throw new Error("Unknown error when logging in.")
+        }
+    }
+
+    function login() {
+        const username = document.getElementById('text-field-username-input').value;
+        const password = document.getElementById('text-field-password-input').value;
+
+        const login_form_data = new FormData();
+        login_form_data.append("username", username);
+        login_form_data.append("password", password);
+
+        loginUser(login_form_data);
+    }
+</script>
+{% endblock %}

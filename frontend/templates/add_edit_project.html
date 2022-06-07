@@ -25,6 +25,9 @@
                                 <div class="mdc-notched-outline__trailing"></div>
                             </div>
                         </div>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-name-error" aria-hidden="true"></div>
+                        </div>
                     </div>
 
                     <!-- Description Textarea -->
@@ -41,6 +44,9 @@
                             <textarea class="mdc-text-field__input" rows="4" cols="40" aria-label="Label" id="text-field-description-input"></textarea>
                             </span>
                         </label>
+                        <div class="mdc-text-field-helper-line">
+                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-description-error" aria-hidden="true"></div>
+                        </div>
                     </div>
 
                     <!-- Image Upload -->
@@ -106,7 +112,7 @@
     // - enable a detail-view of the image
     // - show snackbar when redirecting to projects page
 
-    const API_URL = {{ api_url|tojson }};
+    //const API_URL = {{ api_url|tojson }};
     const mode = {{ mode|tojson }};
     const project_id = {{ project_id|tojson }};
 
@@ -115,11 +121,19 @@
 
     const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
 
+    const textFields = {
+        name: new mdc.textField.MDCTextField(document.querySelector('#text-field-name')),
+        description: new mdc.textField.MDCTextField(document.querySelector('#text-field-description'))
+    }
+
     var image_ids_to_upload = [];
     var image_files_to_upload = {};
     var image_ids_to_delete = [];
-
-    console.log(mode);
+    
+    entrypoint(() => {
+        console.log(mode);
+        getProjectDataAndPopulateFields(project_id);
+    });
 
     function getProjectDataAndPopulateFields(project_id) {
         if (project_id == null) {
@@ -142,6 +156,7 @@
                 }
             });
             getProjectReq.open("GET", `${API_URL}/project/${project_id}`);
+            getProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
             getProjectReq.send();
         }
     }
@@ -191,7 +206,9 @@
         updateImageListTitle(images.length > 0);
         const imagesList = document.getElementById('images-list');
         images.forEach((image) => {
-            addImageToImageList(image.id, true, `${API_URL}/image_file/${image.id}`, "image-already-uploaded");
+            getImageUrl(image.id).then(imageURL => {
+                addImageToImageList(image.id, true, imageURL, "image-already-uploaded");
+            });
         });
     }
 
@@ -209,6 +226,7 @@
                 }
             });
             createImagesReq.open("POST", `${API_URL}/project/${project_id}/images/`, true);
+            createImagesReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
             createImagesReq.send(images_data);
         } else {
             deleteImages();
@@ -220,7 +238,10 @@
             console.log("Deleting: "+image_ids_to_delete);
             Promise.all(image_ids_to_delete.map(image_id => 
                 fetch(`${API_URL}/image/${image_id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: new Headers({
+                        'Authorization': 'Bearer ' + localStorage.getItem("access_token")
+                    }),
                 })
                 .then(response => { return response })
                 .catch(error => console.log(error))
@@ -254,6 +275,7 @@
         createProjectReq.addEventListener("load", listener.bind(null, images_data, null));
         createProjectReq.open("POST", `${API_URL}/projects/`, true);
         createProjectReq.setRequestHeader("Content-Type", "application/json");
+        createProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         createProjectReq.send(JSON.stringify(project_data));
     }
 
@@ -262,6 +284,7 @@
         updateProjectReq.addEventListener("load", listener.bind(null, images_data, project_id));
         updateProjectReq.open("PUT", `${API_URL}/project/${project_id}`, true);
         updateProjectReq.setRequestHeader("Content-Type", "application/json");
+        updateProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         updateProjectReq.send(JSON.stringify(project_data));
     }
 
@@ -274,6 +297,9 @@
             } else {
                 createImages(project_id, images_data);
             }            
+        } else if (event.target.status == 422) {
+            const errors = JSON.parse(event.target.responseText);
+            parseValidationErrors(textFields, errors);
         } else {
             console.log(project_save_error_msg); 
             snackbar.labelText = project_save_error_msg;    
@@ -357,7 +383,5 @@
         console.log("image_ids_to_upload: "+image_ids_to_upload);
         console.log("image_files_to_upload: "+image_files_to_upload);
     }
-
-    getProjectDataAndPopulateFields(project_id);
 </script>
 {% endblock %}

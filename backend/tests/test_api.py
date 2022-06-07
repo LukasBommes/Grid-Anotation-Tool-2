@@ -10,23 +10,25 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from .. import schemas
+from ..main import create_app
 from ..config import settings
 from ..database import Base
 from ..dependencies import get_db
-from ..main import create_app
+from ..auth import pwd_context, get_current_active_user
 
 
 TEST_BASE_DIR = "backend/tests"
 
 test_settings = settings
 settings.MEDIA_ROOT = f"{TEST_BASE_DIR}/images"
-settings.SQLALCHEMY_DATABASE_URL = f"sqlite:///{TEST_BASE_DIR}/test.db"
+settings.DATABASE_URL = f"sqlite:///{TEST_BASE_DIR}/test.db"
 
 app = create_app(test_settings)
 
 
 engine = create_engine(
-    settings.SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    settings.DATABASE_URL, connect_args={"check_same_thread": False}
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -39,7 +41,18 @@ def override_get_db():
         db.close()
 
 
+def override_get_current_active_user():
+    test_user_dict = dict(
+        username="testuser",
+        email="mail@example.com",
+        full_name="Test User",
+        disabled=False,
+    )
+    return schemas.User(**test_user_dict)
+
+
 app.dependency_overrides[get_db] = override_get_db
+app.dependency_overrides[get_current_active_user] = override_get_current_active_user
 
 
 client = TestClient(app)
@@ -59,7 +72,320 @@ def cleanup_image_uploads():
     except FileNotFoundError:
         print("FileNotFoundError")
         pass
-    
+
+
+##########################################################################################
+#
+# User API
+#
+##########################################################################################
+
+
+# TODO: test to create user with invalid credentials (empty strings, too short, etc.)
+
+def create_user_request(
+    username="johndoe", 
+    full_name="John Doe", 
+    email="johndoe@example.com", 
+    password="secret12&!",
+    disabled=False
+):
+    response = client.post(
+        "/api/users/",
+        headers={"Content-Type": "application/json", "accept": "application/json"},
+        json={
+            "username": username,
+            "full_name": full_name,
+            "email": email,
+            "password": password,
+            "password_repeated": password,
+            "disabled": disabled
+        },
+    )
+    return response
+
+
+def create_user(
+    username="johndoe", 
+    full_name="John Doe", 
+    email="johndoe@example.com", 
+    password="secret12&!",
+    disabled=False
+):
+    response = create_user_request(
+        username,
+        full_name,
+        email,
+        password,
+        disabled
+    )
+
+    assert response.status_code == 201, response.text
+    data = response.json()
+    assert data["username"] == username
+    assert data["full_name"] == full_name
+    assert data["email"] == email
+    assert data["disabled"] == disabled
+    assert data["projects"] == []
+    assert pwd_context.verify(password, data["hashed_password"])
+    assert set(data.keys()) == set(["username", "id", "full_name", "email", "disabled", "hashed_password", "projects"])
+    password_hash = data["hashed_password"]
+    user_id = data["id"]
+    return user_id, username, full_name, email, password, disabled, password_hash
+
+
+@pytest.fixture()
+def reset_user_dependency_overwrite():
+    """Reset the test user dependency overwrite after test regardless of exceptions."""
+    yield
+    app.dependency_overrides[get_current_active_user] = override_get_current_active_user
+
+
+@pytest.fixture()
+def create_user_johndoe():
+    """Creates a new user and sets it as current user. Reactivates the 
+    test user dependency overwrite after test regardless of exceptions.
+    """
+    user_id, username, full_name, email, _, disabled, _ = create_user()
+    app.dependency_overrides[get_current_active_user] = lambda: schemas.User(
+        username=username,
+        full_name=full_name,
+        email=email,
+        disabled=disabled
+    )
+    yield
+    app.dependency_overrides[get_current_active_user] = override_get_current_active_user
+
+
+def test_create_user():
+    create_user()
+
+
+def test_try_recreate_same_user():
+    response = create_user_request(
+        username="johndoe", 
+        full_name="John Doe", 
+        email="johndoe@example.com", 
+        password="secret12&!",
+        disabled=False
+    )
+    assert response.status_code == 201, response.text
+    response = create_user_request(
+        username="johndoe", 
+        full_name="John Doe", 
+        email="johndoe@example.com", 
+        password="secret12&!",
+        disabled=False
+    )
+    assert response.status_code == 409, response.text
+    data = response.json()
+    assert data["detail"] == "User with username johndoe already exists"
+
+
+def test_delete_current_user(create_user_johndoe):
+    # login should succeed
+    username = "johndoe"
+    password = "secret12&!"
+    login(username, password)
+
+    # delete user
+    response = client.delete("/api/current_user/")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["username"] == username
+    assert data["full_name"] == "John Doe"
+    assert data["email"] == "johndoe@example.com"
+    assert data["disabled"] == False
+    assert data["projects"] == []
+    assert pwd_context.verify(password, data["hashed_password"])
+    assert set(data.keys()) == set(["username", "id", "full_name", "email", "disabled", "hashed_password", "projects"])
+
+    # login should now fail
+    response = login_request(username, password)
+    assert response.status_code == 401, response.text
+    data = response.json()
+    assert data["detail"] == "Incorrect username or password"
+
+
+def test_update_current_user(create_user_johndoe):
+    # login should succeed
+    username = "johndoe"
+    password = "secret12&!"
+    login(username, password)
+
+    # change username and password
+    new_username = "johndoeChanged"
+    new_password = "newsecret12&!"
+    response = client.put(
+        f"/api/current_user/",
+        headers={"Content-Type": "application/json", "accept": "application/json"},
+        json={
+            "username": new_username,
+            "full_name": "John Doe",
+            "email": "johndoe@example.com",
+            "password": new_password,
+            "password_repeated": new_password,
+            "disabled": False
+        },
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()    
+    assert data["username"] == new_username
+    assert data["full_name"] == "John Doe"
+    assert data["email"] == "johndoe@example.com"
+    assert data["disabled"] == False
+    assert data["projects"] == []
+    assert pwd_context.verify(new_password, data["hashed_password"])
+    assert set(data.keys()) == set(["username", "id", "full_name", "email", "disabled", "hashed_password", "projects"])
+
+    # login with old credentials should fail
+    response = login_request(username, password)
+    assert response.status_code == 401, response.text
+    data = response.json()
+    assert data["detail"] == "Incorrect username or password"
+
+    # login with new credentials should succeed
+    login(new_username, new_password)
+
+
+def change_current_user(username, full_name="John Doe", email="johndoe@example.com", disabled=False):
+    app.dependency_overrides[get_current_active_user] = lambda: schemas.User(
+        username=username,
+        full_name=full_name,
+        email=email,
+        disabled=disabled
+    )
+
+
+def test_users_can_access_only_own_projects(reset_user_dependency_overwrite):
+    # create two users
+    username_a = "userA"
+    username_b = "userB"
+    create_user(username=username_a)
+    create_user(username=username_b)
+
+    # create projects for user A
+    change_current_user(username=username_a)
+    create_project(name=f"{username_a}_project", description="bla")
+
+    # create projects for user B    
+    change_current_user(username=username_b)
+    create_project(name=f"{username_b}_project", description="bla")
+
+    # make sure users can see only their own projects
+    change_current_user(username=username_a)
+    response = client.get(f"/api/projects/")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["name"] == "userA_project"
+    assert data[0]["username"] == "userA"
+    assert set(data[0].keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
+
+    change_current_user(username=username_b)
+    response = client.get(f"/api/projects/")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["name"] == "userB_project"
+    assert data[0]["username"] == "userB"
+    assert set(data[0].keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
+
+
+def test_delete_user_deletes_projects(create_user_johndoe):
+    username = "johndoe"
+    create_project(name=f"user_{username}_project1", description="bla")
+    create_project(name=f"user_{username}_project2", description="bla")
+
+    response = client.get(f"/api/projects/")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert len(data) == 2
+    assert data[0]["name"] == "user_johndoe_project1"
+    assert data[0]["username"] == "johndoe"
+    assert set(data[0].keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
+    assert data[1]["name"] == "user_johndoe_project2"
+    assert data[1]["username"] == "johndoe"
+    assert set(data[1].keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
+
+    # delete user john doe
+    response = client.delete("/api/current_user/")
+    assert response.status_code == 200, response.text
+
+    # ensure projects are deleted as well
+    response = client.get(f"/api/projects/")
+    assert response.status_code == 200, response.text
+    assert response.json() == []
+
+
+##########################################################################################
+#
+# Authentication
+#
+##########################################################################################
+
+
+@pytest.fixture()
+def disable_test_user_overwrite():
+    """Disables the test user dependency overwrite during 
+    test and activates it after test regardless of exceptions.
+    """
+    app.dependency_overrides[get_current_active_user] = get_current_active_user
+    yield
+    app.dependency_overrides[get_current_active_user] = override_get_current_active_user
+
+
+def login_request(username, password):
+    response = client.post(
+        "/api/token",
+        data={
+            "username": username,
+            "password": password,
+        },
+    )
+    return response
+
+
+def login(username, password):
+    response = login_request(username, password)
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert isinstance(data["access_token"], str)
+    assert data["token_type"] == "bearer"
+    assert set(data.keys()) == set(["access_token", "token_type"])
+
+
+def test_login_correct_credentials():
+    username = "johndoe"
+    password = "secret12&!"
+    create_user(username=username, password=password)
+    login(username, password)
+
+
+def test_login_incorrect_credentials():
+    username = "johndoe"
+    password = "secret12&!"
+    create_user(username=username, password=password)
+    response = login_request(username, "wrongsecret&!")
+    assert response.status_code == 401, response.text
+    data = response.json()
+    assert data["detail"] == "Incorrect username or password"
+
+
+def test_login_non_existent_user():
+    username = "johndoe"
+    password = "secret12&!"
+    response = login_request(username, password)
+    assert response.status_code == 401, response.text
+    data = response.json()
+    assert data["detail"] == "Incorrect username or password"
+
+
+def test_unauthorized_api_access(disable_test_user_overwrite):
+    response = create_project_request()  # try to create a project without being authorized
+    assert response.status_code == 401, response.text
+    data = response.json()
+    assert data["detail"] == "Not authenticated"
 
 
 ##########################################################################################
@@ -69,19 +395,24 @@ def cleanup_image_uploads():
 ##########################################################################################
 
 
-def create_project(name="Name", description="Description"):
-    """Helper function to create and evaluate a project."""
+def create_project_request(name="Name", description="Description"):
     response = client.post(
         "/api/projects/",
         headers={"Content-Type": "application/json", "accept": "application/json"},
         json={"name": name, "description": description},
     )
+    return response
+
+
+def create_project(name="Name", description="Description"):
+    """Helper function to create and evaluate a project."""
+    response = create_project_request(name, description)
     assert response.status_code == 201, response.text
     data = response.json()
     assert data["name"] == name
     assert data["description"] == description
     assert data["images"] == []
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
     project_id = data["id"]
     return project_id, name, description
 
@@ -94,7 +425,7 @@ def delete_project(project_id, name, description):
     assert data["name"] == name
     assert data["description"] == description
     assert data["images"] == []
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
 
 def test_create_and_get_project():
@@ -107,7 +438,7 @@ def test_create_and_get_project():
     assert data["name"] == name
     assert data["description"] == description
     assert data["images"] == []
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
 
 def test_create_project_name_null():
@@ -169,7 +500,7 @@ def test_create_and_update_project():
     assert data["name"] == new_name
     assert data["description"] == new_description
     assert data["images"] == []
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
 
 def test_create_and_update_project_name_null():
@@ -198,7 +529,7 @@ def test_create_and_update_project_description_null():
     assert data["name"] == new_name
     assert data["description"] == new_description
     assert data["images"] == []
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
 
 def test_try_update_non_existing_project():
@@ -238,8 +569,8 @@ def create_images(project_id):
     assert response.status_code == 201, response.text
     data = response.json()
     assert len(data) == 2
-    assert set(data[0].keys()) == set(["name", "id", "project_id"])
-    assert set(data[1].keys()) == set(["name", "id", "project_id"])
+    assert set(data[0].keys()) == set(["name", "id", "project_id", "username"])
+    assert set(data[1].keys()) == set(["name", "id", "project_id", "username"])
     assert data[0]["project_id"] == project_id
     assert data[1]["project_id"] == project_id
     return [data[0]["id"], data[0]["name"], data[1]["id"], data[1]["name"]]
@@ -263,7 +594,7 @@ def test_create_and_get_images():
     data = response.json()
     assert data["name"] == name1
     assert data["id"] == image_id1
-    assert set(data.keys()) == set(["name", "id", "project_id"])
+    assert set(data.keys()) == set(["name", "id", "project_id", "username"])
 
     # get images by project id
     response = client.get(f"/api/project/{project_id}/images/")
@@ -275,8 +606,8 @@ def test_create_and_get_images():
     assert data[1]["id"] == image_id2
     assert data[0]["name"] == name1
     assert data[1]["name"] == name2
-    assert set(data[0].keys()) == set(["name", "id", "project_id"])
-    assert set(data[1].keys()) == set(["name", "id", "project_id"])
+    assert set(data[0].keys()) == set(["name", "id", "project_id", "username"])
+    assert set(data[1].keys()) == set(["name", "id", "project_id", "username"])
 
 
 def test_try_get_non_existing_image():
@@ -319,7 +650,7 @@ def test_create_and_delete_image():
         assert data["name"] == name
         assert data["project_id"] == project_id
         assert data["id"] == image_id
-        assert set(data.keys()) == set(["name", "id", "project_id"])
+        assert set(data.keys()) == set(["name", "id", "project_id", "username"])
 
     # make sure the image with this image_id has been deleted
     response = client.get(f"/api/project/{project_id}/images")
@@ -369,14 +700,14 @@ def test_delete_project_deletes_images():
     data = response.json()
     assert data["name"] == name1
     assert data["id"] == image_id1
-    assert set(data.keys()) == set(["name", "id", "project_id"])
+    assert set(data.keys()) == set(["name", "id", "project_id", "username"])
     
     response = client.get(f"/api/image/{image_id2}")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["name"] == name2
     assert data["id"] == image_id2
-    assert set(data.keys()) == set(["name", "id", "project_id"])
+    assert set(data.keys()) == set(["name", "id", "project_id", "username"])
     
     # delete project
     response = client.delete(f"/api/project/{project_id}")
@@ -431,7 +762,7 @@ def confirm_anotation_exists(image_id):
     data = response.json()
     assert data["id"] == image_id
     assert data["data"] == {}
-    assert set(data.keys()) == set(["id", "data"])
+    assert set(data.keys()) == set(["id", "data", "username"])
 
 
 def update_annotation(image_id, image_name):
@@ -452,13 +783,13 @@ def update_annotation(image_id, image_name):
     response = client.put(
         f"/api/annotation/{image_id}",
         headers={"Content-Type": "application/json", "accept": "application/json"},
-        json={"data": new_data},
+        json={"data": new_data, "username": "testuser"},
     )
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["id"] == image_id
     assert data["data"] == new_data
-    assert set(data.keys()) == set(["id", "data"])
+    assert set(data.keys()) == set(["id", "data", "username"])
     return new_data
 
 
@@ -643,7 +974,7 @@ def test_import_project():
     data = response.json()
     assert data["name"] == "Test"
     assert data["description"] == "dgdg"
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
     project_id = data["id"]
 
     # confirm project exists in database
@@ -652,7 +983,7 @@ def test_import_project():
     data = response.json()
     assert data["name"] == "Test"
     assert data["description"] == "dgdg"
-    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images"])
+    assert set(data.keys()) == set(["name", "description", "id", "created", "edited", "images", "username"])
 
     # confirm files are uploaded to images directory
     image_names = [
@@ -697,7 +1028,7 @@ def test_import_project():
         assert response.status_code == 200, response.text
         data = response.json()
         assert data["id"] == image_id
-        assert set(data.keys()) == set(["id", "data"])
+        assert set(data.keys()) == set(["id", "data", "username"])
 
         if image_name in annotated_images:
             assert data["data"] != {}

@@ -1,3 +1,18 @@
+IMPORTANT Authentication:
+- fix problem with authentication on images embedded with "href" in editor and project setup
+- figure out how to return Boolean from userIsLoggedIn() function event listener
+- implement registration and user details forms
+- test everything thoroughly
+- reset token validity to 30 minutes (currently set to 1 minute)
+
+
+Deployment:
+- get docker compose to work
+- docker secrets for JWT secret
+- use postgresSQL or mysql instead of sqlite
+
+
+
 - allow empty annotations:
    - allow erasing all annotation objects
    - in that case store an empty dict as annotation

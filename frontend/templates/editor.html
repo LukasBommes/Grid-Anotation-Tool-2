@@ -2,14 +2,13 @@
 
 {% block head %}
 <script type=text/javascript src="{{ url_for('static', path='d3.v5.min.js') }}"></script>
-<script type=text/javascript src="{{ url_for('static', path='jquery-3.5.0.min.js') }}"></script>
 <script type=text/javascript src="{{ url_for('static', path='2D.js') }}"></script>
 <script type=text/javascript src="{{ url_for('static', path='mousetrap-1.6.5.min.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/editor.css') }}">
 {% endblock %}
 
 {% block appbar_buttons %}
-<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Project" aria-describedby="tooltip-export-project" onclick="exportProjectClicked()">
+<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Project" aria-describedby="tooltip-export-project" onclick="exportThisProjectClicked()">
     <div class="mdc-icon-button__ripple"></div>
     file_download
 </button>
@@ -20,14 +19,12 @@
 {% endblock %}
 
 {% block content %}
-<div id="controls">
-    <label for="images_selection">Select Image:</label>
-    <select name="images_selection" id="images_selection" size="15"></select>
+<div class="mdc-elevation--z4" id="images-selection-container" style="width: 200px; margin-bottom: 50px; position: absolute; z-index: 1000; background-color: white;">
+  <ul id="images-selection-list" class="mdc-deprecated-list mdc-deprecated-list--dense" role="listbox"></ul>
 </div>
 
 <div class="btn-group" id="drawing-actions">
   <button id='btn-draw-auxline' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-draw-auxline">
-    <!--<div class="mdc-icon-button__ripple"></div>-->
     <span class="mdc-icon-button__focus-ring"></span>
     remove
   </button>
@@ -120,18 +117,24 @@
 {% block script %}
 <script>
   // TODO:
-  // - get rid of jquery
   // - display project info (name, number of images, number of annotated images, last edited, created, description, etc.)
   // - style button group and image selection according to material ui guidelines
   // - add buttons for prev/next image
   // - add link and tooltip to export button
   // - add buttons to return to project list and project details
 
-  $(document).ready(function() {
-    const API_URL = {{ api_url|tojson }};
-    const project_id = {{ project_id|tojson }};
+  const project_id = {{ project_id|tojson }};
 
+  const imagesSelectionList = new mdc.list.MDCList(document.getElementById('images-selection-list'));
+  imagesSelectionList.singleSelection = true;
+
+  entrypoint(() => {
+      editor(project_id);
+  });
+
+  function editor(project_id) {
     var selected_image = {"id": null, "name": null};
+    var selected_image_has_changes = false;
     var existing_anotations = [];
     var img_width, img_height;
     var marker_mode = "auxline"
@@ -154,6 +157,28 @@
       return filename.split('.').slice(0, -1).join('.')
     }
 
+    function addImageToImagesList(image) {
+        const html_list_item = `
+          <li id="images-selection-list-${image.id}" data-image-id="${image.id}" data-image-name="${image.name}" class="mdc-deprecated-list-item" role="option">
+            <span class="mdc-deprecated-list-item__ripple"></span>
+            <span class="mdc-deprecated-list-item__text">${splitext(image.name).slice(0, 8)}</span>
+            <span class="mdc-deprecated-list-item__meta">
+              <i class="material-icons menu-icon" style="color:green; visibility: hidden;">check</i>
+            </span>
+          </li>`;
+        document.getElementById('images-selection-list').appendChild(htmlToElements(html_list_item));
+    }
+
+    function setImageAnnotationStatus(image_id, annotated) {
+      const listElement = document.getElementById(`images-selection-list-${image_id}`);
+      var icon = listElement.querySelector('.menu-icon');
+      if (annotated) {        
+        icon.style.visibility = "visible";
+      } else {
+        icon.style.visibility = "hidden";
+      }
+    }
+
     // determine which image is already annotated and color selection box background
     function getAnnotationIds() {      
       var getAnnotationIdsReq = new XMLHttpRequest();
@@ -162,6 +187,7 @@
         getImages();
       });
       getAnnotationIdsReq.open("GET", `${API_URL}/annotation_ids/`);
+      getAnnotationIdsReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
       getAnnotationIdsReq.send();
     }
     getAnnotationIds();
@@ -171,40 +197,34 @@
       var getImagesReq = new XMLHttpRequest();
       getImagesReq.addEventListener("load", function () {
         var response = JSON.parse(this.responseText);
-        var images_selection = document.getElementById("images_selection");
         response.foreach(function(image) {
-          var option = new Option(
-            splitext(image.name).slice(0, 8), 
-            JSON.stringify({
-              "id": image.id, 
-              "name": image.name
-            })
-          );
-          option.id = splitext(image.name);
-          if (existing_anotations.includes(image.id)) {
-            option.style.backgroundColor = "#ebc334";
-          }
-          images_selection.appendChild(option);
+          addImageToImagesList(image);
+          const annotated = existing_anotations.includes(image.id);
+          setImageAnnotationStatus(image.id, annotated);
         });
       });
       getImagesReq.open("GET", `${API_URL}/project/${project_id}/images/`);
+      getImagesReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
       getImagesReq.send();
     }
 
     // saves annotation data to file
     function save() {
+      if (selected_image_has_changes) {
         if (selected_image["name"] != null && (pv_modules.length > 0 || corners.length > 0 ||
             auxlines.length > 0 || auxcurves.length > 0)) {
         //if (selected_image["name"] != null) {    // with thisline simply changing the selection will save annotations
             save_to_json(selected_image["id"]);
-            $("#"+splitext(selected_image["name"])).css("background-color", "#ebc334");
+            setImageAnnotationStatus(selected_image["id"], true);
         }
+        selected_image_has_changes = false;
+      }
     }
 
-    // save before page reload
-    $(window).bind('beforeunload', function(){
+    window.addEventListener('beforeunload', (event) => {
+      event.preventDefault();
       save();
-      console.log("Saved annotation before reload.")
+      console.log("Saved annotation before reload.");
     });
 
     function reset_objects() {
@@ -220,7 +240,11 @@
       }
     };
 
-    $("#images_selection").change(function() {
+    function selected_image_changed() {
+      selected_image_has_changes = true;
+    }
+
+    function images_selection_changed(event) {
       // save annotations of previous image before changing the image
       save();
 
@@ -237,15 +261,25 @@
 
       // when changing image mark the auxline button as active
       remove_active_tag(buttons_drawing);
-      $("#btn-draw-auxline").addClass("btn-active");
+      document.getElementById("btn-draw-auxline").classList.add("btn-active")
 
       var g_element = svg.append("g")
           .attr("id", "g_element");
 
-      selected_image = JSON.parse(document.getElementById("images_selection").value);
-      svg.select("#g_element")
-        .append('image')
-        .attr('href', `${API_URL}/image_file/${selected_image["id"]}`);
+      var image_element = svg.select("#g_element")
+          .append('image');
+
+      // set image
+      const selectedListIdx = imagesSelectionList.selectedIndex;
+      selected_image = {
+        id: event.target.children[selectedListIdx].dataset.imageId,
+        name: event.target.children[selectedListIdx].dataset.imageName
+      }
+
+      const image_id = selected_image["id"];
+      getImageUrl(image_id).then(imageURL => {
+        image_element.attr('href', imageURL);
+      });      
 
       // image zoom and translation
       var zoom_handler = d3.zoom()
@@ -270,7 +304,9 @@
         var initial_transform = d3.zoomIdentity.translate(img_offset_x, img_offset_y);
         svg.call(zoom_handler.transform, initial_transform);
       }
-      img.src = `${API_URL}/image_file/${selected_image["id"]}`;
+      getImageUrl(image_id).then(imageURL => {
+        img.src = imageURL;
+      });
 
       // add lines connecting the center cursor with the nearest four corners
       for (var i = 0; i < 4; i++) {
@@ -329,9 +365,11 @@
             }
         });
         getAnnotationReq.open("GET", `${API_URL}/annotation/${selected_image["id"]}`);
+        getAnnotationReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
         getAnnotationReq.send();
       }
-    });
+    }
+    document.getElementById('images-selection-list').addEventListener("MDCList:selectionChange", images_selection_changed);
 
     svg = d3.select('svg');
 
@@ -478,6 +516,7 @@
           .style("fill-opacity", 0)
           .style("stroke", null);
         compute_intersections(prev_intersections);
+        selected_image_changed();
         draw();
         console.log("Computed new corners as intersections of auxiliary lines.");
       } else if (btn.id == 'btn-mark-module-partially-visible') {
@@ -495,6 +534,7 @@
       if (marker_mode == "corner") {
         corners.push({x: img_pos_x, y: img_pos_y, id: uuidv4()});
         console.log("Placed a new corner marker at (", img_pos_x, ",", img_pos_y, ")");
+        selected_image_changed();
         draw();
       }
       else if (marker_mode == "center") {
@@ -511,7 +551,8 @@
           // store the new pv module
           pv_modules.push({"corners": neighbours, "center": center_point, "id": uuidv4(), "truncated": false});
           console.log("Placed a new grid cell at (", center_point.x, ",", center_point.y, ")");
-          draw();
+          selected_image_changed();
+          draw();          
         }
       }
       else if (marker_mode == "auxline") {
@@ -527,6 +568,7 @@
           console.log("Placed auxiliary line from (", temp_auxline_pts[0].x, ",",
             temp_auxline_pts[0].y, ") to (", temp_auxline_pts[1].x, ",", temp_auxline_pts[1].y, ")");
           temp_auxline_pts = [];
+          selected_image_changed();
           draw();
         }
       }
@@ -536,6 +578,7 @@
           auxcurves.push({points: temp_auxcurve_pts, id: uuidv4()});
           temp_auxcurve_pts = [];
           console.log("Placed auxiliary curve");
+          selected_image_changed();
           draw();
         }
       }
@@ -577,7 +620,7 @@
         for (i in overlays.points) {
           if (overlays.points[i].constructor.name == "Vector2D" || overlays.points[i].constructor.name == "Point2D") {
           intersects.push({x: overlays.points[i].x, y: overlays.points[i].y});
-           }
+          }
         }
         if (typeof intersects !== 'undefined') {
           return remove_duplicates(intersects);
@@ -643,10 +686,10 @@
           del_idx = [];
           for (var i = 0; i < pv_modules.length; i++) {
             for(var j = 0; j < pv_modules[i].corners.length; j++) {
-               if (pv_modules[i].corners[j].id == corners[k].id) {
-                 del_idx.push(i);
-               }
-             }
+              if (pv_modules[i].corners[j].id == corners[k].id) {
+                del_idx.push(i);
+              }
+            }
           }
           for (var i = del_idx.length-1; i >= 0; i--) {
             console.log("Deleting grid cell " + pv_modules[i].id + "(it contained deleted point " + corners[k].id + ")");
@@ -672,6 +715,7 @@
             pv_modules.push({"corners": neighbours_manual_selection, "center": center_point, "id": uuidv4(), "truncated": false});
             console.log("Placed a new grid cell at (", center_point.x, ",", center_point.y, ")");
             neighbours_manual_selection = [];
+            selected_image_changed();
             draw();
           }
         }
@@ -699,6 +743,7 @@
           }
         }
       }
+      selected_image_changed();
       draw();
     }
 
@@ -716,6 +761,7 @@
       }
       // update line endpoint
       d3.select(this).attr("cx", d.cx = d3.event.x).attr("cy", d.cy = d3.event.y);
+      selected_image_changed();
       draw();
     }
 
@@ -748,6 +794,7 @@
       }
       // update line point
       d3.select(this).attr("cx", d3.event.x).attr("cy", d3.event.y);
+      selected_image_changed();
       draw();
     }
 
@@ -774,11 +821,11 @@
         del_idx = [];
         for (var i = 0; i < pv_modules.length; i++) {
           for(var j = 0; j < pv_modules[i].corners.length; j++)
-           {
-             if (pv_modules[i].corners[j].id == element_id) {
-               del_idx.push(i);
-             }
-           }
+          {
+            if (pv_modules[i].corners[j].id == element_id) {
+              del_idx.push(i);
+            }
+          }
         }
         for (var i = del_idx.length-1; i >= 0; i--) {
           console.log("Deleting grid cell " + pv_modules[i].id + "(it contained deleted point " + element_id + ")");
@@ -815,6 +862,7 @@
         } else if (this.classList.contains("auxcurve-erase")) {
           erase_auxcurve(this);
         }
+        selected_image_changed();
         draw();
       }
     };
@@ -829,6 +877,7 @@
             pv_modules[i]["truncated"] = !truncated;
           }
         }
+        selected_image_changed();
         draw();
         save();
       }
@@ -976,32 +1025,30 @@
       var saveAnnotationReq = new XMLHttpRequest();
       saveAnnotationReq.addEventListener("load", function () {
         console.log("Annotations saved.")
+        console.log(this.responseText)
         // TODO: in case of error show error message (flash)
       });
       saveAnnotationReq.open("PUT", `${API_URL}/annotation/${image_id}`, true);
       saveAnnotationReq.setRequestHeader("Content-Type", "application/json");
+      saveAnnotationReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
       saveAnnotationReq.send(JSON.stringify({"data": json_data}));
     }
-  });
-</script>
+  }
 
-<script>
-  const API_URL = {{ api_url|tojson }};
-  const project_id = {{ project_id|tojson }};
-
-  function exportProjectClicked() {
-    window.location.href = `${API_URL}/export/${project_id}`;
+  function exportThisProjectClicked() {
+    exportProjectClicked(project_id);
   }
 
   function setupProjectClicked() {
-        var editProjectRedirectReq = new XMLHttpRequest();
-        editProjectRedirectReq.addEventListener("load", function () {
-            if (this.status == 200) {
-                window.location.href = JSON.parse(this.responseText).url;
-            }  
-        });
-        editProjectRedirectReq.open("GET", "{{ url_for('get_edit_project_url') }}"+"?project_id="+project_id);
-        editProjectRedirectReq.send();
-    }
+    var editProjectRedirectReq = new XMLHttpRequest();
+    editProjectRedirectReq.addEventListener("load", function () {
+        if (this.status == 200) {
+            window.location.href = JSON.parse(this.responseText).url;
+        }  
+    });
+    editProjectRedirectReq.open("GET", "{{ url_for('get_edit_project_url') }}"+"?project_id="+project_id);
+    editProjectRedirectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
+    editProjectRedirectReq.send();
+  }
 </script>
 {% endblock %}

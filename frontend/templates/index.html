@@ -21,11 +21,22 @@
     <header class=" mdc-top-app-bar mdc-top-app-bar--fixed">
       <div class="mdc-top-app-bar__row">
       <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
-          <button class="mdc-icon-button material-icons mdc-top-app-bar__navigation-icon--unbounded" onclick="homeButtonClicked()">grid_view</button>
-          <span class="mdc-top-app-bar__title">Grid Annotation Tool</span>
+          <span class="mdc-top-app-bar__title" onclick="homeButtonClicked()">Grid Annotation Tool</span>
       </section>
       <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
         {% block appbar_buttons %}{% endblock %}
+        <a id="login-button" class="mdc-button mdc-button--icon-leading login-button" onclick="loginButtonClicked()">
+          <span class="mdc-button__ripple"></span>
+          <span class="mdc-button__focus-ring"></span>
+          <i id="login-button-icon" class="material-icons mdc-button__icon" aria-hidden="true">
+              login
+          </i>
+          <span id="login-button-label" class="mdc-button__label">Login</span>
+        </a>
+        <a class="mdc-button login-button" href="{{ url_for('registration') }}">
+          <span class="mdc-button__ripple"></span>
+          <span class="mdc-button__label">Register</span>
+        </a>
       </section>
       </div>
     </header>
@@ -52,7 +63,74 @@
 
   {% block tooltips %}{% endblock %}
 
-  {% block script %}{% endblock %}
+  <!-- Handle Login State -->
+  <script>
+    const API_URL = {{ api_url|tojson }};
+
+    async function entrypoint(entrypointFunc) {
+        const loggedIn = await userIsLoggedIn();
+        if (!loggedIn) {
+            redirectToLogin();
+        }
+        else {
+            entrypointFunc();
+        }
+    }
+
+    async function userIsLoggedIn() {
+        const access_token = localStorage.getItem('access_token');
+        if (!access_token) {
+          return false;
+        }
+
+        // check if access token is not expired yet
+        const url = `${API_URL}/isvalid/${access_token}`
+        let response = await fetch(url);
+
+        if (response.status == 200) {
+            const status = await response.json();
+            return status.isvalid;
+        }
+        else {
+            throw new Error("Failed to determine whether user is logged in");
+        }
+    }
+      
+    function redirectToLogin() {
+      window.location.href = "{{ url_for('login') }}";
+    }
+
+    async function loginButtonClicked() {
+      const loggedIn = await userIsLoggedIn();
+      if (loggedIn) {
+        logout();
+      } else {
+        redirectToLogin();
+      }
+    }
+
+    setLoginButton();
+
+    async function setLoginButton() {
+      const login_button_label = document.getElementById("login-button-label");
+      const login_button_icon = document.getElementById("login-button-icon");
+      const loggedIn = await userIsLoggedIn();
+      if (loggedIn) {
+        console.log("setting button")
+        login_button_label.innerHTML = "Sign out";
+        login_button_icon.innerHTML = "logout";
+      } else {
+        login_button_label.innerHTML = "Login";
+        login_button_icon.innerHTML = "login";
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('access_token');
+      console.log("Logged out");
+      redirectToLogin();
+    }
+  </script>
 
   <script>
     // UUID creation, taken from: https://stackoverflow.com/a/2117523
@@ -68,8 +146,78 @@
       return template.content;
     }
 
+    function redirectToProjects() {
+        window.location.href = "{{ url_for('projects') }}";
+    }
+
     function homeButtonClicked() {
-      window.location.href = "{{ url_for('projects') }}";
+      redirectToProjects();
+    }
+
+    function parseValidationErrors(textFields, errors) {
+        errors["detail"].forEach((error) => {
+            const fieldname = error.loc[1];
+            console.log(fieldname);
+            textFields[fieldname].helperTextContent = error.msg;
+            textFields[fieldname].valid = false;                
+        });
+    }
+
+    async function exportProjectClicked(project_id) {
+      const url = `${API_URL}/export/${project_id}`;
+      const options = {
+        method: 'GET',
+        headers: new Headers({
+            'Authorization': 'Bearer ' + localStorage.getItem("access_token")
+        })
+      }
+
+      let response = await fetch(url, options);
+
+      if (response.status == 200) {
+        // get filename
+        const header = response.headers.get('content-disposition');
+        const disposition = response.headers.get('Content-Disposition');
+        filename = disposition.split(/;(.+)/)[1].split(/=(.+)/)[1];
+        if (filename.toLowerCase().startsWith("utf-8''")) {
+          filename = decodeURIComponent(filename.replace("utf-8''", ''));
+        } else {
+          filename = filename.replace(/['"]/g, '');
+        }
+        // get data
+        const fileBlob = await response.blob();
+        // download file
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(fileBlob);
+        a.download = filename;
+        document.body.appendChild(a); // append the element to the dom, otherwise it won't work in Firefox
+        a.click();
+        a.remove();
+      }
+      else {
+          throw new Error(`Failed to export project with id ${project_id}`);
+      }
+    }
+
+    async function getImageUrl(image_id) {
+        const url = `${API_URL}/image_file/${image_id}`;
+        const options = {
+            method: 'GET',
+            headers: new Headers({
+                'Authorization': 'Bearer ' + localStorage.getItem("access_token")
+            })
+        }
+
+        let response = await fetch(url, options);
+
+        if (response.status == 200) {
+            const imageBlob = await response.blob();
+            const imageURL = URL.createObjectURL(imageBlob);
+            return imageURL;
+        }
+        else {
+            throw new Error(`Failed to get image with id ${image_id}`);
+        }
     }
   </script>
 
@@ -92,5 +240,7 @@
         return tooltip;
     });
   </script>
+
+  {% block script %}{% endblock %}
 </body>
 </html>
