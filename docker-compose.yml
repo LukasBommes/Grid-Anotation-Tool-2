@@ -1,40 +1,81 @@
 version: "3.8"
 
+# TODO: 
+# - persistent volume for storing images
+# - postgressql database
+
 services:
+
+  db:
+    image: postgres:14.3
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=pv_module_extractor
+      - POSTGRES_DB=pv_module_extractor
+      - POSTGRES_PASSWORD=9XWC97uf4fwCN7kp
+    networks:
+      - grid_anotation_tool
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 7777:8080
+    networks:
+      - grid_anotation_tool
+
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/backend/backend
+      - media:/images
+    working_dir: /backend/
+    depends_on:
+      - db
+    environment:
+       - PORT=8000
+       - PYTHONPATH=/backend
+       - APP_MODULE=backend.main:app
+       - PRE_START_PATH=/backend/prestart.sh
+       - SQLALCHEMY_DATABASE_URL=postgresql://pv_module_extractor:9XWC97uf4fwCN7kp@db/pv_module_extractor
+    command: /start-reload.sh  # production: /start.sh
+    # deploy:
+    #   restart_policy:
+    #     condition: on-failure
+    networks:
+      - grid_anotation_tool
 
   frontend:
     build: .
     ports:
       - "9999:9999"
     volumes:
-      - ./frontend:/app
-    #working_dir: /app
-    command: gunicorn frontend.main:app --workers=2 --worker-class uvicorn.workers.UvicornWorker
-    #depends_on:
-    #  - db
-    #environment:
-    #  - DATABASE_URL=postgresql://pv_module_extractor:9XWC97uf4fwCN7kp@db/pv_module_extractor
+      - ./frontend:/frontend/frontend
+    working_dir: /frontend/
+    depends_on:
+      - db
+      - backend
+    environment:
+       - PORT=9999
+       - PYTHONPATH=/frontend
+       - APP_MODULE=frontend.main:app
+       - PRE_START_PATH=/frontend/prestart.sh
+    command: /start-reload.sh  # production: /start.sh
     #deploy:
     #  restart_policy:
     #    condition: on-failure
     networks:
       - grid_anotation_tool
 
-  # backend:
-  #   build: .
-  #   ports:
-  #     - "8000:8000"
-  #   volumes:
-  #     - ./backend:/app
-  #   #depends_on:
-  #   #  - db
-  #   #environment:
-  #   #  - DATABASE_URL=postgresql://pv_module_extractor:9XWC97uf4fwCN7kp@db/pv_module_extractor
-  #   deploy:
-  #     restart_policy:
-  #       condition: on-failure
-  #   networks:
-  #     - grid_anotation_tool
+volumes:
+  # postgres DB data
+  pgdata: 
+  # uplaoded images
+  media:
 
 networks:
   grid_anotation_tool:
