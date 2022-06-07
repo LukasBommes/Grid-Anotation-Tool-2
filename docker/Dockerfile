@@ -11,6 +11,9 @@ COPY ./gunicorn_conf.py /gunicorn_conf.py
 COPY ./start-reload.sh /start-reload.sh
 RUN chmod +x /start-reload.sh
 
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # For development use "start-reload.sh" and for deployment use "start.sh"
 #CMD ["/start-reload.sh"]
 CMD ["/start.sh"]
