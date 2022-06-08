@@ -163,6 +163,26 @@
         });
     }
 
+    async function setupProjectClicked(project_id) {
+        const url = "{{ url_for('get_edit_project_url') }}"+"?project_id="+project_id;
+        const options = {
+            method: 'GET',
+            headers: new Headers({
+                'Authorization': 'Bearer ' + localStorage.getItem("access_token")
+            })
+        }
+
+        let response = await fetch(url, options);
+
+        if (response.status == 200) {
+            const data = await response.json();
+            window.location.href = data.url;
+        }
+        else {
+            throw new Error(`Failed to get url for setting up project with id ${project_id}`);
+        }
+    }
+
     async function exportProjectClicked(project_id) {
       const url = `${API_URL}/export/${project_id}`;
       const options = {

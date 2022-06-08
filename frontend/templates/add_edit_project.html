@@ -133,30 +133,36 @@
         getProjectDataAndPopulateFields(project_id);
     });
 
+    async function getProject(project_id) {
+        const url = `${API_URL}/project/${project_id}`;
+        const options = {
+            method: 'GET',
+            headers: new Headers({
+                'Authorization': 'Bearer ' + localStorage.getItem("access_token")
+            })
+        }
+
+        let response = await fetch(url, options);
+
+        if (response.status == 200) {
+            const data = await response.json();
+            var neededKeys = ['name', 'description', 'images'];
+            if (neededKeys.every(key => Object.keys(data).includes(key))) {
+                setName(data.name);
+                setDescription(data.description);
+                setImagesList(data.images);
+            }
+        }
+        else {
+            throw new Error(`Failed to get data for project with id ${project_id}`);
+        }
+    }
+
     function getProjectDataAndPopulateFields(project_id) {
         if (project_id == null) {
             return;
-        } else {
-            var getProjectReq = new XMLHttpRequest();
-            getProjectReq.addEventListener("load", function () {
-                console.log("Project data loaded.")
-                console.log(this.responseText);
-                var response = JSON.parse(this.responseText);
-                var neededKeys = [
-                    'name', 
-                    'description', 
-                    'images'
-                ];
-                if (neededKeys.every(key => Object.keys(response).includes(key))) {
-                    setName(response.name);
-                    setDescription(response.description);
-                    setImagesList(response.images);
-                }
-            });
-            getProjectReq.open("GET", `${API_URL}/project/${project_id}`);
-            getProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
-            getProjectReq.send();
         }
+        getProject(project_id);        
     }
 
     function setName(name) {
@@ -210,22 +216,27 @@
         });
     }
 
-    // API request for images creation
-    function createImages(project_id, images_data) {
+    async function createImages(project_id, images_data) {
         if (images_data.has("files")) {
-            var createImagesReq = new XMLHttpRequest();
-            createImagesReq.addEventListener("load", function () {
-                if (this.status == 201) {
-                    deleteImages();  // delete images marked for deletion
-                } else {
-                    console.log(project_save_error_msg); 
-                    snackbar.labelText = project_save_error_msg;    
-                    snackbar.open();
-                }
-            });
-            createImagesReq.open("POST", `${API_URL}/project/${project_id}/images/`, true);
-            createImagesReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
-            createImagesReq.send(images_data);
+            const url = `${API_URL}/project/${project_id}/images/`;
+            const options = {
+                method: 'POST',
+                headers: new Headers({
+                    'Authorization': 'Bearer ' + localStorage.getItem("access_token"),
+                }),
+                body: images_data,
+            }
+
+            let response = await fetch(url, options);
+
+            if (response.status == 201) {
+                deleteImages();  // delete images marked for deletion
+            } else {
+                console.log(project_save_error_msg); 
+                snackbar.labelText = project_save_error_msg;    
+                snackbar.open();
+                throw new Error(`Failed to create images`);
+            }
         } else {
             deleteImages();
         }
@@ -267,41 +278,57 @@
         }
     }
 
-    // API request for project creation
-    function createProject(project_data, images_data, listener) {
-        var createProjectReq = new XMLHttpRequest();
-        createProjectReq.addEventListener("load", listener.bind(null, images_data, null));
-        createProjectReq.open("POST", `${API_URL}/projects/`, true);
-        createProjectReq.setRequestHeader("Content-Type", "application/json");
-        createProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
-        createProjectReq.send(JSON.stringify(project_data));
-    }
+    async function createProject(project_data, images_data) {
+        const url = `${API_URL}/projects/`;
+        const options = {
+            method: 'POST',
+            headers: new Headers({
+                'Authorization': 'Bearer ' + localStorage.getItem("access_token"),
+                'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify(project_data),
+        }
 
-    function updateProject(project_id, project_data, images_data, listener) {
-        var updateProjectReq = new XMLHttpRequest();
-        updateProjectReq.addEventListener("load", listener.bind(null, images_data, project_id));
-        updateProjectReq.open("PUT", `${API_URL}/project/${project_id}`, true);
-        updateProjectReq.setRequestHeader("Content-Type", "application/json");
-        updateProjectReq.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem("access_token"));
-        updateProjectReq.send(JSON.stringify(project_data));
-    }
+        let response = await fetch(url, options);
 
-    function saveProjectListener(images_data, project_id, event) {
-        if ((event.target.status == 200) || (event.target.status == 201)) {            
-            const response = JSON.parse(event.target.responseText);
-            if (project_id == null) {
-                const project_id_new = response.id;
-                createImages(project_id_new, images_data);
-            } else {
-                createImages(project_id, images_data);
-            }            
-        } else if (event.target.status == 422) {
-            const errors = JSON.parse(event.target.responseText);
+        if (response.status == 201) {
+            const data = await response.json();
+            const project_id_new = data.id;
+            createImages(project_id_new, images_data);
+        } else if (response.status == 422) {
+            const errors = await response.json();
             parseValidationErrors(textFields, errors);
         } else {
             console.log(project_save_error_msg); 
             snackbar.labelText = project_save_error_msg;    
             snackbar.open();
+            throw new Error(`Failed to create project`);
+        }
+    }
+
+    async function updateProject(project_id, project_data, images_data) {
+        const url = `${API_URL}/project/${project_id}`;
+        const options = {
+            method: 'PUT',
+            headers: new Headers({
+                'Authorization': 'Bearer ' + localStorage.getItem("access_token"),
+                'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify(project_data),
+        }
+
+        let response = await fetch(url, options);
+
+        if (response.status == 200) {
+            createImages(project_id, images_data);
+        } else if (response.status == 422) {
+            const errors = await response.json();
+            parseValidationErrors(textFields, errors);
+        } else {
+            console.log(project_save_error_msg); 
+            snackbar.labelText = project_save_error_msg;    
+            snackbar.open();
+            throw new Error(`Failed to update project with id ${project_id}`);
         }
     }
 
@@ -324,9 +351,9 @@
         }
 
         if (mode == "add") {
-            createProject(project_data, images_data, saveProjectListener);
+            createProject(project_data, images_data);
         } else if (mode == "edit") {
-            updateProject(project_id, project_data, images_data, saveProjectListener);
+            updateProject(project_id, project_data, images_data);
         }
         else {
             console.log("Unknown mode. Must be either 'add' or 'edit'.")
