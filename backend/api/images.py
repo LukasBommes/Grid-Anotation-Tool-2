@@ -1,9 +1,10 @@
 import os
+import json
 import uuid
 from typing import List
 
 import filetype
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Response
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import event, and_
@@ -35,18 +36,21 @@ def create_router(settings):
 
     @router.get("/project/{project_id}/images/", response_model=List[schemas.Image], status_code=200)
     def get_images(
+        response: Response,
         project_id: int, 
         skip: int = 0, 
         limit: int = 100, 
+        orderby: str = "name",
         db: Session = Depends(get_db),
         current_user: schemas.User = Depends(get_current_active_user)
     ):
+        response.headers["X-Total-Count"] = json.dumps(db.query(models.Project).count())
         images = db.query(models.Image).filter(
             and_(
                 models.Image.username == current_user.username,
                 models.Image.project_id == project_id
             )
-        ).offset(skip).limit(limit).all()
+        ).order_by(getattr(models.Image, orderby)).offset(skip).limit(limit).all()
         return images
 
 

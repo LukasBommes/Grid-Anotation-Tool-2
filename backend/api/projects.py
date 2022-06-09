@@ -10,7 +10,7 @@ import re
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, BackgroundTasks, Response
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
@@ -62,14 +62,17 @@ def create_router(settings):
 
     @router.get("/projects/", response_model=List[schemas.Project], status_code=200)
     def get_projects(
+        response: Response,
         skip: int = 0, 
-        limit: int = 100, 
+        limit: int = 100,
+        orderby: str = "name",
         db: Session = Depends(get_db), 
         current_user: schemas.User = Depends(get_current_active_user)
     ):
+        response.headers["X-Total-Count"] = json.dumps(db.query(models.Project).count())
         db_projects = db.query(models.Project).filter(
             models.Project.username == current_user.username
-        ).offset(skip).limit(limit).all()
+        ).order_by(getattr(models.Project, orderby)).offset(skip).limit(limit).all()
         return db_projects
 
 

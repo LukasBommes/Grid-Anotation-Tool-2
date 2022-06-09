@@ -88,6 +88,7 @@
     const project_delete_error_msg = "Failed to delete project.";
     const project_imported_success_msg = "Project imported.";
     const project_imported_error_msg = "Failed to import project";
+    const projects_per_page = 10;
 
     const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
     const delete_project_dialog = new mdc.dialog.MDCDialog(document.querySelector('#delete-project-dialog'));
@@ -97,12 +98,13 @@
         loadProjects();
     });
 
-    function loadProjects() {
+    async function loadProjects() {
         // clear project list
         document.getElementById("projects-list").innerHTML = '';
         document.getElementById("projects-list-menu-list").innerHTML = '';
         // get projects
-        getAnnotationIds();
+        const existing_anotations = await getAnnotationIds();
+        getProjects(existing_anotations, 0, projects_per_page);
     }
 
     async function getAnnotationIds() {   
@@ -118,9 +120,10 @@
 
         if (response.status == 200) {
             const existing_anotations = await response.json();
-            getProjects(existing_anotations);
-        }
-        else {
+            return existing_anotations;
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
             throw new Error(`Failed to get annotation ids`);
         }
     }
@@ -193,8 +196,8 @@
         return num_annotated;
     }
 
-    async function getProjects(existing_anotations) {
-        const url = `${API_URL}/projects/`;
+    async function getProjects(existing_anotations, skip=0, limit=10) {
+        const url = `${API_URL}/projects/?skip=${skip}&limit=${limit}`;
         const options = {
             method: 'GET',
             headers: new Headers({
@@ -205,14 +208,16 @@
         let response = await fetch(url, options);
 
         if (response.status == 200) {
-            const data = await response.json();
+            const total = response.headers.get('X-Total-Count');
+            const data = await response.json();           
             data.forEach((project) => {
                 const num_images = project.images.length;
                 const num_annotated = countAnnotatedImages(project.images, existing_anotations);
                 addProjectToProjectList(project, num_images, num_annotated);
             });
-        }
-        else {
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
             throw new Error(`Failed to get projects`);
         }
     }
@@ -233,8 +238,9 @@
             console.log(project_delete_success_msg);
             snackbar.labelText = project_delete_success_msg;
             snackbar.open();
-        }
-        else {
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
             console.log(project_delete_error_msg);
             snackbar.labelText = project_delete_error_msg;
             snackbar.open();
@@ -264,8 +270,9 @@
         if (response.status == 200) {
             const data = await response.json();
             window.location.href = data.url;
-        }
-        else {
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
             throw new Error(`Failed to get url for annotating project with id ${project_id}`);
         }
     }
@@ -298,8 +305,9 @@
             console.log(project_imported_success_msg);
             snackbar.labelText = project_imported_success_msg;
             snackbar.open();
-        }
-        else {
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
             console.log(project_imported_error_msg);
             snackbar.labelText = project_imported_error_msg;    
             snackbar.open();

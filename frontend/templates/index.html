@@ -90,8 +90,7 @@
         if (response.status == 200) {
             const status = await response.json();
             return status.isvalid;
-        }
-        else {
+        } else {
             throw new Error("Failed to determine whether user is logged in");
         }
     }
@@ -177,8 +176,9 @@
         if (response.status == 200) {
             const data = await response.json();
             window.location.href = data.url;
-        }
-        else {
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
             throw new Error(`Failed to get url for setting up project with id ${project_id}`);
         }
     }
@@ -196,7 +196,6 @@
 
       if (response.status == 200) {
         // get filename
-        const header = response.headers.get('content-disposition');
         const disposition = response.headers.get('Content-Disposition');
         filename = disposition.split(/;(.+)/)[1].split(/=(.+)/)[1];
         if (filename.toLowerCase().startsWith("utf-8''")) {
@@ -213,9 +212,10 @@
         document.body.appendChild(a); // append the element to the dom, otherwise it won't work in Firefox
         a.click();
         a.remove();
-      }
-      else {
-          throw new Error(`Failed to export project with id ${project_id}`);
+      } else if (response.status == 401) {
+        redirectToLogin();
+      } else {
+        throw new Error(`Failed to export project with id ${project_id}`);
       }
     }
 
@@ -234,8 +234,9 @@
             const imageBlob = await response.blob();
             const imageURL = URL.createObjectURL(imageBlob);
             return imageURL;
-        }
-        else {
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
             throw new Error(`Failed to get image with id ${image_id}`);
         }
     }

@@ -152,6 +152,8 @@
                 setDescription(data.description);
                 setImagesList(data.images);
             }
+        } else if (response.status == 401) {
+            redirectToLogin();
         }
         else {
             throw new Error(`Failed to get data for project with id ${project_id}`);
@@ -231,6 +233,8 @@
 
             if (response.status == 201) {
                 deleteImages();  // delete images marked for deletion
+            } else if (response.status == 401) {
+                redirectToLogin();
             } else {
                 console.log(project_save_error_msg); 
                 snackbar.labelText = project_save_error_msg;    
@@ -257,17 +261,21 @@
             ))
             .then(function(responses) {
                 responses.map(response => console.log(response));
-                if (responses.some(e => e.status != 200)) {
-                    // at least one request failed
-                    console.log(project_save_error_msg); 
-                    snackbar.labelText = project_save_error_msg;    
-                    snackbar.open();
-                } else {
+                if(responses.every(e => e.status == 200)) {
                     // all requests okay
                     console.log(project_save_success_msg); 
                     snackbar.labelText = project_save_success_msg;
                     snackbar.open();
                     redirectHome();
+                } else if(responses.some(e => e.status == 401)) {
+                    // at least one request failed with 401 unauthorized access
+                    redirectToLogin();
+                } else {
+                    // at least one request failed
+                    console.log(project_save_error_msg); 
+                    snackbar.labelText = project_save_error_msg;    
+                    snackbar.open();
+                    throw new Error(`Failed to delete images`); 
                 }
             });
         } else {
@@ -298,6 +306,8 @@
         } else if (response.status == 422) {
             const errors = await response.json();
             parseValidationErrors(textFields, errors);
+        } else if (response.status == 401) {
+            redirectToLogin();
         } else {
             console.log(project_save_error_msg); 
             snackbar.labelText = project_save_error_msg;    
@@ -324,6 +334,8 @@
         } else if (response.status == 422) {
             const errors = await response.json();
             parseValidationErrors(textFields, errors);
+        } else if (response.status == 401) {
+            redirectToLogin();
         } else {
             console.log(project_save_error_msg); 
             snackbar.labelText = project_save_error_msg;    

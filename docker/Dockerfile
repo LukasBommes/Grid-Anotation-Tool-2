@@ -15,5 +15,4 @@ COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # For development use "start-reload.sh" and for deployment use "start.sh"
-#CMD ["/start-reload.sh"]
 CMD ["/start.sh"]

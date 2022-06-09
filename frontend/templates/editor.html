@@ -195,8 +195,9 @@
         if (response.status == 200) {
             existing_anotations = await response.json();
             getImages();
-        }
-        else {
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
             throw new Error(`Failed to get annotation ids`);
         }
     }
@@ -221,8 +222,9 @@
             const annotated = existing_anotations.includes(image.id);
             setImageAnnotationStatus(image.id, annotated);
           });
-      }
-      else {
+      } else if (response.status == 401) {
+          redirectToLogin();
+      } else {
           throw new Error(`Failed to get images`);
       }
     }
@@ -287,8 +289,9 @@
                 draw();
             }
           }
-      }
-      else {
+      } else if (response.status == 401) {
+          redirectToLogin();
+      } else {
           throw new Error(`Failed to get annotation for image with id ${image_id}`);
       }
     }
@@ -1064,6 +1067,8 @@
         console.log(annotation_saved_success_msg);
         snackbar.labelText = annotation_saved_success_msg;
         snackbar.open();
+      } else if (response.status == 401) {
+        redirectToLogin();
       } else {
         console.log(annotation_saved_error_msg);
         snackbar.labelText = annotation_saved_error_msg;
