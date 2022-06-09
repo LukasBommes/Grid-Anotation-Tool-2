@@ -166,13 +166,13 @@
     }
 
     function setName(name) {
-        document.getElementById('text-field-name-input').value = name;
+        textFields["name"].value = name;
         document.getElementById('text-field-name').classList.add("mdc-text-field--label-floating");
         document.getElementById('text-field-name-label').classList.add("mdc-floating-label--float-above");
     }
 
     function setDescription(description) {
-        document.getElementById('text-field-description-input').value = description;
+        textFields["description"].value = description;
         if (description.length) {
             document.getElementById('text-field-description').classList.add("mdc-text-field--label-floating");
             document.getElementById('text-field-description-label').classList.add("mdc-floating-label--float-above");
