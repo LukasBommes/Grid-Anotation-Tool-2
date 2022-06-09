@@ -45,3 +45,9 @@ input[type="file"] {
 .menu-icon {
     padding-left: 10px;
 }
+
+#orderby-menu-container {
+    display: inline;
+    float: right;
+    margin-right: 20px;
+}

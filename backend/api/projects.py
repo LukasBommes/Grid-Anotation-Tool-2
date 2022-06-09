@@ -66,13 +66,15 @@ def create_router(settings):
         skip: int = 0, 
         limit: int = 100,
         orderby: str = "name",
+        orderdir: str = "asc",
         db: Session = Depends(get_db), 
         current_user: schemas.User = Depends(get_current_active_user)
     ):
         response.headers["X-Total-Count"] = json.dumps(db.query(models.Project).count())
+        ordered_column = getattr(getattr(models.Project, orderby), orderdir)()
         db_projects = db.query(models.Project).filter(
             models.Project.username == current_user.username
-        ).order_by(getattr(models.Project, orderby)).offset(skip).limit(limit).all()
+        ).order_by(ordered_column).offset(skip).limit(limit).all()
         return db_projects
 
 

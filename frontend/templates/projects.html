@@ -33,6 +33,45 @@
                                 </i>
                                 <span class="mdc-button__label">New Project</span>
                             </button>
+
+                            <div id="orderby-menu-container" class="mdc-menu-surface--anchor">
+                                <button class="mdc-button mdc-button--icon-leading" onclick="openOrderByMenuClicked()">
+                                    <span class="mdc-button__ripple"></span>
+                                    <span class="mdc-button__focus-ring"></span>
+                                    <i class="material-icons mdc-button__icon" aria-hidden="true">
+                                        sort
+                                    </i>
+                                    <span class="mdc-button__label">Order By</span>
+                                </button>
+                                <div id="orderby-menu" class="mdc-menu mdc-menu-surface">
+                                    <ul class="mdc-deprecated-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
+                                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="orderBy('name', 'asc')">
+                                            <span class="mdc-deprecated-list-item__ripple"></span>
+                                            <span class="mdc-deprecated-list-item__text">Name (A-Z)</span>
+                                        </li>
+                                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="orderBy('name', 'desc')">
+                                            <span class="mdc-deprecated-list-item__ripple"></span>
+                                            <span class="mdc-deprecated-list-item__text">Name (Z-A)</span>
+                                        </li>
+                                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="orderBy('created', 'asc')">
+                                            <span class="mdc-deprecated-list-item__ripple"></span>
+                                            <span class="mdc-deprecated-list-item__text">Created (Old projects first)</span>
+                                        </li>
+                                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="orderBy('created', 'desc')">
+                                            <span class="mdc-deprecated-list-item__ripple"></span>
+                                            <span class="mdc-deprecated-list-item__text">Created (Recent projects first)</span>
+                                        </li>
+                                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="orderBy('edited', 'asc')">
+                                            <span class="mdc-deprecated-list-item__ripple"></span>
+                                            <span class="mdc-deprecated-list-item__text">Last Edited (Old edits first)</span>
+                                        </li>
+                                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="orderBy('edited', 'desc')">
+                                            <span class="mdc-deprecated-list-item__ripple"></span>
+                                            <span class="mdc-deprecated-list-item__text">Last Edited (Recent edits first)</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                              </div>
                         </div>
                     </div>
 
@@ -88,23 +127,26 @@
     const project_delete_error_msg = "Failed to delete project.";
     const project_imported_success_msg = "Project imported.";
     const project_imported_error_msg = "Failed to import project";
-    const projects_per_page = 10;
+    const projects_per_page = 30;
 
-    const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
     const delete_project_dialog = new mdc.dialog.MDCDialog(document.querySelector('#delete-project-dialog'));
     var deleteProjectDialogEventListener;
+
+    const orderby_menu = new mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
 
     entrypoint(() => {
         loadProjects();
     });
 
-    async function loadProjects() {
-        // clear project list
+    function clearProjectsList() {
         document.getElementById("projects-list").innerHTML = '';
         document.getElementById("projects-list-menu-list").innerHTML = '';
-        // get projects
+    }
+
+    async function loadProjects() {        
         const existing_anotations = await getAnnotationIds();
-        getProjects(existing_anotations, 0, projects_per_page);
+        clearProjectsList();
+        getProjects(existing_anotations, 0, projects_per_page, "name", "asc");
     }
 
     async function getAnnotationIds() {   
@@ -196,8 +238,8 @@
         return num_annotated;
     }
 
-    async function getProjects(existing_anotations, skip=0, limit=10) {
-        const url = `${API_URL}/projects/?skip=${skip}&limit=${limit}`;
+    async function getProjects(existing_anotations, skip=0, limit=10, orderby="name", orderdir="asc") {
+        const url = `${API_URL}/projects/?skip=${skip}&limit=${limit}&orderby=${orderby}&orderdir=${orderdir}`;
         const options = {
             method: 'GET',
             headers: new Headers({
@@ -319,6 +361,16 @@
 
     function newProjectButtonClicked() {
         window.location.href = "{{ url_for('add_project') }}";
+    }
+
+    function openOrderByMenuClicked() {
+        orderby_menu.open = !orderby_menu.open;
+    }
+
+    async function orderBy(orderby, orderdir) {
+        const existing_anotations = await getAnnotationIds();
+        clearProjectsList();
+        getProjects(existing_anotations, 0, projects_per_page, orderby, orderdir);
     }
 
     function init_mui_elements() {

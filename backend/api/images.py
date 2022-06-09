@@ -41,16 +41,18 @@ def create_router(settings):
         skip: int = 0, 
         limit: int = 100, 
         orderby: str = "name",
+        orderdir: str = "asc",
         db: Session = Depends(get_db),
         current_user: schemas.User = Depends(get_current_active_user)
     ):
         response.headers["X-Total-Count"] = json.dumps(db.query(models.Project).count())
+        ordered_column = getattr(getattr(models.Image, orderby), orderdir)()
         images = db.query(models.Image).filter(
             and_(
                 models.Image.username == current_user.username,
                 models.Image.project_id == project_id
             )
-        ).order_by(getattr(models.Image, orderby)).offset(skip).limit(limit).all()
+        ).order_by(ordered_column).offset(skip).limit(limit).all()
         return images
 
 

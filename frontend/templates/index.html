@@ -67,6 +67,8 @@
   <script>
     const API_URL = {{ api_url|tojson }};
 
+    const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
+
     async function entrypoint(entrypointFunc) {
         const loggedIn = await userIsLoggedIn();
         if (!loggedIn) {
