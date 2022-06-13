@@ -40,7 +40,7 @@ def create_router(settings):
         project_id: int, 
         skip: int = 0, 
         limit: int = 100, 
-        orderby: str = "name",
+        orderby: str = "id",
         orderdir: str = "asc",
         db: Session = Depends(get_db),
         current_user: schemas.User = Depends(get_current_active_user)
