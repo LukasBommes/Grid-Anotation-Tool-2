@@ -26,6 +26,10 @@ body {
   color: white !important;
 }
 
+.mdc-button {
+  white-space: nowrap; /* prevent line break in button text */
+}
+
 .alert-banner {
   padding: 4px 20px;
   margin-bottom: 20px;
