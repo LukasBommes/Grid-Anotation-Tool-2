@@ -51,3 +51,23 @@ input[type="file"] {
     float: right;
     margin-right: 20px;
 }
+
+.pagination-container {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.button-pagination {
+    min-width: 30px;
+    height: 30px;
+}
+
+.button-pagination-active {
+    border-radius: 50%;
+    color: white !important;
+    background-color: #6200ee;
+}
+
+.button-pagination > .mdc-button__ripple {
+    border-radius: 50%;
+}

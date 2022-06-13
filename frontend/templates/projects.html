@@ -78,6 +78,32 @@
                     <!-- Project List -->
                     <ul class="mdc-list" id="projects-list"></ul>
 
+                    <!-- Pagination -->
+                    <div id="pagination-projects" class="pagination-container">
+                        <span class="pagination-first">
+                            <button class="mdc-button button-pagination" onclick="goToPage('first');">
+                                <span class="mdc-button__ripple"></span>
+                                <span class="mdc-button__focus-ring"></span>
+                                <span class="mdc-button__label">&#10092;</span>
+                            </button>
+                            <div class="mdc-button button-pagination pagination-dots-left">
+                                <span class="mdc-button__label">...</span>
+                            </div>
+                        </span>                   
+                        <span class="pagination-main">
+                        </span>                                                
+                        <span class="pagination-last">
+                            <div class="mdc-button button-pagination pagination-dots-right">
+                                <span class="mdc-button__label">...</span>
+                            </div>
+                            <button class="mdc-button button-pagination" onclick="goToPage('last');">
+                                <span class="mdc-button__ripple"></span>
+                                <span class="mdc-button__focus-ring"></span>
+                                <span class="mdc-button__label">&#10093;</span>
+                            </button>
+                        </span>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -117,22 +143,71 @@
 
 {% block script %}
 <script>
-    // TODOS:
-    // - projects pagination
-    // - sorting of projects list
-
     const project_list_menus = {};
 
     const project_delete_success_msg = "Project deleted.";
     const project_delete_error_msg = "Failed to delete project.";
     const project_imported_success_msg = "Project imported.";
     const project_imported_error_msg = "Failed to import project";
-    const projects_per_page = 30;
+
+    // pagination and ordering
+    var total_num_projects = 0;
+    var projects_per_page = 3;
+    var projects_orderby = "name";
+    var projects_orderdir = "asc";
 
     const delete_project_dialog = new mdc.dialog.MDCDialog(document.querySelector('#delete-project-dialog'));
     var deleteProjectDialogEventListener;
 
     const orderby_menu = new mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
+
+    function makePagination() {
+        // compute number of pages needed
+        var num_pages = Math.ceil(total_num_projects / projects_per_page);
+        console.log("Pagniation num pages: "+num_pages);
+
+        // assemble pagination html
+        if (num_pages > 1) {
+            const pagination = document.getElementById("pagination-projects").querySelector(".pagination-main");
+            pagination.innerHTML = '';
+            for (var page_num = 1; page_num <= num_pages; page_num++) {
+                const html = `
+                    <button class="mdc-button button-pagination" onclick=goToPage(${page_num});>
+                        <span class="mdc-button__ripple"></span>
+                        <span class="mdc-button__focus-ring"></span>
+                        <span class="mdc-button__label">${page_num}</span>
+                    </button>`;
+                    pagination.appendChild(htmlToElements(html));
+            }
+        } else {
+            document.getElementById("pagination-projects").style.display = "none";
+        }
+    }
+
+    function updatePagination(pagne_num) {
+        // TODO: update visibility of elements...
+    }
+
+    async function goToPage(page_num) {
+        // page_num is 1-based
+        var skip;
+        if (page_num == "first") {
+            skip = 0;
+        } else if (page_num == "last") {
+            /*var num_projects_last_page = total_num_projects % projects_per_page;
+            console.log("num_projects_last_page: "+num_projects_last_page);
+            console.log("total_num_projects"+total_num_projects)
+            var skip = total_num_projects - num_projects_last_page - projects_per_page;*/
+            var num_pages = Math.ceil(total_num_projects / projects_per_page);
+            skip = (num_pages-1) * projects_per_page;
+        } else {
+            skip = (page_num-1) * projects_per_page;
+        }
+        console.log("skip: "+skip)
+        const existing_anotations = await getAnnotationIds();
+        clearProjectsList();
+        getProjects(existing_anotations, skip, projects_per_page, projects_orderby, projects_orderdir);
+    }
 
     entrypoint(() => {
         loadProjects();
@@ -146,7 +221,8 @@
     async function loadProjects() {        
         const existing_anotations = await getAnnotationIds();
         clearProjectsList();
-        getProjects(existing_anotations, 0, projects_per_page, "name", "asc");
+        await getProjects(existing_anotations, 0, projects_per_page, "name", "asc");
+        makePagination();
     }
 
     async function getAnnotationIds() {   
@@ -250,8 +326,8 @@
         let response = await fetch(url, options);
 
         if (response.status == 200) {
-            const total = response.headers.get('X-Total-Count');
-            const data = await response.json();           
+            total_num_projects = response.headers.get('X-Total-Count');
+            const data = await response.json();
             data.forEach((project) => {
                 const num_images = project.images.length;
                 const num_annotated = countAnnotatedImages(project.images, existing_anotations);
@@ -370,7 +446,10 @@
     async function orderBy(orderby, orderdir) {
         const existing_anotations = await getAnnotationIds();
         clearProjectsList();
-        getProjects(existing_anotations, 0, projects_per_page, orderby, orderdir);
+        projects_orderby = orderby;
+        projects_orderdir = orderdir;
+        await getProjects(existing_anotations, 0, projects_per_page, projects_orderby, projects_orderdir);
+        goToPage("first");
     }
 
     function init_mui_elements() {
