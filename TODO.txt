@@ -1,40 +1,24 @@
-IMPORTANT Authentication:
-- fix problem with authentication on images embedded with "href" in editor and project setup
-- figure out how to return Boolean from userIsLoggedIn() function event listener
-- implement registration and user details forms
-- test everything thoroughly
-- reset token validity to 30 minutes (currently set to 1 minute)
+- implement user detail page (for editing user details and deleting user)
 
-
-Deployment:
-- get docker compose to work
-- docker secrets for JWT secret
-- use postgresSQL or mysql instead of sqlite
 
 
 
 - allow empty annotations:
    - allow erasing all annotation objects
    - in that case store an empty dict as annotation
-   - 
    
-- register / login feature
-- proper database
-- production-ready deployment with Docker compose and production webservers
+
+
    
 - UI features:
    Editor:
    - display project name & details
-   - improve image selection list
    
    Project Setup:
-   - display creation & last edited dates
    - display which images are annotated
    - tooltips for delete button
    - allow for deleting all images (single button)
    
    Projects List:
-   - pagination
-   - Filtering by creation & last edited dates
+   - Filtering by name & creation & last edited dates
    - Show annotation status with symbol (checmark, hourglas)
-   - 

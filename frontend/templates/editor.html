@@ -401,18 +401,20 @@
     svg = d3.select('svg');
 
     // parse translation and scale from the image transform
-    function getTranslationScale(transform) {
-      var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      g.setAttributeNS(null, "transform", transform);
-      var matrix = g.transform.baseVal.consolidate().matrix;
-      return [matrix.e, matrix.f, matrix.d]; // transform_x, transform_y, scale
+    function getTranslationScale(g_element) {
+      var matrix = g_element.transform.baseVal.consolidate().matrix;
+      img_offset_x = matrix.e;
+      img_offset_y = matrix.f;
+      img_scale = matrix.d;
+      return [img_offset_x, img_offset_y, img_scale];
     }
 
     // get the current position of the cursor in the image coordinate system
     svg.on("mousemove", function () {
         var mouse = d3.mouse(this);  // acces mouse position via mouse[0], mouse[1]
         if (!d3.select("#g_element").empty()) {
-          var [img_offset_x, img_offset_y, img_scale] = getTranslationScale(d3.select("#g_element").style("transform"));
+          var [img_offset_x, img_offset_y, img_scale] = getTranslationScale(g_element);
+
           // transform mouse cooridnates to image coordinates
           img_pos_x = (mouse[0] - img_offset_x) / img_scale
           img_pos_y = (mouse[1] - img_offset_y) / img_scale
