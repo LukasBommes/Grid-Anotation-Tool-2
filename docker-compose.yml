@@ -44,8 +44,6 @@ services:
 
   backend:
     build: docker
-    #ports:
-    #  - "8000:8000"
     expose:
       - "8000"
     volumes:
@@ -63,7 +61,8 @@ services:
       - BACKEND_ACCESS_TOKEN_SECRET_KEY_FILE=/run/secrets/backend_access_token_secret_key
       - BACKEND_DATABASE_URL_FILE=/run/secrets/backend_database_url
       - BACKEND_MEDIA_ROOT=/images
-      - BACKEND_CORS_ORIGINS=["http://localhost:9999", "http://127.0.0.1:9999", "http://localhost", "http://127.0.0.1", "http://172.18.1.59", "http://annotationtool.localhost"]
+      - BACKEND_CORS_ORIGINS=["http://localhost:9999", "http://127.0.0.1:9999", "http://localhost", "http://127.0.0.1", "http://172.18.1.59"]
+      - DOCS_URL_PREFIX=/api
     secrets:
       - backend_access_token_secret_key
       - backend_database_url
@@ -73,7 +72,7 @@ services:
       - grid_anotation_tool
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`api.annotationtool.localhost`)"
+      - "traefik.http.routers.backend.rule=Host(`172.18.1.59`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=web"
 
   frontend:
@@ -91,14 +90,14 @@ services:
       - PYTHONPATH=/frontend
       - APP_MODULE=frontend.main:app
       - PRE_START_PATH=/frontend/prestart.sh
-      - API_URL=http://api.annotationtool.localhost/api
+      - API_URL=http://172.18.1.59/api
     command: /start-reload.sh  # production: /start.sh
     restart: always
     networks:
       - grid_anotation_tool
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`annotationtool.localhost`)"
+      - "traefik.http.routers.frontend.rule=Host(`172.18.1.59`)"
       - "traefik.http.routers.frontend.entrypoints=web"
 
 secrets:

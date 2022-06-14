@@ -10,7 +10,7 @@ models.Base.metadata.create_all(bind=engine)
 
 
 def create_app(settings):
-    app = FastAPI()
+    app = FastAPI(docs_url=f"{settings.DOCS_URL_PREFIX}/docs", openapi_url=f"{settings.DOCS_URL_PREFIX}/openapi.json")
     app.state.config = settings
 
     app.add_middleware(
