@@ -1,14 +1,16 @@
-- implement user detail page (for editing user details and deleting user)
+code quality:
+- use webpack to bundle sources for web
 
-
+features:
+- user detail page (for editing user details and deleting user)
+- share projects with other users
+- forgot password function
+- email validation
 
 
 - allow empty annotations:
    - allow erasing all annotation objects
    - in that case store an empty dict as annotation
-   
-
-
    
 - UI features:
    Editor:
