@@ -162,19 +162,6 @@
 
     const orderby_menu = new mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
 
-    getAnnotationIds = async function () {
-        var response = await apiService.getAnnotationIds();
-
-        if (response.status == 200) {
-            const existing_anotations = await response.json();
-            return existing_anotations;
-        } else if (response.status == 401) {
-            redirectToLogin();
-        } else {
-            throw new Error(`Failed to get annotation ids`);
-        }
-    }
-
     getProjects = async function(existing_anotations, skip=0, limit=10, orderby="name", orderdir="asc") {
         var response = await apiService.getProjects(skip, limit, orderby, orderdir);
 

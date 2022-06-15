@@ -320,14 +320,29 @@
           return fetchService.makeFetchRequest('POST', url, null, importProjectData, true);
       }
 
+      getImages = function(projectId) {
+          let url = `${apiUrl}/project/${projectId}/images/`;
+          return fetchService.makeFetchRequest('GET', url, null, null, true);
+      }
+
       createImages = function(projectId, imagesData) {
           let url = `${apiUrl}/project/${projectId}/images/`;
           return fetchService.makeFetchRequest('POST', url, null, imagesData, true);
       }
 
-      deleteImage = function(ImageId) {
-          let url = `${apiUrl}/image/${ImageId}`;
+      deleteImage = function(imageId) {
+          let url = `${apiUrl}/image/${imageId}`;
           return fetchService.makeFetchRequest('DELETE', url, null, null, true);
+      }
+
+      getAnnotation = function(imageId) {
+          let url = `${apiUrl}/annotation/${imageId}`;
+          return fetchService.makeFetchRequest('GET', url, null, null, true);
+      }
+
+      updateAnnotation = function(imageId, annotationData) {
+          let url = `${apiUrl}/annotation/${imageId}`;
+          return fetchService.makeFetchRequest('PUT', url, annotationData, null, true);
       }
 
       // public API
@@ -339,11 +354,28 @@
           updateProject: updateProject,
           getAnnotationIds: getAnnotationIds,
           importProject: importProject,
+          getImages: getImages,
           createImages: createImages,
-          deleteImage: deleteImage
+          deleteImage: deleteImage,
+          getAnnotation: getAnnotation,
+          updateAnnotation: updateAnnotation
       }
 
     }();
+
+
+    getAnnotationIds = async function () {
+        var response = await apiService.getAnnotationIds();
+
+        if (response.status == 200) {
+            const existing_anotations = await response.json();
+            return existing_anotations;
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
+            throw new Error(`Failed to get annotation ids`);
+        }
+    }
   </script>
 
   <!-- MUI Web Components -->

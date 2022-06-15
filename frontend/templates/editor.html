@@ -131,7 +131,7 @@
       editor(project_id);
   });
 
-  function editor(project_id) {
+  async function editor(project_id) {
     var selected_image = {"id": null, "name": null};
     var selected_image_has_changes = false;
     var existing_anotations = [];
@@ -150,6 +150,63 @@
     var selected_pv_module = "";
     var corners = [];
     var pv_modules = [];
+
+    getImages = async function (project_id) {
+        var response = await apiService.getImages(project_id);
+
+        if (response.status == 200) {
+            const data = await response.json();
+            data.foreach(function(image) {
+              addImageToImagesList(image);
+              const annotated = existing_anotations.includes(image.id);
+              setImageAnnotationStatus(image.id, annotated);
+            });
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
+            throw new Error(`Failed to get images`);
+        }
+    }
+
+    getAnnotation = async function (image_id) {
+        var response = await apiService.getAnnotation(image_id);
+
+        if (response.status == 200) {
+            const data = await response.json();
+            if ('data' in data) {
+              var neededKeys = ['corners', 'grid_cells', 'auxlines', 'auxcurves', 'prev_intersections'];
+              if (neededKeys.every(key => Object.keys(data.data).includes(key))) {
+                  corners = data.data.corners;
+                  pv_modules = data.data.grid_cells;
+                  auxlines = data.data.auxlines;
+                  auxcurves = data.data.auxcurves;
+                  prev_intersections = data.data.prev_intersections;
+                  draw();
+              }
+            }
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
+            throw new Error(`Failed to get annotation for image with id ${image_id}`);
+        }
+    }
+
+    updateAnnotation = async function(image_id, annotation_data) {
+        var response = await apiService.updateAnnotation(image_id, annotation_data);
+
+        if (response.status == 200) {
+          console.log(annotation_saved_success_msg);
+          snackbar.labelText = annotation_saved_success_msg;
+          snackbar.open();
+        } else if (response.status == 401) {
+          redirectToLogin();
+        } else {
+          console.log(annotation_saved_error_msg);
+          snackbar.labelText = annotation_saved_error_msg;
+          snackbar.open();
+          throw new Error(`Failed to save annotation`);
+        }
+    }
 
     // helper to remove extension from filename
     function splitext(filename) {
@@ -178,54 +235,8 @@
       }
     }
 
-    // determine which image is already annotated and color selection box background
-    async function getAnnotationIds() {  
-      const url = `${API_URL}/annotation_ids/`;
-        const options = {
-            method: 'GET',
-            headers: new Headers({
-                'Authorization': 'Bearer ' + localStorage.getItem("access_token")
-            })
-        }
-
-        let response = await fetch(url, options);
-
-        if (response.status == 200) {
-            existing_anotations = await response.json();
-            getImages();
-        } else if (response.status == 401) {
-            redirectToLogin();
-        } else {
-            throw new Error(`Failed to get annotation ids`);
-        }
-    }
-    getAnnotationIds();
-
-    // load existing images and annotations and update list
-    async function getImages() {
-      const url = `${API_URL}/project/${project_id}/images/`;
-      const options = {
-          method: 'GET',
-          headers: new Headers({
-              'Authorization': 'Bearer ' + localStorage.getItem("access_token")
-          })
-      }
-
-      let response = await fetch(url, options);
-
-      if (response.status == 200) {
-          const data = await response.json();
-          data.foreach(function(image) {
-            addImageToImagesList(image);
-            const annotated = existing_anotations.includes(image.id);
-            setImageAnnotationStatus(image.id, annotated);
-          });
-      } else if (response.status == 401) {
-          redirectToLogin();
-      } else {
-          throw new Error(`Failed to get images`);
-      }
-    }
+    existing_anotations = await getAnnotationIds();
+    getImages(project_id);
 
     // saves annotation data to file
     function save() {
@@ -261,37 +272,6 @@
 
     function selected_image_changed() {
       selected_image_has_changes = true;
-    }
-
-    async function getAnnotation(image_id) {
-      const url = `${API_URL}/annotation/${image_id}`;
-      const options = {
-          method: 'GET',
-          headers: new Headers({
-              'Authorization': 'Bearer ' + localStorage.getItem("access_token")
-          })
-      }
-
-      let response = await fetch(url, options);
-
-      if (response.status == 200) {
-          const data = await response.json();
-          if ('data' in data) {
-            var neededKeys = ['corners', 'grid_cells', 'auxlines', 'auxcurves', 'prev_intersections'];
-            if (neededKeys.every(key => Object.keys(data.data).includes(key))) {
-                corners = data.data.corners;
-                pv_modules = data.data.grid_cells;
-                auxlines = data.data.auxlines;
-                auxcurves = data.data.auxcurves;
-                prev_intersections = data.data.prev_intersections;
-                draw();
-            }
-          }
-      } else if (response.status == 401) {
-          redirectToLogin();
-      } else {
-          throw new Error(`Failed to get annotation for image with id ${image_id}`);
-      }
     }
 
     function images_selection_changed(event) {
@@ -1042,39 +1022,18 @@
 
     // save annotations to JSON when changing the image
     async function save_to_json(image_id) {
-      var json_data = {
-          "image": selected_image["name"],
-          "grid_cells": pv_modules,
-          "corners": corners,
-          "auxlines": auxlines,
-          "auxcurves": auxcurves,
-          "prev_intersections": prev_intersections
+      var annotation_data = {
+          "data": {
+            "image": selected_image["name"],
+            "grid_cells": pv_modules,
+            "corners": corners,
+            "auxlines": auxlines,
+            "auxcurves": auxcurves,
+            "prev_intersections": prev_intersections
+          }
       };
 
-      const url = `${API_URL}/annotation/${image_id}`;
-      const options = {
-          method: 'PUT',
-          headers: new Headers({
-              'Authorization': 'Bearer ' + localStorage.getItem("access_token"),
-              'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({"data": json_data}),
-      }
-
-      let response = await fetch(url, options);
-
-      if (response.status == 200) {
-        console.log(annotation_saved_success_msg);
-        snackbar.labelText = annotation_saved_success_msg;
-        snackbar.open();
-      } else if (response.status == 401) {
-        redirectToLogin();
-      } else {
-        console.log(annotation_saved_error_msg);
-        snackbar.labelText = annotation_saved_error_msg;
-        snackbar.open();
-        throw new Error(`Failed to save annotation`);
-      }
+      await updateAnnotation(image_id, annotation_data);
     }
   }
 

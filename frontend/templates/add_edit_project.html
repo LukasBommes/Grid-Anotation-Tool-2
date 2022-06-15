@@ -207,6 +207,39 @@
         }
     }
 
+    deleteImages = async function () {
+        if (image_ids_to_delete.length) {
+            console.log("Deleting: "+image_ids_to_delete);
+            var responses = await Promise.all(image_ids_to_delete.map(async (image_id) => {
+                    return await apiService.deleteImage(image_id);
+                }
+            ));
+
+            if(responses.every(e => e.status == 200)) {
+                // all requests okay
+                console.log(project_save_success_msg); 
+                snackbar.labelText = project_save_success_msg;
+                snackbar.open();
+                redirectHome();
+            } else if(responses.some(e => e.status == 401)) {
+                // at least one request failed with 401 unauthorized access
+                redirectToLogin();
+            } else {
+                // at least one request failed
+                console.log(project_save_error_msg); 
+                snackbar.labelText = project_save_error_msg;    
+                snackbar.open();
+                throw new Error(`Failed to delete images`); 
+            }
+
+        } else {
+            console.log(project_save_success_msg); 
+            snackbar.labelText = project_save_success_msg;
+            snackbar.open();
+            redirectHome();
+        }
+    }
+
     function getProjectDataAndPopulateFields(project_id) {
         if (project_id == null) {
             return;
@@ -264,80 +297,6 @@
             });
         });
     }
-
-    deleteImages = function () {
-        if (image_ids_to_delete.length) {
-            console.log("Deleting: "+image_ids_to_delete);
-            Promise.all(image_ids_to_delete.map(async (image_id) => {
-                    return await apiService.deleteImage(image_id);
-                }
-            ))
-            .then(function(responses) {
-                responses.map(response => console.log(response));
-                if(responses.every(e => e.status == 200)) {
-                    // all requests okay
-                    console.log(project_save_success_msg); 
-                    snackbar.labelText = project_save_success_msg;
-                    snackbar.open();
-                    redirectHome();
-                } else if(responses.some(e => e.status == 401)) {
-                    // at least one request failed with 401 unauthorized access
-                    redirectToLogin();
-                } else {
-                    // at least one request failed
-                    console.log(project_save_error_msg); 
-                    snackbar.labelText = project_save_error_msg;    
-                    snackbar.open();
-                    throw new Error(`Failed to delete images`); 
-                }
-            });
-        } else {
-            console.log(project_save_success_msg); 
-            snackbar.labelText = project_save_success_msg;
-            snackbar.open();
-            redirectHome();
-        }
-    }
-
-    // function deleteImages() {
-    //     if (image_ids_to_delete.length) {
-    //         console.log("Deleting: "+image_ids_to_delete);
-    //         Promise.all(image_ids_to_delete.map(image_id => 
-    //             fetch(`${API_URL}/image/${image_id}`, {
-    //                 method: 'DELETE',
-    //                 headers: new Headers({
-    //                     'Authorization': 'Bearer ' + localStorage.getItem("access_token")
-    //                 }),
-    //             })
-    //             .then(response => { return response })
-    //             .catch(error => console.log(error))
-    //         ))
-    //         .then(function(responses) {
-    //             responses.map(response => console.log(response));
-    //             if(responses.every(e => e.status == 200)) {
-    //                 // all requests okay
-    //                 console.log(project_save_success_msg); 
-    //                 snackbar.labelText = project_save_success_msg;
-    //                 snackbar.open();
-    //                 redirectHome();
-    //             } else if(responses.some(e => e.status == 401)) {
-    //                 // at least one request failed with 401 unauthorized access
-    //                 redirectToLogin();
-    //             } else {
-    //                 // at least one request failed
-    //                 console.log(project_save_error_msg); 
-    //                 snackbar.labelText = project_save_error_msg;    
-    //                 snackbar.open();
-    //                 throw new Error(`Failed to delete images`); 
-    //             }
-    //         });
-    //     } else {
-    //         console.log(project_save_success_msg); 
-    //         snackbar.labelText = project_save_success_msg;
-    //         snackbar.open();
-    //         redirectHome();
-    //     }
-    // }
 
     function redirectHome() {
         window.location.href = "{{ url_for('projects') }}";

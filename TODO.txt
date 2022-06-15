@@ -1,3 +1,6 @@
+bug fixes:
+- prevent same names of projects, otherwise the ordering in sqlalchemy doesnot work if there are projects with same name
+
 code quality:
 - use webpack to bundle sources for web
 
