@@ -1,5 +1,6 @@
 bug fixes:
 - prevent same names of projects, otherwise the ordering in sqlalchemy doesnot work if there are projects with same name
+- X-Total-Count does not respect different users, i.e. returns total project count for all users...
 
 code quality:
 - use webpack to bundle sources for web

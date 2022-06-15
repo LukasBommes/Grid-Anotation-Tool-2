@@ -345,6 +345,11 @@
           return fetchService.makeFetchRequest('PUT', url, annotationData, null, true);
       }
 
+      createUser = function(userData) {
+          let url = `${API_URL}/users/`;
+          return fetchService.makeFetchRequest('POST', url, userData, null, false);
+      }
+
       // public API
       return {
           getProjects: getProjects,
@@ -358,7 +363,8 @@
           createImages: createImages,
           deleteImage: deleteImage,
           getAnnotation: getAnnotation,
-          updateAnnotation: updateAnnotation
+          updateAnnotation: updateAnnotation,
+          createUser: createUser
       }
 
     }();

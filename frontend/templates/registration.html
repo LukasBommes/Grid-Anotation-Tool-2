@@ -115,17 +115,8 @@
         password_repeated: new mdc.textField.MDCTextField(document.querySelector('#text-field-password-repeated')),
     }
 
-    async function createUser(userData) {
-        const url = `${API_URL}/users/`;
-        const options = {
-            method: 'POST',
-            body: JSON.stringify(userData),
-            headers: new Headers({
-                'Content-Type': 'application/json'
-            }),
-        }
-
-        let response = await fetch(url, options);
+    createUser = async function (userData) {
+        var response = await apiService.createUser(userData); 
 
         if (response.status == 201) {
             console.log("Created new user");
@@ -150,9 +141,8 @@
         const password_repeated = document.getElementById('text-field-password-repeated-input').value;
         const fullname = document.getElementById('text-field-fullname-input').value;
         const email = document.getElementById('text-field-email-input').value;
-        console.log("username: "+username+" password: "+password);
 
-        const user_data = {
+        const userData = {
             "username": username,
             "email": email,
             "full_name": fullname,
@@ -161,7 +151,7 @@
             "password_repeated": password_repeated,
         };
 
-        createUser(user_data);
+        createUser(userData);
     }
 </script>
 {% endblock %}
