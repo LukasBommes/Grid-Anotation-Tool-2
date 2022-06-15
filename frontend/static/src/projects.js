@@ -239,7 +239,6 @@ function addProjectToProjectList(project, num_images, num_annotated) {
 
 function countAnnotatedImages(images, existing_anotations) {
     var num_annotated = 0;
-    console.log(existing_anotations);
     for (var i = 0; i < images.length; i++) {
         if (existing_anotations.includes(images[i].id)) {
             num_annotated++;
