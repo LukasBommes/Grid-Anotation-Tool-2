@@ -29,7 +29,7 @@
     document.getElementById("export-project-button").addEventListener('click', exportProjectClicked.bind(null, project_id));
     document.getElementById("setup-project-button").addEventListener('click', setupProjectClicked.bind(null, project_id));
 
-    getImages = async function (project_id) {
+    async function getImages(project_id) {
         var response = await apiService.getImages(project_id);
 
         if (response.status == 200) {
@@ -46,7 +46,7 @@
         }
     }
 
-    getAnnotation = async function (image_id) {
+    async function getAnnotation(image_id) {
         var response = await apiService.getAnnotation(image_id);
 
         if (response.status == 200) {
@@ -69,7 +69,7 @@
         }
     }
 
-    updateAnnotation = async function(image_id, annotation_data) {
+    async function updateAnnotation(image_id, annotation_data) {
         var response = await apiService.updateAnnotation(image_id, annotation_data);
 
         if (response.status == 200) {

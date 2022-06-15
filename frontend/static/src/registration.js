@@ -8,7 +8,7 @@ const textFieldsRegistration = {
 
 document.getElementById("registration-form-submit-button").addEventListener('click', register);
 
-createUser = async function (userData) {
+async function createUser(userData) {
     var response = await apiService.createUser(userData); 
 
     if (response.status == 201) {

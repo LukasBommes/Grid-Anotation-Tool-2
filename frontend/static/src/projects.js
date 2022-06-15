@@ -31,7 +31,7 @@ document.getElementById(`button-pagination-first`).addEventListener('click', goT
 document.getElementById(`button-pagination-last`).addEventListener('click', goToPage.bind(null, "last"));
 
 
-getProjects = async function(existing_anotations, skip=0, limit=10, orderby="name", orderdir="asc") {
+async function getProjects(existing_anotations, skip=0, limit=10, orderby="name", orderdir="asc") {
     var response = await apiService.getProjects(skip, limit, orderby, orderdir);
 
     if (response.status == 200) {
@@ -49,7 +49,7 @@ getProjects = async function(existing_anotations, skip=0, limit=10, orderby="nam
     }
 }
 
-deleteProject = async function (project_id) {
+async function deleteProject(project_id) {
     var response = await apiService.deleteProject(project_id)
 
     if (response.status == 200) {
@@ -67,7 +67,7 @@ deleteProject = async function (project_id) {
     loadProjects();
 }
 
-importProject = async function(importProjectData) {
+async function importProject(importProjectData) {
     var response = await apiService.importProject(importProjectData);
 
     if (response.status == 201) {
@@ -239,6 +239,7 @@ function addProjectToProjectList(project, num_images, num_annotated) {
 
 function countAnnotatedImages(images, existing_anotations) {
     var num_annotated = 0;
+    console.log(existing_anotations);
     for (var i = 0; i < images.length; i++) {
         if (existing_anotations.includes(images[i].id)) {
             num_annotated++;

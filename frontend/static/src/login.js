@@ -10,7 +10,7 @@ function hideAlertBanner() {
     document.getElementById("alert-banner-icon").parentElement.style.display = "none";
 }
 
-loginUser = async function(userData) {
+async function loginUser(userData) {
     var response = await apiService.loginUser(userData);
 
     if (response.status == 200) {

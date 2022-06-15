@@ -1,10 +1,3 @@
-//##############################################################################################
-//
-//  index.html
-//
-//##############################################################################################
-
-
 var fetchService = function() {
 
     makeFetchRequest = function(httpMethod, url, data=null, formData=null, authorization=true) {
@@ -154,7 +147,7 @@ var apiService = function() {
 }();
 
 
-getAnnotationIds = async function () {
+getAnnotationIds = async function() { // async function getAnnotationIds() leads to weird error because it overwrites above definition
     var response = await apiService.getAnnotationIds();
 
     if (response.status == 200) {
@@ -310,7 +303,7 @@ async function exportProjectClicked(project_id) {
     }
 }
 
-getImageUrl = async function(image_id) {
+async function getImageUrl(image_id) {
     var response = await apiService.getImageFile(image_id);
 
     if (response.status == 200) {
