@@ -67,7 +67,7 @@
   <script>
     const API_URL = {{ api_url|tojson }};
 
-    
+
     var fetchService = function() {
 
       makeFetchRequest = function(httpMethod, url, data=null, formData=null, authorization=true) {
@@ -244,7 +244,13 @@
         }
     }
 
-    isValid = async function(access_token) {
+    async function userIsLoggedIn() {
+        const access_token = localStorage.getItem('access_token');
+        if (!access_token) {
+          return false;
+        }
+
+        // check if access token is not expired yet
         var response = await apiService.isValid(access_token);
         // check if access token is not expired yet
         if (response.status == 200) {
@@ -253,16 +259,6 @@
         } else {
             throw new Error("Failed to determine whether user is logged in");
         }
-    }
-
-    async function userIsLoggedIn() {
-        const access_token = localStorage.getItem('access_token');
-        if (!access_token) {
-          return false;
-        }
-
-        // check if access token is not expired yet
-        return await isValid(access_token);
     }
       
     function redirectToLogin() {
