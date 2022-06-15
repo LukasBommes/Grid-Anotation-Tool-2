@@ -140,3 +140,23 @@
     <div class="mdc-dialog__scrim"></div>
   </div>
 {% endblock %}
+
+{% block script %}
+<script type="module">
+    import {
+        loadProjects,
+        newProjectButtonClicked, 
+        openOrderByMenuClicked, 
+        orderBy, 
+        goToPage, 
+        importProjectFilesInputChanged, 
+        deleteProjectClicked,
+        annotateProjectClicked,
+        openMenu
+    } from "../static/src/projects.js";
+
+    entrypoint(() => {
+        loadProjects();
+    });
+</script>
+{% endblock %}
