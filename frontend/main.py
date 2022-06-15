@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from .config import settings
 
 
-app = FastAPI()
+app = FastAPI() 
 app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 templates = Jinja2Templates(directory="frontend/templates")
 

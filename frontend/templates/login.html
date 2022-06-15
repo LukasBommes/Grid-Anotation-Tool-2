@@ -16,7 +16,7 @@
                     <!-- Error Banner -->
                     <div class="alert-banner" style="display: none;">
                         <h2 class="mdc-typography--body1 alert-banner-text"></h2>
-                        <i class="material-icons mdc-button__icon" aria-hidden="true" onclick='this.parentElement.style.display = "none";'>
+                        <i class="material-icons mdc-button__icon" id="alert-banner-icon" aria-hidden="true">
                             clear
                         </i>
                     </div>
@@ -53,7 +53,7 @@
                         </div>
                     </div>
                     <div class="form-row">
-                        <button class="mdc-button mdc-button--raised mdc-button--icon-leading" onclick="login()">
+                        <button class="mdc-button mdc-button--raised mdc-button--icon-leading" id="login-form-submit-button">
                             <span class="mdc-button__ripple"></span>
                             <span class="mdc-button__focus-ring"></span>
                             <i class="material-icons mdc-button__icon" aria-hidden="true">
@@ -71,46 +71,7 @@
 {% endblock %}
 
 {% block script %}
-<script>
-const textFieldsLogin = {
-    username: new mdc.textField.MDCTextField(document.querySelector('#text-field-username')),
-    password: new mdc.textField.MDCTextField(document.querySelector('#text-field-password'))
-}
-
-loginUser = async function(userData) {
-    var response = await apiService.loginUser(userData);
-
-    if (response.status == 200) {
-        var data = await response.json();
-        localStorage.setItem('access_token', data["access_token"]);
-        console.log("Set JWT acces token: "+data["access_token"]);
-        console.log("User logged in");
-        redirectToProjects();
-    } else if(response.status == 401) {
-        // wrong credentials
-        const error = await response.json();
-        const alertBannerText = document.querySelector(".alert-banner-text");
-        alertBannerText.innerHTML = error["detail"];
-        const alertBanner = document.querySelector(".alert-banner");
-        alertBanner.style.display = "flex";
-    } else if(response.status == 422) {
-        // field validation errors
-        const errors = await response.json();
-        parseValidationErrors(textFieldsLogin, errors);            
-    } else {
-        throw new Error("Unknown error when logging in.")
-    }
-}
-
-function login() {
-    const username = document.getElementById('text-field-username-input').value;
-    const password = document.getElementById('text-field-password-input').value;
-
-    const userData = new FormData();
-    userData.append("username", username);
-    userData.append("password", password);
-
-    loginUser(userData);
-}
+<script type="module">
+    import { } from "../static/src/login.js";
 </script>
 {% endblock %}
