@@ -24,8 +24,8 @@
                                 </i>
                                 <span class="mdc-button__label">Import Project</span>
                             </label>
-                            <input type="file" id="import-project-input" accept="zip,application/octet-stream,application/zip,application/x-zip,application/x-zip-compressed" onchange="importProjectFilesInputChanged(event)">
-                            <button class="mdc-button mdc-button--icon-leading" onclick="newProjectButtonClicked()">
+                            <input type="file" id="import-project-input" accept="zip,application/octet-stream,application/zip,application/x-zip,application/x-zip-compressed">
+                            <button class="mdc-button mdc-button--icon-leading" id="new-project-button">
                                 <span class="mdc-button__ripple"></span>
                                 <span class="mdc-button__focus-ring"></span>
                                 <i class="material-icons mdc-button__icon" aria-hidden="true">
@@ -35,7 +35,7 @@
                             </button>
 
                             <div id="orderby-menu-container" class="mdc-menu-surface--anchor">
-                                <button class="mdc-button mdc-button--icon-leading" onclick="openOrderByMenuClicked()">
+                                <button class="mdc-button mdc-button--icon-leading" id="orderby-menu-open-button">
                                     <span class="mdc-button__ripple"></span>
                                     <span class="mdc-button__focus-ring"></span>
                                     <i class="material-icons mdc-button__icon" aria-hidden="true">
@@ -45,27 +45,27 @@
                                 </button>
                                 <div id="orderby-menu" class="mdc-menu mdc-menu-surface">
                                     <ul class="mdc-deprecated-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
-                                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="orderBy('name', 'asc')">
+                                        <li class="mdc-deprecated-list-item" role="menuitem" id="orderby-menu-name-asc">
                                             <span class="mdc-deprecated-list-item__ripple"></span>
                                             <span class="mdc-deprecated-list-item__text">Name (A-Z)</span>
                                         </li>
-                                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="orderBy('name', 'desc')">
+                                        <li class="mdc-deprecated-list-item" role="menuitem" id="orderby-menu-name-desc">
                                             <span class="mdc-deprecated-list-item__ripple"></span>
                                             <span class="mdc-deprecated-list-item__text">Name (Z-A)</span>
                                         </li>
-                                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="orderBy('created', 'asc')">
+                                        <li class="mdc-deprecated-list-item" role="menuitem" id="orderby-menu-created-asc">
                                             <span class="mdc-deprecated-list-item__ripple"></span>
                                             <span class="mdc-deprecated-list-item__text">Created (Old projects first)</span>
                                         </li>
-                                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="orderBy('created', 'desc')">
+                                        <li class="mdc-deprecated-list-item" role="menuitem" id="orderby-menu-created-desc">
                                             <span class="mdc-deprecated-list-item__ripple"></span>
                                             <span class="mdc-deprecated-list-item__text">Created (Recent projects first)</span>
                                         </li>
-                                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="orderBy('edited', 'asc')">
+                                        <li class="mdc-deprecated-list-item" role="menuitem" id="orderby-menu-edited-asc">
                                             <span class="mdc-deprecated-list-item__ripple"></span>
                                             <span class="mdc-deprecated-list-item__text">Last Edited (Old edits first)</span>
                                         </li>
-                                        <li class="mdc-deprecated-list-item" role="menuitem" onclick="orderBy('edited', 'desc')">
+                                        <li class="mdc-deprecated-list-item" role="menuitem" id="orderby-menu-edited-desc">
                                             <span class="mdc-deprecated-list-item__ripple"></span>
                                             <span class="mdc-deprecated-list-item__text">Last Edited (Recent edits first)</span>
                                         </li>
@@ -81,7 +81,7 @@
                     <!-- Pagination -->
                     <div id="pagination-projects" class="pagination-container">
                         <span class="pagination-first">
-                            <button class="mdc-button button-pagination" onclick="goToPage('first');">
+                            <button class="mdc-button button-pagination" id="button-pagination-first">
                                 <span class="mdc-button__ripple"></span>
                                 <span class="mdc-button__focus-ring"></span>
                                 <span class="mdc-button__label">&#10092;</span>
@@ -96,7 +96,7 @@
                             <div class="mdc-button button-pagination pagination-dots-right">
                                 <span class="mdc-button__label">...</span>
                             </div>
-                            <button class="mdc-button button-pagination" onclick="goToPage('last');">
+                            <button class="mdc-button button-pagination" id="button-pagination-last">
                                 <span class="mdc-button__ripple"></span>
                                 <span class="mdc-button__focus-ring"></span>
                                 <span class="mdc-button__label">&#10093;</span>
@@ -143,20 +143,10 @@
 
 {% block script %}
 <script type="module">
-    import {
-        loadProjects,
-        newProjectButtonClicked, 
-        openOrderByMenuClicked, 
-        orderBy, 
-        goToPage, 
-        importProjectFilesInputChanged, 
-        deleteProjectClicked,
-        annotateProjectClicked,
-        openMenu
-    } from "../static/src/projects.js";
+    import { loadProjects } from "../static/src/projects.js";
 
     entrypoint(() => {
-        loadProjects();
+        loadProjects();        
     });
 </script>
 {% endblock %}

@@ -17,6 +17,20 @@ var deleteProjectDialogEventListener;
 
 const orderby_menu = new mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
 
+
+document.getElementById("import-project-input").addEventListener('change', importProjectFilesInputChanged);
+document.getElementById("orderby-menu-open-button").addEventListener('click', openOrderByMenuClicked);
+document.getElementById("new-project-button").addEventListener('click', newProjectButtonClicked);
+document.getElementById(`orderby-menu-name-asc`).addEventListener('click', orderBy.bind(null, 'name', 'asc'));
+document.getElementById(`orderby-menu-name-desc`).addEventListener('click', orderBy.bind(null, 'name', 'desc'));
+document.getElementById(`orderby-menu-created-asc`).addEventListener('click', orderBy.bind(null, 'created', 'asc'));
+document.getElementById(`orderby-menu-created-desc`).addEventListener('click', orderBy.bind(null, 'created', 'desc'));
+document.getElementById(`orderby-menu-edited-asc`).addEventListener('click', orderBy.bind(null, 'edited', 'asc'));
+document.getElementById(`orderby-menu-edited-desc`).addEventListener('click', orderBy.bind(null, 'edited', 'desc'));
+document.getElementById(`button-pagination-first`).addEventListener('click', goToPage.bind(null, "first"));
+document.getElementById(`button-pagination-last`).addEventListener('click', goToPage.bind(null, "last"));
+
+
 getProjects = async function(existing_anotations, skip=0, limit=10, orderby="name", orderdir="asc") {
     var response = await apiService.getProjects(skip, limit, orderby, orderdir);
 
@@ -77,12 +91,13 @@ function makePagination() {
         pagination.innerHTML = '';
         for (var page_num = 1; page_num <= num_pages; page_num++) {
             const html = `
-                <button id="button-pagination-${page_num}" class="mdc-button button-pagination" onclick=goToPage(${page_num}); style="display: none;">
+                <button id="button-pagination-${page_num}" class="mdc-button button-pagination" style="display: none;">
                     <span class="mdc-button__ripple"></span>
                     <span class="mdc-button__focus-ring"></span>
                     <span class="mdc-button__label">${page_num}</span>
                 </button>`;
-                pagination.appendChild(htmlToElements(html));
+            pagination.appendChild(htmlToElements(html));
+            document.getElementById(`button-pagination-${page_num}`).addEventListener('click', goToPage.bind(null, page_num));
         }
     } else {
         document.getElementById("pagination-projects").style.display = "none";
@@ -161,15 +176,15 @@ function addProjectToProjectList(project, num_images, num_annotated) {
     const created = new Date(project.created).toLocaleString("en-GB"); 
     const edited = new Date(project.edited).toLocaleString("en-GB");
     const html_list_item = `
-        <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image" onclick="annotateProjectClicked(${project.id})">
+        <li class="mdc-list-item mdc-list-item--with-two-lines mdc-list-item--with-trailing-image" id="projects-list-item-${project.id}">
             <span class="mdc-list-item__ripple"></span>
             <span class="mdc-list-item__start"></span>
-            <span class="mdc-list-item__content" id="projects-list-item-${project.id}">
+            <span class="mdc-list-item__content">
                 <span class="mdc-list-item__primary-text">${project.name}</span>
                 <span class="mdc-list-item__secondary-text">${num_annotated} / ${num_images} images annotated | created ${created} | modified ${edited}</span>
             </span>
             <span class="mdc-list-item__end list-item-end-custom">
-                <button class="mdc-icon-button material-icons" onclick="openMenu(${project.id}, event)">
+                <button class="mdc-icon-button material-icons" id="projects-list-item-menu-button-${project.id}">
                     <div class="mdc-icon-button__ripple"></div>
                     <span class="mdc-icon-button__focus-ring"></span>
                     more_vert
@@ -179,28 +194,28 @@ function addProjectToProjectList(project, num_images, num_annotated) {
     const html_menu_item = `
         <div class="mdc-menu mdc-menu-surface" id="projects-list-menu-${project.id}">
             <ul class="mdc-deprecated-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
-                <li class="mdc-deprecated-list-item" role="menuitem" onclick="annotateProjectClicked(${project.id})">
+                <li class="mdc-deprecated-list-item" role="menuitem" id="projects-list-menu-annotate-${project.id}">
                     <span class="mdc-deprecated-list-item__ripple"></span>
                     <span class="mdc-deprecated-list-item__text">Annotate</span>
                     <span class="mdc-deprecated-list-item__meta">
                         <i class="material-icons menu-icon">edit</i>
                     </span>
                 </li>
-                <li class="mdc-deprecated-list-item" role="menuitem" onclick="setupProjectClicked(${project.id})">
+                <li class="mdc-deprecated-list-item" role="menuitem" id="projects-list-menu-setup-${project.id}">
                     <span class="mdc-deprecated-list-item__ripple"></span>
                     <span class="mdc-deprecated-list-item__text">Setup</span>
                     <span class="mdc-deprecated-list-item__meta">
                         <i class="material-icons menu-icon">build</i>
                     </span>
                 </li>
-                <li class="mdc-deprecated-list-item" role="menuitem" onclick="exportProjectClicked(${project.id})">
+                <li class="mdc-deprecated-list-item" role="menuitem" id="projects-list-menu-export-${project.id}">
                     <span class="mdc-deprecated-list-item__ripple"></span>
                     <span class="mdc-deprecated-list-item__text">Export</span>
                     <span class="mdc-deprecated-list-item__meta">
                         <i class="material-icons menu-icon">download</i>
                     </span>
                 </li>
-                <li class="mdc-deprecated-list-item" role="menuitem" onclick="deleteProjectClicked(${project.id})">
+                <li class="mdc-deprecated-list-item" role="menuitem" id="projects-list-menu-delete-${project.id}">
                     <span class="mdc-deprecated-list-item__ripple"></span>
                     <span class="mdc-deprecated-list-item__text">Delete</span>
                     <span class="mdc-deprecated-list-item__meta">
@@ -211,6 +226,13 @@ function addProjectToProjectList(project, num_images, num_annotated) {
         </div>`;
     document.getElementById('projects-list').appendChild(htmlToElements(html_list_item));
     document.getElementById('projects-list-menu-list').appendChild(htmlToElements(html_menu_item));
+
+    document.getElementById(`projects-list-item-${project.id}`).addEventListener('click', annotateProjectClicked.bind(null, project.id));
+    document.getElementById(`projects-list-item-menu-button-${project.id}`).addEventListener('click', openMenu.bind(null, project.id));
+    document.getElementById(`projects-list-menu-annotate-${project.id}`).addEventListener('click', annotateProjectClicked.bind(null, project.id));
+    document.getElementById(`projects-list-menu-setup-${project.id}`).addEventListener('click', setupProjectClicked.bind(null, project.id));
+    document.getElementById(`projects-list-menu-export-${project.id}`).addEventListener('click', exportProjectClicked.bind(null, project.id));
+    document.getElementById(`projects-list-menu-delete-${project.id}`).addEventListener('click', deleteProjectClicked.bind(null, project.id));
     project_list_menus[project.id] = new mdc.menu.MDCMenu(document.querySelector(`#projects-list-menu-${project.id}`));
     init_mui_elements();
 }
@@ -294,14 +316,4 @@ function init_mui_elements() {
 }
 
 
-export { 
-    loadProjects,
-    newProjectButtonClicked, 
-    openOrderByMenuClicked, 
-    orderBy, 
-    goToPage, 
-    importProjectFilesInputChanged, 
-    deleteProjectClicked,
-    annotateProjectClicked,
-    openMenu
-};
+export { loadProjects };
