@@ -162,6 +162,72 @@
 
     const orderby_menu = new mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
 
+    getAnnotationIds = async function () {
+        var response = await apiService.getAnnotationIds();
+
+        if (response.status == 200) {
+            const existing_anotations = await response.json();
+            return existing_anotations;
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
+            throw new Error(`Failed to get annotation ids`);
+        }
+    }
+
+    getProjects = async function(existing_anotations, skip=0, limit=10, orderby="name", orderdir="asc") {
+        var response = await apiService.getProjects(skip, limit, orderby, orderdir);
+
+        if (response.status == 200) {
+            total_num_projects = response.headers.get('X-Total-Count');
+            const data = await response.json();
+            data.forEach((project) => {
+                const num_images = project.images.length;
+                const num_annotated = countAnnotatedImages(project.images, existing_anotations);
+                addProjectToProjectList(project, num_images, num_annotated);
+            });
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
+            throw new Error(`Failed to get projects`);
+        }
+    }
+
+    deleteProject = async function (project_id) {
+        var response = await apiService.deleteProject(project_id)
+
+        if (response.status == 200) {
+            console.log(project_delete_success_msg);
+            snackbar.labelText = project_delete_success_msg;
+            snackbar.open();
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
+            console.log(project_delete_error_msg);
+            snackbar.labelText = project_delete_error_msg;
+            snackbar.open();
+            throw new Error(`Failed to delete project with id ${project_id}`);
+        }
+        loadProjects();
+    }
+
+    importProject = async function(importProjectData) {
+        var response = await apiService.importProject(importProjectData);
+
+        if (response.status == 201) {
+            console.log(project_imported_success_msg);
+            snackbar.labelText = project_imported_success_msg;
+            snackbar.open();
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
+            console.log(project_imported_error_msg);
+            snackbar.labelText = project_imported_error_msg;    
+            snackbar.open();
+            throw new Error(`Failed to import project`);
+        }
+    }
+
     function makePagination() {
         var num_pages = Math.ceil(total_num_projects / projects_per_page);
         if (num_pages > 1) {
@@ -253,27 +319,6 @@
         updatePagination(1);
     }
 
-    async function getAnnotationIds() {   
-        const url = `${API_URL}/annotation_ids/`;
-        const options = {
-            method: 'GET',
-            headers: new Headers({
-                'Authorization': 'Bearer ' + localStorage.getItem("access_token")
-            })
-        }
-
-        let response = await fetch(url, options);
-
-        if (response.status == 200) {
-            const existing_anotations = await response.json();
-            return existing_anotations;
-        } else if (response.status == 401) {
-            redirectToLogin();
-        } else {
-            throw new Error(`Failed to get annotation ids`);
-        }
-    }
-
     function addProjectToProjectList(project, num_images, num_annotated) {
         const created = new Date(project.created).toLocaleString("en-GB"); 
         const edited = new Date(project.edited).toLocaleString("en-GB");
@@ -342,59 +387,6 @@
         return num_annotated;
     }
 
-    async function getProjects(existing_anotations, skip=0, limit=10, orderby="name", orderdir="asc") {
-        const url = `${API_URL}/projects/?skip=${skip}&limit=${limit}&orderby=${orderby}&orderdir=${orderdir}`;
-        const options = {
-            method: 'GET',
-            headers: new Headers({
-                'Authorization': 'Bearer ' + localStorage.getItem("access_token")
-            })
-        }
-
-        let response = await fetch(url, options);
-
-        if (response.status == 200) {
-            total_num_projects = response.headers.get('X-Total-Count');
-            const data = await response.json();
-            data.forEach((project) => {
-                const num_images = project.images.length;
-                const num_annotated = countAnnotatedImages(project.images, existing_anotations);
-                addProjectToProjectList(project, num_images, num_annotated);
-            });
-        } else if (response.status == 401) {
-            redirectToLogin();
-        } else {
-            throw new Error(`Failed to get projects`);
-        }
-    }
-
-    async function deleteProject(project_id) {
-        const url = `${API_URL}/project/${project_id}`;
-        const options = {
-            method: 'DELETE',
-            headers: new Headers({
-                'Authorization': 'Bearer ' + localStorage.getItem("access_token"),
-                'Content-Type': 'application/json'
-            })
-        }
-
-        let response = await fetch(url, options);
-
-        if (response.status == 200) {
-            console.log(project_delete_success_msg);
-            snackbar.labelText = project_delete_success_msg;
-            snackbar.open();
-        } else if (response.status == 401) {
-            redirectToLogin();
-        } else {
-            console.log(project_delete_error_msg);
-            snackbar.labelText = project_delete_error_msg;
-            snackbar.open();
-            throw new Error(`Failed to delete project with id ${project_id}`);
-        }
-        loadProjects();
-    }
-
     function openMenu(project_id, event) {
         const menu = project_list_menus[project_id];
         menu.setAbsolutePosition(event.clientX, event.clientY);
@@ -435,30 +427,7 @@
         const file = event.target.files[0];
         var importProjectData = new FormData();
         importProjectData.append("file", file);
-
-        const url = `${API_URL}/import/`;
-        const options = {
-            method: 'POST',
-            headers: new Headers({
-                'Authorization': 'Bearer ' + localStorage.getItem("access_token")
-            }),
-            body: importProjectData,
-        }
-
-        let response = await fetch(url, options);
-
-        if (response.status == 201) {
-            console.log(project_imported_success_msg);
-            snackbar.labelText = project_imported_success_msg;
-            snackbar.open();
-        } else if (response.status == 401) {
-            redirectToLogin();
-        } else {
-            console.log(project_imported_error_msg);
-            snackbar.labelText = project_imported_error_msg;    
-            snackbar.open();
-            throw new Error(`Failed to import project`);
-        }
+        await importProject(importProjectData);
         loadProjects();
         event.target.value = null;  // to trigger onchange event even if the same file was selected
     }

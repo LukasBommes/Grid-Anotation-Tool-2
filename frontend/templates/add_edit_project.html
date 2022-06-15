@@ -131,16 +131,8 @@
         getProjectDataAndPopulateFields(project_id);
     });
 
-    async function getProject(project_id) {
-        const url = `${API_URL}/project/${project_id}`;
-        const options = {
-            method: 'GET',
-            headers: new Headers({
-                'Authorization': 'Bearer ' + localStorage.getItem("access_token")
-            })
-        }
-
-        let response = await fetch(url, options);
+    getProject = async function (project_id) {
+        var response = await apiService.getProject(project_id);
 
         if (response.status == 200) {
             const data = await response.json();
@@ -155,6 +147,63 @@
         }
         else {
             throw new Error(`Failed to get data for project with id ${project_id}`);
+        }
+    }
+
+    createProject = async function (project_data, images_data) {
+        var response = await apiService.createProject(project_data);
+
+        if (response.status == 201) {
+            const data = await response.json();
+            const project_id_new = data.id;
+            createImages(project_id_new, images_data);
+        } else if (response.status == 422) {
+            const errors = await response.json();
+            parseValidationErrors(textFields, errors);
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
+            console.log(project_save_error_msg); 
+            snackbar.labelText = project_save_error_msg;    
+            snackbar.open();
+            throw new Error(`Failed to create project`);
+        }
+    }
+
+    updateProject = async function (project_id, project_data, images_data) {
+        var response = await apiService.updateProject(project_id, project_data);
+
+        if (response.status == 200) {
+            createImages(project_id, images_data);
+        } else if (response.status == 422) {
+            const errors = await response.json();
+            parseValidationErrors(textFields, errors);
+        } else if (response.status == 401) {
+            redirectToLogin();
+        } else {
+            console.log(project_save_error_msg); 
+            snackbar.labelText = project_save_error_msg;    
+            snackbar.open();
+            throw new Error(`Failed to update project with id ${project_id}`);
+        }
+    }
+
+    createImages = async function(project_id, images_data) {
+        if (images_data.has("files")) {
+            var response = await apiService.createImages(project_id, images_data);
+
+            if (response.status == 201) {
+                deleteImages();  // delete images marked for deletion
+            } else if (response.status == 401) {
+                redirectToLogin();
+            } else {
+                console.log(project_save_error_msg); 
+                snackbar.labelText = project_save_error_msg;    
+                snackbar.open();
+                throw new Error(`Failed to create images`);
+            }
+        } else {
+            deleteImages();
         }
     }
 
@@ -216,46 +265,12 @@
         });
     }
 
-    async function createImages(project_id, images_data) {
-        if (images_data.has("files")) {
-            const url = `${API_URL}/project/${project_id}/images/`;
-            const options = {
-                method: 'POST',
-                headers: new Headers({
-                    'Authorization': 'Bearer ' + localStorage.getItem("access_token"),
-                }),
-                body: images_data,
-            }
-
-            let response = await fetch(url, options);
-
-            if (response.status == 201) {
-                deleteImages();  // delete images marked for deletion
-            } else if (response.status == 401) {
-                redirectToLogin();
-            } else {
-                console.log(project_save_error_msg); 
-                snackbar.labelText = project_save_error_msg;    
-                snackbar.open();
-                throw new Error(`Failed to create images`);
-            }
-        } else {
-            deleteImages();
-        }
-    }
-
-    function deleteImages() {
+    deleteImages = function () {
         if (image_ids_to_delete.length) {
             console.log("Deleting: "+image_ids_to_delete);
-            Promise.all(image_ids_to_delete.map(image_id => 
-                fetch(`${API_URL}/image/${image_id}`, {
-                    method: 'DELETE',
-                    headers: new Headers({
-                        'Authorization': 'Bearer ' + localStorage.getItem("access_token")
-                    }),
-                })
-                .then(response => { return response })
-                .catch(error => console.log(error))
+            Promise.all(image_ids_to_delete.map(async (image_id) => {
+                    return await apiService.deleteImage(image_id);
+                }
             ))
             .then(function(responses) {
                 responses.map(response => console.log(response));
@@ -284,63 +299,45 @@
         }
     }
 
-    async function createProject(project_data, images_data) {
-        const url = `${API_URL}/projects/`;
-        const options = {
-            method: 'POST',
-            headers: new Headers({
-                'Authorization': 'Bearer ' + localStorage.getItem("access_token"),
-                'Content-Type': 'application/json'
-            }),
-            body: JSON.stringify(project_data),
-        }
-
-        let response = await fetch(url, options);
-
-        if (response.status == 201) {
-            const data = await response.json();
-            const project_id_new = data.id;
-            createImages(project_id_new, images_data);
-        } else if (response.status == 422) {
-            const errors = await response.json();
-            parseValidationErrors(textFields, errors);
-        } else if (response.status == 401) {
-            redirectToLogin();
-        } else {
-            console.log(project_save_error_msg); 
-            snackbar.labelText = project_save_error_msg;    
-            snackbar.open();
-            throw new Error(`Failed to create project`);
-        }
-    }
-
-    async function updateProject(project_id, project_data, images_data) {
-        const url = `${API_URL}/project/${project_id}`;
-        const options = {
-            method: 'PUT',
-            headers: new Headers({
-                'Authorization': 'Bearer ' + localStorage.getItem("access_token"),
-                'Content-Type': 'application/json'
-            }),
-            body: JSON.stringify(project_data),
-        }
-
-        let response = await fetch(url, options);
-
-        if (response.status == 200) {
-            createImages(project_id, images_data);
-        } else if (response.status == 422) {
-            const errors = await response.json();
-            parseValidationErrors(textFields, errors);
-        } else if (response.status == 401) {
-            redirectToLogin();
-        } else {
-            console.log(project_save_error_msg); 
-            snackbar.labelText = project_save_error_msg;    
-            snackbar.open();
-            throw new Error(`Failed to update project with id ${project_id}`);
-        }
-    }
+    // function deleteImages() {
+    //     if (image_ids_to_delete.length) {
+    //         console.log("Deleting: "+image_ids_to_delete);
+    //         Promise.all(image_ids_to_delete.map(image_id => 
+    //             fetch(`${API_URL}/image/${image_id}`, {
+    //                 method: 'DELETE',
+    //                 headers: new Headers({
+    //                     'Authorization': 'Bearer ' + localStorage.getItem("access_token")
+    //                 }),
+    //             })
+    //             .then(response => { return response })
+    //             .catch(error => console.log(error))
+    //         ))
+    //         .then(function(responses) {
+    //             responses.map(response => console.log(response));
+    //             if(responses.every(e => e.status == 200)) {
+    //                 // all requests okay
+    //                 console.log(project_save_success_msg); 
+    //                 snackbar.labelText = project_save_success_msg;
+    //                 snackbar.open();
+    //                 redirectHome();
+    //             } else if(responses.some(e => e.status == 401)) {
+    //                 // at least one request failed with 401 unauthorized access
+    //                 redirectToLogin();
+    //             } else {
+    //                 // at least one request failed
+    //                 console.log(project_save_error_msg); 
+    //                 snackbar.labelText = project_save_error_msg;    
+    //                 snackbar.open();
+    //                 throw new Error(`Failed to delete images`); 
+    //             }
+    //         });
+    //     } else {
+    //         console.log(project_save_success_msg); 
+    //         snackbar.labelText = project_save_success_msg;
+    //         snackbar.open();
+    //         redirectHome();
+    //     }
+    // }
 
     function redirectHome() {
         window.location.href = "{{ url_for('projects') }}";

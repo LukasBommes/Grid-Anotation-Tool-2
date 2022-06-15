@@ -244,6 +244,108 @@
     }
   </script>
 
+  <script>
+    var fetchService = function() {
+
+      makeFetchRequest = function(httpMethod, url, data=null, formData=null, authorization=true) {
+
+          const options = {
+              method: httpMethod
+          }
+
+          let headers = {};
+          if (authorization) {
+              headers['Authorization'] = 'Bearer ' + localStorage.getItem("access_token")
+          }
+
+          if (data) {
+              options.body = JSON.stringify(data);
+              headers['Content-Type'] = 'application/json';
+          } 
+          else if (formData) {
+              options.body = formData;
+          }
+
+          options.headers = new Headers(headers);
+
+          let responsePromise = fetch(url, options);
+
+          return responsePromise;
+      }
+
+      // public API
+      return {
+          makeFetchRequest: makeFetchRequest
+      }
+
+    }();
+
+
+    var apiService = function() {
+
+      let apiUrl = API_URL;
+
+      getProjects = function(skip, limit, orderby, orderdir) {
+          let url = `${apiUrl}/projects/?skip=${skip}&limit=${limit}&orderby=${orderby}&orderdir=${orderdir}`;
+          return fetchService.makeFetchRequest('GET', url, null, null, true);
+      }
+
+      getProject = function(projectId) {
+          let url = `${API_URL}/project/${projectId}`;
+          return fetchService.makeFetchRequest('GET', url, null, null, true);
+      }
+
+      deleteProject = function(projectId) {
+          let url = `${apiUrl}/project/${projectId}`;
+          return fetchService.makeFetchRequest('DELETE', url, null, null, true);
+      }
+
+      createProject = function(projectData) {
+          let url = `${apiUrl}/projects/`;
+          return fetchService.makeFetchRequest('POST', url, projectData, null, true);
+      }
+
+      updateProject = function(projectId, projectData) {
+          let url = `${apiUrl}/project/${projectId}`
+          return fetchService.makeFetchRequest('PUT', url, projectData, null, true);
+      }
+
+      getAnnotationIds = function() {
+          let url = `${apiUrl}/annotation_ids/`;
+          return fetchService.makeFetchRequest('GET', url, null, null, true);
+      }
+
+      importProject = function(importProjectData) {
+          let url = `${apiUrl}/import/`;
+          return fetchService.makeFetchRequest('POST', url, null, importProjectData, true);
+      }
+
+      createImages = function(projectId, imagesData) {
+          let url = `${apiUrl}/project/${projectId}/images/`;
+          return fetchService.makeFetchRequest('POST', url, null, imagesData, true);
+      }
+
+      deleteImage = function(ImageId) {
+          let url = `${apiUrl}/image/${ImageId}`;
+          return fetchService.makeFetchRequest('DELETE', url, null, null, true);
+      }
+
+      // public API
+      return {
+          getProjects: getProjects,
+          getProject: getProject,
+          deleteProject: deleteProject,
+          createProject: createProject,
+          updateProject: updateProject,
+          getAnnotationIds: getAnnotationIds,
+          importProject: importProject,
+          createImages: createImages,
+          deleteImage: deleteImage
+      }
+
+    }();
+  </script>
+
   <!-- MUI Web Components -->
   <script>    
     const iconButtonRipples = [].map.call(document.querySelectorAll('.app-bar-icon-button'), function(element) {
