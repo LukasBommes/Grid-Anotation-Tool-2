@@ -5,9 +5,6 @@
 //##############################################################################################
 
 
-const API_URL = {{ api_url|tojson }};
-
-
 var fetchService = function() {
 
     makeFetchRequest = function(httpMethod, url, data=null, formData=null, authorization=true) {
@@ -200,7 +197,7 @@ async function userIsLoggedIn() {
 }
     
 function redirectToLogin() {
-    window.location.href = "{{ url_for('login') }}";
+    window.location.href = FRONTEND_URLS.login;
 }
 
 async function loginButtonClicked() {
@@ -248,7 +245,7 @@ function htmlToElements(html) {
 }
 
 function redirectToProjects() {
-    window.location.href = "{{ url_for('projects') }}";
+    window.location.href = FRONTEND_URLS.projects;
 }
 
 function homeButtonClicked() {
@@ -265,24 +262,24 @@ function parseValidationErrors(textFields, errors) {
 }
 
 async function setupProjectClicked(project_id) {
-    const url = "{{ url_for('get_edit_project_url') }}"+"?project_id="+project_id;
-    const options = {
-        method: 'GET',
-        headers: new Headers({
-            'Authorization': 'Bearer ' + localStorage.getItem("access_token")
-        })
-    }
+  const url = FRONTEND_URLS.getEditProjectUrl+"?project_id="+project_id;
+  const options = {
+      method: 'GET',
+      headers: new Headers({
+          'Authorization': 'Bearer ' + localStorage.getItem("access_token")
+      })
+  }
 
-    let response = await fetch(url, options);
+  let response = await fetch(url, options);
 
-    if (response.status == 200) {
-        const data = await response.json();
-        window.location.href = data.url;
-    } else if (response.status == 401) {
-        redirectToLogin();
-    } else {
-        throw new Error(`Failed to get url for setting up project with id ${project_id}`);
-    }
+  if (response.status == 200) {
+      const data = await response.json();
+      window.location.href = data.url;
+  } else if (response.status == 401) {
+      redirectToLogin();
+  } else {
+      throw new Error(`Failed to get url for setting up project with id ${project_id}`);
+  }
 }
 
 async function exportProjectClicked(project_id) {
@@ -359,14 +356,13 @@ const tooltips = [].map.call(document.querySelectorAll('.mdc-tooltip'), function
 // - enable a detail-view of the image
 // - show snackbar when redirecting to projects page
 
-//const API_URL = {{ api_url|tojson }};
-const mode = {{ mode|tojson }};
-const project_id = {{ project_id|tojson }};
+const mode = "edit"; // {{ mode|tojson }};
+const project_id = 1; //{{ project_id|tojson }};
 
 const project_save_success_msg = "Project saved successfully.";
 const project_save_error_msg = "Failed to save project."
 
-const textFields = {
+const textFieldsProject = {
     name: new mdc.textField.MDCTextField(document.querySelector('#text-field-name')),
     description: new mdc.textField.MDCTextField(document.querySelector('#text-field-description'))
 }
@@ -408,7 +404,7 @@ createProject = async function (project_data, images_data) {
         createImages(project_id_new, images_data);
     } else if (response.status == 422) {
         const errors = await response.json();
-        parseValidationErrors(textFields, errors);
+        parseValidationErrors(textFieldsProject, errors);
     } else if (response.status == 401) {
         redirectToLogin();
     } else {
@@ -426,7 +422,7 @@ updateProject = async function (project_id, project_data, images_data) {
         createImages(project_id, images_data);
     } else if (response.status == 422) {
         const errors = await response.json();
-        parseValidationErrors(textFields, errors);
+        parseValidationErrors(textFieldsProject, errors);
     } else if (response.status == 401) {
         redirectToLogin();
     } else {
@@ -497,13 +493,13 @@ function getProjectDataAndPopulateFields(project_id) {
 }
 
 function setName(name) {
-    textFields["name"].value = name;
+    textFieldsProject["name"].value = name;
     document.getElementById('text-field-name').classList.add("mdc-text-field--label-floating");
     document.getElementById('text-field-name-label').classList.add("mdc-floating-label--float-above");
 }
 
 function setDescription(description) {
-    textFields["description"].value = description;
+    textFieldsProject["description"].value = description;
     if (description.length) {
         document.getElementById('text-field-description').classList.add("mdc-text-field--label-floating");
         document.getElementById('text-field-description-label').classList.add("mdc-floating-label--float-above");
@@ -548,7 +544,7 @@ function setImagesList(images) {
 }
 
 function redirectHome() {
-    window.location.href = "{{ url_for('projects') }}";
+    window.location.href = FRONTEND_URLS.projects;
 }
 
 function saveProjectButtonClicked(event) {
@@ -634,7 +630,7 @@ var deleteImageButtonClicked = function(image_id, is_uploaded) {
 // TODO:
   // - display project info (name, number of images, number of annotated images, last edited, created, description, etc.)
 
-  const project_id = {{ project_id|tojson }};
+  //const project_id = 1; //{{ project_id|tojson }};
 
   const annotation_saved_success_msg = "Annotation saved.";
   const annotation_saved_error_msg = "Failed to save annotation.";
@@ -1803,24 +1799,24 @@ function openMenu(project_id, event) {
 }
 
 async function annotateProjectClicked(project_id) {
-    const url = "{{ url_for('get_editor_url') }}"+"?project_id="+project_id;
-    const options = {
-        method: 'GET',
-        headers: new Headers({
-            'Authorization': 'Bearer ' + localStorage.getItem("access_token")
-        })
-    }
+  const url = FRONTEND_URLS.getEditorUrl+"?project_id="+project_id;
+  const options = {
+      method: 'GET',
+      headers: new Headers({
+          'Authorization': 'Bearer ' + localStorage.getItem("access_token")
+      })
+  }
 
-    let response = await fetch(url, options);
+  let response = await fetch(url, options);
 
-    if (response.status == 200) {
-        const data = await response.json();
-        window.location.href = data.url;
-    } else if (response.status == 401) {
-        redirectToLogin();
-    } else {
-        throw new Error(`Failed to get url for annotating project with id ${project_id}`);
-    }
+  if (response.status == 200) {
+      const data = await response.json();
+      window.location.href = data.url;
+  } else if (response.status == 401) {
+      redirectToLogin();
+  } else {
+      throw new Error(`Failed to get url for annotating project with id ${project_id}`);
+  }
 }
 
 function deleteProjectClicked(project_id) {
@@ -1841,7 +1837,7 @@ async function importProjectFilesInputChanged(event) {
 }
 
 function newProjectButtonClicked() {
-    window.location.href = "{{ url_for('add_project') }}";
+    window.location.href = FRONTEND_URLS.addProject;
 }
 
 function openOrderByMenuClicked() {
@@ -1871,7 +1867,7 @@ function init_mui_elements() {
 //##############################################################################################
 
 
-const textFields = {
+const textFieldsLogin = {
     username: new mdc.textField.MDCTextField(document.querySelector('#text-field-username')),
     password: new mdc.textField.MDCTextField(document.querySelector('#text-field-password'))
 }
@@ -1895,7 +1891,7 @@ loginUser = async function(userData) {
     } else if(response.status == 422) {
         // field validation errors
         const errors = await response.json();
-        parseValidationErrors(textFields, errors);            
+        parseValidationErrors(textFieldsLogin, errors);            
     } else {
         throw new Error("Unknown error when logging in.")
     }
@@ -1920,7 +1916,7 @@ function login() {
 //##############################################################################################
 
 
-const textFields = {
+const textFieldsRegistration = {
     username: new mdc.textField.MDCTextField(document.querySelector('#text-field-username')),
     full_name: new mdc.textField.MDCTextField(document.querySelector('#text-field-fullname')),
     email: new mdc.textField.MDCTextField(document.querySelector('#text-field-email')),
@@ -1937,12 +1933,12 @@ createUser = async function (userData) {
     } else if(response.status == 409) {
         // user already exists
         const error = await response.json();
-        textFields.username.helperTextContent = error["detail"];
-        textFields.username.valid = false;
+        textFieldsRegistration.username.helperTextContent = error["detail"];
+        textFieldsRegistration.username.valid = false;
     } else if(response.status == 422) {
         // field validation errors
         const errors = await response.json();
-        parseValidationErrors(textFields, errors);            
+        parseValidationErrors(textFieldsRegistration, errors);            
     } else {
         throw new Error("Unknown error when creating user.")
     }

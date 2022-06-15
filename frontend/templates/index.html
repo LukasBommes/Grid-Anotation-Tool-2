@@ -63,6 +63,18 @@
 
   {% block tooltips %}{% endblock %}
 
-  <script src="{{ url_for('static', path='main.js') }}"></script>
+  <!--<script src="{{ url_for('static', path='main.js') }}"></script>-->
+  <script>
+    const API_URL = {{ api_url|tojson }};
+
+    const FRONTEND_URLS = {
+        projects: "{{ url_for('projects') }}",
+        getEditorUrl: "{{ url_for('get_editor_url') }}",
+        addProject: "{{ url_for('add_project') }}",
+        getEditProjectUrl: "{{ url_for('get_edit_project_url') }}",
+        login: "{{ url_for('login') }}"
+    }
+  </script>
+  <script src="{{ url_for('static', path='src/index.js') }}"></script>
 </body>
 </html>
