@@ -4,3 +4,5 @@ __pycache__
 example_images/
 docker/secrets/
 backend/tests/images/
+frontend/node_modules/
+
