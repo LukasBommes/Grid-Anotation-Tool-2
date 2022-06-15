@@ -78,14 +78,8 @@
         password: new mdc.textField.MDCTextField(document.querySelector('#text-field-password'))
     }
 
-    async function loginUser(userData) {
-        const url = `${API_URL}/token`;
-        const options = {
-            method: 'POST',
-            body: userData,
-        }
-
-        let response = await fetch(url, options);
+    loginUser = async function(userData) {
+        var response = await apiService.loginUser(userData);
 
         if (response.status == 200) {
             var data = await response.json();
@@ -113,11 +107,11 @@
         const username = document.getElementById('text-field-username-input').value;
         const password = document.getElementById('text-field-password-input').value;
 
-        const login_form_data = new FormData();
-        login_form_data.append("username", username);
-        login_form_data.append("password", password);
+        const userData = new FormData();
+        userData.append("username", username);
+        userData.append("password", password);
 
-        loginUser(login_form_data);
+        loginUser(userData);
     }
 </script>
 {% endblock %}
