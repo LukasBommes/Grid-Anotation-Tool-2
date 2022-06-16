@@ -124,7 +124,7 @@
       editor(project_id);
   });
 </script>-->
-<script type="module">
+<script>
   const project_id = {{ project_id|tojson }};
 </script>
 <script src="{{ url_for('static', path='js/editor.bundle.js') }}"></script>

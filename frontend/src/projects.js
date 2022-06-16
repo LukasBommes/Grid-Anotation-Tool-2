@@ -6,7 +6,7 @@ import {
     htmlToElements,
     setupProjectClicked,
     exportProjectClicked
-} from './index.js';
+} from './utils.js';
 
 
 const project_list_menus = {};
@@ -27,6 +27,8 @@ const delete_project_dialog = new mdc.dialog.MDCDialog(document.querySelector('#
 var deleteProjectDialogEventListener;
 
 const orderby_menu = new mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
+
+const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
 
 
 document.getElementById("import-project-input").addEventListener('change', importProjectFilesInputChanged);

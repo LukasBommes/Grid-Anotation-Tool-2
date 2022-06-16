@@ -8,7 +8,7 @@ import {
 	setupProjectClicked,
 	exportProjectClicked,
 	getImageUrl,
-} from './index.js';
+} from './utils.js';
 
 
   // TODO:
@@ -18,6 +18,8 @@ import {
 
   const imagesSelectionList = new mdc.list.MDCList(document.getElementById('images-selection-list'));
   imagesSelectionList.singleSelection = true;  
+
+  const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
 
   entrypoint(() => {
     editor(project_id);

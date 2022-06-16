@@ -6,7 +6,7 @@ import {
 	htmlToElements,
 	parseValidationErrors,
 	getImageUrl,
-} from './index.js';
+} from './utils.js';
 
 // TODOS:
 // - images list pagination
@@ -29,6 +29,8 @@ async function addEditProject(project_id, mode) {
         name: new mdc.textField.MDCTextField(document.querySelector('#text-field-name')),
         description: new mdc.textField.MDCTextField(document.querySelector('#text-field-description'))
     }
+
+    const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
 
     var image_ids_to_upload = [];
     var image_files_to_upload = {};

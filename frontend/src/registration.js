@@ -2,7 +2,7 @@ import { apiService } from './api.js';
 import { 
     redirectToProjects,
     parseValidationErrors
-} from './index.js';
+} from './utils.js';
 
 
 const textFieldsRegistration = {
