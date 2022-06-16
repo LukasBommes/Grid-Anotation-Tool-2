@@ -1,153 +1,7 @@
-var fetchService = function() {
-
-    makeFetchRequest = function(httpMethod, url, data=null, formData=null, authorization=true) {
-
-        const options = {
-            method: httpMethod
-        }
-
-        let headers = {};
-        if (authorization) {
-            headers['Authorization'] = 'Bearer ' + localStorage.getItem("access_token")
-        }
-
-        if (data) {
-            options.body = JSON.stringify(data);
-            headers['Content-Type'] = 'application/json';
-        } 
-        else if (formData) {
-            options.body = formData;
-        }
-
-        options.headers = new Headers(headers);
-
-        let responsePromise = fetch(url, options);
-
-        return responsePromise;
-    }
-
-    // public API
-    return {
-        makeFetchRequest: makeFetchRequest
-    }
-
-}();
+import { apiService } from './api.js';
 
 
-var apiService = function() {
-
-    let apiUrl = API_URL;
-
-    getProjects = function(skip, limit, orderby, orderdir) {
-        let url = `${apiUrl}/projects/?skip=${skip}&limit=${limit}&orderby=${orderby}&orderdir=${orderdir}`;
-        return fetchService.makeFetchRequest('GET', url, null, null, true);
-    }
-
-    getProject = function(projectId) {
-        let url = `${apiUrl}/project/${projectId}`;
-        return fetchService.makeFetchRequest('GET', url, null, null, true);
-    }
-
-    deleteProject = function(projectId) {
-        let url = `${apiUrl}/project/${projectId}`;
-        return fetchService.makeFetchRequest('DELETE', url, null, null, true);
-    }
-
-    createProject = function(projectData) {
-        let url = `${apiUrl}/projects/`;
-        return fetchService.makeFetchRequest('POST', url, projectData, null, true);
-    }
-
-    updateProject = function(projectId, projectData) {
-        let url = `${apiUrl}/project/${projectId}`
-        return fetchService.makeFetchRequest('PUT', url, projectData, null, true);
-    }
-
-    getAnnotationIds = function() {
-        let url = `${apiUrl}/annotation_ids/`;
-        return fetchService.makeFetchRequest('GET', url, null, null, true);
-    }
-
-    exportProject = function(projectId) {
-        let url = `${apiUrl}/export/${projectId}`;
-        return fetchService.makeFetchRequest('GET', url, null, null, true);
-    }
-
-    importProject = function(importProjectData) {
-        let url = `${apiUrl}/import/`;
-        return fetchService.makeFetchRequest('POST', url, null, importProjectData, true);
-    }
-
-    getImages = function(projectId) {
-        let url = `${apiUrl}/project/${projectId}/images/`;
-        return fetchService.makeFetchRequest('GET', url, null, null, true);
-    }
-
-    getImageFile = function(imageId) {
-        let url = `${apiUrl}/image_file/${imageId}`;
-        return fetchService.makeFetchRequest('GET', url, null, null, true);
-    }
-
-    createImages = function(projectId, imagesData) {
-        let url = `${apiUrl}/project/${projectId}/images/`;
-        return fetchService.makeFetchRequest('POST', url, null, imagesData, true);
-    }
-
-    deleteImage = function(imageId) {
-        let url = `${apiUrl}/image/${imageId}`;
-        return fetchService.makeFetchRequest('DELETE', url, null, null, true);
-    }
-
-    getAnnotation = function(imageId) {
-        let url = `${apiUrl}/annotation/${imageId}`;
-        return fetchService.makeFetchRequest('GET', url, null, null, true);
-    }
-
-    updateAnnotation = function(imageId, annotationData) {
-        let url = `${apiUrl}/annotation/${imageId}`;
-        return fetchService.makeFetchRequest('PUT', url, annotationData, null, true);
-    }
-
-    createUser = function(userData) {
-        let url = `${apiUrl}/users/`;
-        return fetchService.makeFetchRequest('POST', url, userData, null, false);
-    }
-
-    loginUser = function(userData) {
-        let url = `${apiUrl}/token`;
-        return fetchService.makeFetchRequest('POST', url, null, userData, false);
-    }
-
-    isValid = function(accessToken) {
-        let url = `${apiUrl}/isvalid/${accessToken}`;
-        return fetchService.makeFetchRequest('GET', url, null, null, false);
-    }
-
-    // public API
-    return {
-        getProjects: getProjects,
-        getProject: getProject,
-        deleteProject: deleteProject,
-        createProject: createProject,
-        updateProject: updateProject,
-        getAnnotationIds: getAnnotationIds,
-        exportProject: exportProject,
-        importProject: importProject,
-        getImages: getImages,
-        getImageFile: getImageFile,
-        createImages: createImages,
-        deleteImage: deleteImage,
-        getAnnotation: getAnnotation,
-        updateAnnotation: updateAnnotation,
-        createUser: createUser,
-        loginUser: loginUser,
-        isValid: isValid
-    }
-
-}();
-
-
-getAnnotationIds = async function() { // async function getAnnotationIds() leads to weird error because it overwrites above definition
+async function getAnnotationIds() { // async function getAnnotationIds() leads to weird error because it overwrites above definition
     var response = await apiService.getAnnotationIds();
 
     if (response.status == 200) {
@@ -333,3 +187,16 @@ const tooltips = [].map.call(document.querySelectorAll('.mdc-tooltip'), function
     tooltip.setHideDelay(0);
     return tooltip;
 });
+
+export { 
+	entrypoint,
+	getAnnotationIds,
+	redirectToLogin,
+    redirectToProjects,
+	uuidv4,
+	htmlToElements,
+	parseValidationErrors,
+	setupProjectClicked,
+	exportProjectClicked,
+	getImageUrl,
+};

@@ -1,3 +1,10 @@
+import { apiService } from './api.js';
+import { 
+    redirectToProjects,
+    parseValidationErrors
+} from './index.js';
+
+
 const textFieldsRegistration = {
     username: new mdc.textField.MDCTextField(document.querySelector('#text-field-username')),
     full_name: new mdc.textField.MDCTextField(document.querySelector('#text-field-fullname')),

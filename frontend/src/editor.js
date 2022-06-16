@@ -1,3 +1,16 @@
+import { apiService } from './api.js';
+import { 
+  entrypoint,
+	getAnnotationIds,
+	redirectToLogin,
+	uuidv4,
+	htmlToElements,
+	setupProjectClicked,
+	exportProjectClicked,
+	getImageUrl,
+} from './index.js';
+
+
   // TODO:
   // - display project info (name, number of images, number of annotated images, last edited, created, description, etc.)
   const annotation_saved_success_msg = "Annotation saved.";
@@ -5,6 +18,10 @@
 
   const imagesSelectionList = new mdc.list.MDCList(document.getElementById('images-selection-list'));
   imagesSelectionList.singleSelection = true;  
+
+  entrypoint(() => {
+    editor(project_id);
+  });
 
   async function editor(project_id) {
     var selected_image = {"id": null, "name": null};

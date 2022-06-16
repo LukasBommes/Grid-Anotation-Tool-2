@@ -105,7 +105,8 @@
 {% endblock %}
 
 {% block script %}
-<script type="module">
+<script src="{{ url_for('static', path='js/registration.bundle.js') }}"></script>
+<!--<script type="module">
     import { } from "../static/src/registration.js";
-</script>
+</script>-->
 {% endblock %}

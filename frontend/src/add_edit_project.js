@@ -1,3 +1,13 @@
+import { apiService } from './api.js';
+import { 
+    entrypoint,
+	redirectToLogin,
+	uuidv4,
+	htmlToElements,
+	parseValidationErrors,
+	getImageUrl,
+} from './index.js';
+
 // TODOS:
 // - images list pagination
 // - button to select all images for deletion
@@ -5,6 +15,10 @@
 // - catch errors of XHR requests (show snackbar with generic error message and full error message in console)
 // - enable a detail-view of the image
 // - show snackbar when redirecting to projects page
+
+entrypoint(() => {
+    addEditProject(project_id, mode);
+});
 
 async function addEditProject(project_id, mode) {
 

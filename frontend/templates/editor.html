@@ -115,7 +115,7 @@
 {% endblock %}
 
 {% block script %}
-<script type="module">
+<!--<script type="module">
   import { editor } from "../static/src/editor.js";
 
   const project_id = {{ project_id|tojson }};
@@ -123,5 +123,9 @@
   entrypoint(() => {
       editor(project_id);
   });
+</script>-->
+<script type="module">
+  const project_id = {{ project_id|tojson }};
 </script>
+<script src="{{ url_for('static', path='js/editor.bundle.js') }}"></script>
 {% endblock %}

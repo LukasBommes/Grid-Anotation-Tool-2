@@ -1,3 +1,10 @@
+import { apiService } from './api.js';
+import { 
+    redirectToProjects,
+    parseValidationErrors
+} from './index.js';
+
+
 const textFieldsLogin = {
     username: new mdc.textField.MDCTextField(document.querySelector('#text-field-username')),
     password: new mdc.textField.MDCTextField(document.querySelector('#text-field-password'))

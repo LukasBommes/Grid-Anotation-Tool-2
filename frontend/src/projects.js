@@ -1,3 +1,14 @@
+import { apiService } from './api.js';
+import { 
+    entrypoint,
+    getAnnotationIds,
+    redirectToLogin,
+    htmlToElements,
+    setupProjectClicked,
+    exportProjectClicked
+} from './index.js';
+
+
 const project_list_menus = {};
 
 const project_delete_success_msg = "Project deleted.";
@@ -30,6 +41,9 @@ document.getElementById(`orderby-menu-edited-desc`).addEventListener('click', or
 document.getElementById(`button-pagination-first`).addEventListener('click', goToPage.bind(null, "first"));
 document.getElementById(`button-pagination-last`).addEventListener('click', goToPage.bind(null, "last"));
 
+entrypoint(() => {
+    loadProjects();
+});
 
 async function getProjects(existing_anotations, skip=0, limit=10, orderby="name", orderdir="asc") {
     var response = await apiService.getProjects(skip, limit, orderby, orderdir);

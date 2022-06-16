@@ -101,7 +101,7 @@
 {% endblock %}
 
 {% block script %}
-<script type="module">
+<!--<script type="module">
     import { addEditProject } from "../static/src/add_edit_project.js";
 
     const project_id = {{ project_id|tojson }};
@@ -110,5 +110,10 @@
     entrypoint(() => {
         addEditProject(project_id, mode);
     });
+</script>-->
+<script>
+const project_id = {{ project_id|tojson }};
+const mode = {{ mode|tojson }};
 </script>
+<script src="{{ url_for('static', path='js/add_edit_project.bundle.js') }}"></script>
 {% endblock %}

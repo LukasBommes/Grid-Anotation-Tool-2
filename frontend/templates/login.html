@@ -71,7 +71,8 @@
 {% endblock %}
 
 {% block script %}
-<script type="module">
+<script src="{{ url_for('static', path='js/login.bundle.js') }}"></script>
+<!--<script type="module">
     import { } from "../static/src/login.js";
-</script>
+</script>-->
 {% endblock %}

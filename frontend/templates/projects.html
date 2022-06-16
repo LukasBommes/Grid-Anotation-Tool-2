@@ -142,11 +142,12 @@
 {% endblock %}
 
 {% block script %}
-<script type="module">
+<script src="{{ url_for('static', path='js/projects.bundle.js') }}"></script>
+<!--<script type="module">
     import { loadProjects } from "../static/src/projects.js";
 
     entrypoint(() => {
         loadProjects();
     });
-</script>
+</script>-->
 {% endblock %}
