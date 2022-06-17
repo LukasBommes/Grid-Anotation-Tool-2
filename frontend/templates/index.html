@@ -6,14 +6,9 @@
   <link rel="shortcut icon" href="{{ url_for('static', path='favicon.ico') }}">
 
   <!-- Material Web -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet" href="{{ url_for('static', path='bundle.css') }}">
-
-  <!-- Imports for Material Web -->
-  <!--<link rel="stylesheet" href="{{ url_for('static', path='material-components-web/material-components-web.min.css') }}">
-  <script src="{{ url_for('static', path='material-components-web/material-components-web.min.js') }}"></script>
-  <link rel="stylesheet" href="{{ url_for('static', path='material-components-web/google-material-icons.css') }}">-->
-  <link rel="stylesheet" href="{{ url_for('static', path='material-components-web/google-fonts-roboto.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='google-material-icons.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='google-fonts-roboto.css') }}">
   {% block head %}{% endblock %}
 
   <title>{% block title %}Grid Annotation Tool{% endblock %}</title>
