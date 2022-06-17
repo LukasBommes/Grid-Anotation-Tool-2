@@ -31,3 +31,21 @@ Make sure the Grid Annotation Tool is running. Then, from project root, run
 ```
 sudo docker exec -it grid-annotation-tool-v3_backend_1 pytest
 ```
+
+
+### Building frontend
+
+To build the frontend you need a local installation of node and npm.
+Change into the `/frontend` directory and install all npm dependencies with
+```
+npm install
+```
+Now, you can build the frontend in production mode with
+```
+npm run build
+```
+Or, to build in development (with live reload on file changes)
+```
+npm run dev
+```
+This creates JS bundles in `static/dist`.
