@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import {SvgShapes, Intersection, Point2D, Vector2D} from "kld-intersections";
 
 import { apiService } from './api.js';
 import { 
@@ -55,7 +56,7 @@ import {
 
         if (response.status == 200) {
             const data = await response.json();
-            data.foreach(function(image) {
+            data.forEach(function(image) {
               addImageToImagesList(image);
               const annotated = existing_anotations.includes(image.id);
               setImageAnnotationStatus(image.id, annotated);
@@ -524,10 +525,10 @@ import {
           return points.filter((a, b) => points.indexOf(a) === b);
         }
         var intersects = [];
-        var overlays = Intersection.intersectShapes(path0, path1);
+        var overlays = Intersection.intersect(path0, path1); // intersectShapes
         for (i in overlays.points) {
-          if (overlays.points[i].constructor.name == "Vector2D" || overlays.points[i].constructor.name == "Point2D") {
-          intersects.push({x: overlays.points[i].x, y: overlays.points[i].y});
+            if (overlays.points[i] instanceof Vector2D || overlays.points[i] instanceof Point2D) {
+            intersects.push({x: overlays.points[i].x, y: overlays.points[i].y});
           }
         }
         if (typeof intersects !== 'undefined') {
@@ -568,9 +569,9 @@ import {
           var path = [];
           for (var i = 0; i < 2; i++) {
             if (aux_obj[i].classList.contains("auxline")) {
-              path.push(new Line(aux_obj[i]));
+              path.push(SvgShapes.line(aux_obj[i]));
             } else if (aux_obj[i].classList.contains("auxcurve")) {
-              path.push(new Path(aux_obj[i]));
+              path.push(SvgShapes.path(aux_obj[i]));
             }
           }
           // commpute intersection between path objects
