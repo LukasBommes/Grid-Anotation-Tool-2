@@ -3,16 +3,16 @@ const autoprefixer = require('autoprefixer');
 
 module.exports = {
   entry: {
-    index: './src/index.js',
-    projects: './src/projects.js',
-    login: './src/login.js',
-    registration: './src/registration.js',
-    add_edit_project: './src/add_edit_project.js',
-    editor: './src/editor.js'
+    'index': './src/index.js',
+    'projects/index': './src/pages/projects/index.js',
+    'project/index': './src/pages/project/index.js',
+    'login/index': './src/pages/login/index.js',
+    'registration/index': './src/pages/registration/index.js',    
+    'editor/index': './src/pages/editor/index.js'
   },
   output: {
     filename: '[name].bundle.js',
-    path: path.resolve(__dirname, 'static/js'),
+    path: path.resolve(__dirname, 'static/dist'),
     clean: true,
   },
   optimization: {
@@ -48,7 +48,6 @@ module.exports = {
             loader: 'file-loader',
             options: {
               name: 'bundle.css',
-              outputPath: '../'
             },
           },
           { loader: 'extract-loader' },

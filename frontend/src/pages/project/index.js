@@ -1,9 +1,9 @@
-import './css/add_edit_projects.css';
+import './style.css';
 
 import { MDCTextField } from '@material/textfield';
 import { MDCSnackbar } from '@material/snackbar';
 
-import { apiService } from './api.js';
+import { apiService } from '../../api.js';
 import { 
     entrypoint,
 	redirectToLogin,
@@ -11,7 +11,7 @@ import {
 	htmlToElements,
 	parseValidationErrors,
 	getImageUrl,
-} from './utils.js';
+} from '../../utils.js';
 
 // TODOS:
 // - images list pagination

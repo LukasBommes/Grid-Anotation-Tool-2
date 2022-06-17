@@ -1,11 +1,11 @@
-import './css/editor.css';
+import './style.css';
 
 import * as d3 from "d3";
 import { SvgShapes, Intersection, Point2D, Vector2D } from "kld-intersections";
 import { MDCList } from '@material/list';
 import { MDCSnackbar } from '@material/snackbar';
 
-import { apiService } from './api.js';
+import { apiService } from '../../api.js';
 import { 
   entrypoint,
 	getAnnotationIds,
@@ -15,7 +15,7 @@ import {
 	setupProjectClicked,
 	exportProjectClicked,
 	getImageUrl,
-} from './utils.js';
+} from '../../utils.js';
 
 
   // TODO:

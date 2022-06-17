@@ -1,11 +1,11 @@
-import './css/projects.css';
+import './style.css';
 
 import { MDCDialog } from '@material/dialog';
 import { MDCRipple } from '@material/ripple';
 import { MDCMenu } from '@material/menu';
 import { MDCSnackbar } from '@material/snackbar';
 
-import { apiService } from './api.js';
+import { apiService } from '../../api.js';
 import { 
     entrypoint,
     getAnnotationIds,
@@ -13,7 +13,7 @@ import {
     htmlToElements,
     setupProjectClicked,
     exportProjectClicked
-} from './utils.js';
+} from '../../utils.js';
 
 
 const project_list_menus = {};

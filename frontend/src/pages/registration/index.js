@@ -1,10 +1,10 @@
 import { MDCTextField } from '@material/textfield';
 
-import { apiService } from './api.js';
+import { apiService } from '../../api.js';
 import { 
     redirectToProjects,
     parseValidationErrors
-} from './utils.js';
+} from '../../utils.js';
 
 
 const textFieldsRegistration = {
