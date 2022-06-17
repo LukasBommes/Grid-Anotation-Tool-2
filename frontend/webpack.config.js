@@ -14,6 +14,9 @@ module.exports = {
     path: path.resolve(__dirname, 'static/js'),
     clean: true,
   },
+  optimization: {
+    usedExports: 'global',
+  },
   module: {
     rules: [
       {

@@ -1,3 +1,5 @@
+import * as d3 from "d3";
+
 import { apiService } from './api.js';
 import { 
   entrypoint,
@@ -211,8 +213,8 @@ import {
       // image zoom and translation
       var zoom_handler = d3.zoom()
         .on("zoom", zoom_actions);
-      function zoom_actions(){
-        g_element.attr("transform", d3.event.transform);
+      function zoom_actions(event){
+        g_element.attr("transform", event.transform);
       }
       zoom_handler(svg);
 
@@ -287,8 +289,8 @@ import {
     }
 
     // get the current position of the cursor in the image coordinate system
-    svg.on("mousemove", function () {
-        var mouse = d3.mouse(this);  // acces mouse position via mouse[0], mouse[1]
+    svg.on("mousemove", (event) => {
+        var mouse = d3.pointer(event);  // acces mouse position via mouse[0], mouse[1]
         if (!d3.select("#g_element").empty()) {
           var [img_offset_x, img_offset_y, img_scale] = getTranslationScale(g_element);
 
@@ -607,7 +609,7 @@ import {
     }
 
     // manual creation of pv modules (by clicking 4 corners)
-    function corner_mouseclick_handler(d) {
+    function corner_mouseclick_handler(event, d) {
       console.log("corner_mouseclick_handler");
       if (marker_mode == "center_manual") {
         if (corners.length < 4) {
@@ -630,16 +632,16 @@ import {
     }
 
     // dragging of corner points
-    function dragstarted(d) {
+    function dragstarted(event, d) {
       d3.select(this).raise();
       svg.select("#g_element").attr("cursor", "grabbing");
     }
-    function dragended(d) {
+    function dragended(event, d) {
       svg.select("#g_element").attr("cursor", "default");
     }
-    function dragged(d) {
+    function dragged(event, d) {
       // update corner position
-      d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+      d3.select(this).attr("cx", d.x = event.x).attr("cy", d.y = event.y);
       // update center position and corner position of all pv modules which contain the marker
       for (var i = 0; i < pv_modules.length; i++) {
         for (var j = 0; j < pv_modules[i].corners.length; j++) {
@@ -654,19 +656,19 @@ import {
     }
 
     // draging of auxline endpoints
-    function auxline_dragged(d) {
+    function auxline_dragged(event, d) {
       // update line coordinates
       if (this.classList.contains("auxline-startpoint")) {
         d3.select(this.parentNode).select("line")
-          .attr("x1", d.x1 = d3.event.x)
-          .attr("y1", d.y1 = d3.event.y);
+          .attr("x1", d.x1 = event.x)
+          .attr("y1", d.y1 = event.y);
       } else if (this.classList.contains("auxline-endpoint")) {
         d3.select(this.parentNode).select("line")
-          .attr("x2", d.x2 = d3.event.x)
-          .attr("y2", d.y2 = d3.event.y);
+          .attr("x2", d.x2 = event.x)
+          .attr("y2", d.y2 = event.y);
       }
       // update line endpoint
-      d3.select(this).attr("cx", d.cx = d3.event.x).attr("cy", d.cy = d3.event.y);
+      d3.select(this).attr("cx", d.cx = event.x).attr("cy", d.cy = event.y);
       selected_image_changed();
       draw();
     }
@@ -680,32 +682,32 @@ import {
     }
 
     // draging of auxcurve endpoints
-    function auxcurve_dragged(d) {
+    function auxcurve_dragged(event, d) {
       // update curve points
       var element_id = d3.select(this.parentNode).attr("id");
       for (var i = 0; i < auxcurves.length; i++) {
         if (auxcurves[i].id == element_id) {
           if (this.classList.contains("auxcurve-startpoint")) {
-            auxcurves[i].points[0][0] = d3.event.x;
-            auxcurves[i].points[0][1] = d3.event.y;
+            auxcurves[i].points[0][0] = event.x;
+            auxcurves[i].points[0][1] = event.y;
           } else if (this.classList.contains("auxcurve-middlepoint")) {
-            auxcurves[i].points[1][0] = d3.event.x;
-            auxcurves[i].points[1][1] = d3.event.y;
+            auxcurves[i].points[1][0] = event.x;
+            auxcurves[i].points[1][1] = event.y;
           } else if (this.classList.contains("auxcurve-endpoint")) {
-            auxcurves[i].points[2][0] = d3.event.x;
-            auxcurves[i].points[2][1] = d3.event.y;
+            auxcurves[i].points[2][0] = event.x;
+            auxcurves[i].points[2][1] = event.y;
           }
           d3.select(this.parentNode).select("path").attr("d", generate_auxcurve_data(auxcurves[i].points));
         }
       }
       // update line point
-      d3.select(this).attr("cx", d3.event.x).attr("cy", d3.event.y);
+      d3.select(this).attr("cx", event.x).attr("cy", event.y);
       selected_image_changed();
       draw();
     }
 
     // delete objects in erase mode
-    var erase_mousedown_handler = function(d) {
+    var erase_mousedown_handler = function(event, d) {
       function erase_corner_marker(element) {
         d3.select(element).on('mousedown.drag', null);  // remove drag handler before deleting element
         var element_id = d3.select(element).attr("id");
@@ -774,7 +776,7 @@ import {
     };
 
     // selection of PV module with mouse
-    var mark_module_partially_visible_handler = function(d) {
+    var mark_module_partially_visible_handler = function(event, d) {
       if (marker_mode == "mark_module_partially_visible") {
         selected_pv_module = d.id;
         for (var i = 0; i < pv_modules.length; i++) {
