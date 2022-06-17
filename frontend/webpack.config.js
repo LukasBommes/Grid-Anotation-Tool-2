@@ -1,7 +1,7 @@
 const path = require('path');
 const autoprefixer = require('autoprefixer');
 
-module.exports = [{
+module.exports = {
   entry: {
     index: './src/index.js',
     projects: './src/projects.js',
@@ -31,27 +31,16 @@ module.exports = [{
             ]
           }
         }
-      }
-    ]
-  }
-},
-{
-  entry: './src/index.scss',
-  output: {
-    // This is necessary for webpack to compile
-    // But we never use style-bundle.js
-    filename: 'style-bundle.js',
-    path: path.resolve(__dirname, 'static'),
-  },
-  module: {
-    rules: [
+      },
       {
         test: /\.scss$/,
+        exclude: /node_modules/,
         use: [
           {
             loader: 'file-loader',
             options: {
               name: 'bundle.css',
+              outputPath: '../'
             },
           },
           { loader: 'extract-loader' },
@@ -82,5 +71,5 @@ module.exports = [{
         ]
       }
     ]
-  },
-}];
+  }
+};

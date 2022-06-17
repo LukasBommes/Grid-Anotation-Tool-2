@@ -1,3 +1,5 @@
+import './index.scss';
+
 import { MDCTextField } from '@material/textfield';
 import { MDCRipple } from '@material/ripple';
 import { MDCTooltip } from '@material/tooltip';
