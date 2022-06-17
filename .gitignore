@@ -5,3 +5,4 @@ example_images/
 docker/secrets/
 backend/tests/images/
 frontend/node_modules/
+frontend/static/js/*.LICENSE.txt
