@@ -5,7 +5,7 @@ code quality:
 - refactor javascript sources
 - group CSS/JS of components together using webpack loaders
 - split up larger js files into smaller files
-- import dependencies (d3.js, 2D.js, ...) instead of using CDN
+- import dependencies (d3.js, 2D.js, material-components,...) instead of using CDN
 
 features:
 - replace server-side routing with client-side routing
