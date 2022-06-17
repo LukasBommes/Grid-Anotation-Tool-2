@@ -1,5 +1,7 @@
 import * as d3 from "d3";
-import {SvgShapes, Intersection, Point2D, Vector2D} from "kld-intersections";
+import { SvgShapes, Intersection, Point2D, Vector2D } from "kld-intersections";
+import { MDCList } from '@material/list';
+import { MDCSnackbar } from '@material/snackbar';
 
 import { apiService } from './api.js';
 import { 
@@ -19,10 +21,9 @@ import {
   const annotation_saved_success_msg = "Annotation saved.";
   const annotation_saved_error_msg = "Failed to save annotation.";
 
-  const imagesSelectionList = new mdc.list.MDCList(document.getElementById('images-selection-list'));
-  imagesSelectionList.singleSelection = true;  
-
-  const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
+  const snackbar = new MDCSnackbar(document.querySelector('.mdc-snackbar'));
+  const imagesSelectionList = new MDCList(document.getElementById('images-selection-list'));
+  imagesSelectionList.singleSelection = true;
 
   entrypoint(() => {
     editor(project_id);

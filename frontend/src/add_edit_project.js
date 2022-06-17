@@ -1,3 +1,6 @@
+import { MDCTextField } from '@material/textfield';
+import { MDCSnackbar } from '@material/snackbar';
+
 import { apiService } from './api.js';
 import { 
     entrypoint,
@@ -25,12 +28,11 @@ async function addEditProject(project_id, mode) {
     const project_save_success_msg = "Project saved successfully.";
     const project_save_error_msg = "Failed to save project."
 
+    const snackbar = new MDCSnackbar(document.querySelector('.mdc-snackbar'));
     const textFieldsProject = {
-        name: new mdc.textField.MDCTextField(document.querySelector('#text-field-name')),
-        description: new mdc.textField.MDCTextField(document.querySelector('#text-field-description'))
-    }
-
-    const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
+        name: new MDCTextField(document.querySelector('#text-field-name')),
+        description: new MDCTextField(document.querySelector('#text-field-description'))
+    }    
 
     var image_ids_to_upload = [];
     var image_files_to_upload = {};

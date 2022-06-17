@@ -1,3 +1,8 @@
+import { MDCDialog } from '@material/dialog';
+import { MDCRipple } from '@material/ripple';
+import { MDCMenu } from '@material/menu';
+import { MDCSnackbar } from '@material/snackbar';
+
 import { apiService } from './api.js';
 import { 
     entrypoint,
@@ -23,13 +28,10 @@ var pagination_num_neighbours = 2;
 var projects_orderby = "name";
 var projects_orderdir = "asc";
 
-const delete_project_dialog = new mdc.dialog.MDCDialog(document.querySelector('#delete-project-dialog'));
+const snackbar = new MDCSnackbar(document.querySelector('.mdc-snackbar'));
+const orderby_menu = new MDCMenu(document.querySelector('.mdc-menu'));
+const delete_project_dialog = new MDCDialog(document.querySelector('#delete-project-dialog'));
 var deleteProjectDialogEventListener;
-
-const orderby_menu = new mdc.menu.MDCMenu(document.querySelector('.mdc-menu'));
-
-const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
-
 
 document.getElementById("import-project-input").addEventListener('change', importProjectFilesInputChanged);
 document.getElementById("orderby-menu-open-button").addEventListener('click', openOrderByMenuClicked);
@@ -249,7 +251,7 @@ function addProjectToProjectList(project, num_images, num_annotated) {
     document.getElementById(`projects-list-menu-setup-${project.id}`).addEventListener('click', setupProjectClicked.bind(null, project.id));
     document.getElementById(`projects-list-menu-export-${project.id}`).addEventListener('click', exportProjectClicked.bind(null, project.id));
     document.getElementById(`projects-list-menu-delete-${project.id}`).addEventListener('click', deleteProjectClicked.bind(null, project.id));
-    project_list_menus[project.id] = new mdc.menu.MDCMenu(document.querySelector(`#projects-list-menu-${project.id}`));
+    project_list_menus[project.id] = new MDCMenu(document.querySelector(`#projects-list-menu-${project.id}`));
     init_mui_elements();
 }
 
@@ -327,7 +329,7 @@ async function orderBy(orderby, orderdir) {
 
 function init_mui_elements() {
     const listItemRipples = [].map.call(document.querySelectorAll('.mdc-list-item'), function(element) {
-        return new mdc.ripple.MDCRipple(element);
+        return new MDCRipple(element);
     });
 }
 

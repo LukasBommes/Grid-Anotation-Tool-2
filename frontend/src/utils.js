@@ -130,7 +130,6 @@ function htmlToElements(html) {
 function parseValidationErrors(textFields, errors) {
     errors["detail"].forEach((error) => {
         const fieldname = error.loc[1];
-        console.log(fieldname);
         textFields[fieldname].helperTextContent = error.msg;
         textFields[fieldname].valid = false;                
     });

@@ -1,3 +1,5 @@
+import { MDCTextField } from '@material/textfield';
+
 import { apiService } from './api.js';
 import { 
     redirectToProjects,
@@ -6,8 +8,8 @@ import {
 
 
 const textFieldsLogin = {
-    username: new mdc.textField.MDCTextField(document.querySelector('#text-field-username')),
-    password: new mdc.textField.MDCTextField(document.querySelector('#text-field-password'))
+    username: new MDCTextField(document.querySelector('#text-field-username')),
+    password: new MDCTextField(document.querySelector('#text-field-password'))
 }
 
 document.getElementById("login-form-submit-button").addEventListener('click', login);

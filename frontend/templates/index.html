@@ -5,10 +5,14 @@
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/main.css') }}">
   <link rel="shortcut icon" href="{{ url_for('static', path='favicon.ico') }}">
 
+  <!-- Material Web -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="{{ url_for('static', path='bundle.css') }}">
+
   <!-- Imports for Material Web -->
-  <link rel="stylesheet" href="{{ url_for('static', path='material-components-web/material-components-web.min.css') }}">
+  <!--<link rel="stylesheet" href="{{ url_for('static', path='material-components-web/material-components-web.min.css') }}">
   <script src="{{ url_for('static', path='material-components-web/material-components-web.min.js') }}"></script>
-  <link rel="stylesheet" href="{{ url_for('static', path='material-components-web/google-material-icons.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='material-components-web/google-material-icons.css') }}">-->
   <link rel="stylesheet" href="{{ url_for('static', path='material-components-web/google-fonts-roboto.css') }}">
   {% block head %}{% endblock %}
 
@@ -63,7 +67,6 @@
 
   {% block tooltips %}{% endblock %}
 
-  <!--<script src="{{ url_for('static', path='main.js') }}"></script>-->
   <script>
     const API_URL = {{ api_url|tojson }};
 

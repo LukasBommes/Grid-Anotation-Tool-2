@@ -1,3 +1,5 @@
+import { MDCTextField } from '@material/textfield';
+
 import { apiService } from './api.js';
 import { 
     redirectToProjects,
@@ -6,11 +8,11 @@ import {
 
 
 const textFieldsRegistration = {
-    username: new mdc.textField.MDCTextField(document.querySelector('#text-field-username')),
-    full_name: new mdc.textField.MDCTextField(document.querySelector('#text-field-fullname')),
-    email: new mdc.textField.MDCTextField(document.querySelector('#text-field-email')),
-    password: new mdc.textField.MDCTextField(document.querySelector('#text-field-password')),
-    password_repeated: new mdc.textField.MDCTextField(document.querySelector('#text-field-password-repeated')),
+    username: new MDCTextField(document.querySelector('#text-field-username')),
+    full_name: new MDCTextField(document.querySelector('#text-field-fullname')),
+    email: new MDCTextField(document.querySelector('#text-field-email')),
+    password: new MDCTextField(document.querySelector('#text-field-password')),
+    password_repeated: new MDCTextField(document.querySelector('#text-field-password-repeated')),
 }
 
 document.getElementById("registration-form-submit-button").addEventListener('click', register);

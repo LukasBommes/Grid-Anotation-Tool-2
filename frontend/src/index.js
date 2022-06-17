@@ -1,3 +1,7 @@
+import { MDCTextField } from '@material/textfield';
+import { MDCRipple } from '@material/ripple';
+import { MDCTooltip } from '@material/tooltip';
+
 import {
     userIsLoggedIn,
     redirectToLogin,
@@ -10,17 +14,17 @@ document.getElementById("app-bar-login-button").addEventListener('click', loginB
 
 
 const iconButtonRipples = [].map.call(document.querySelectorAll('.app-bar-icon-button'), function(element) {
-    const ripple = new mdc.ripple.MDCRipple(element);
+    const ripple = new MDCRipple(element);
     ripple.unbounded = true;
     return ripple;
 });
 
 const textfields = [].map.call(document.querySelectorAll('.mdc-text-field'), function(element) {
-    return new mdc.textField.MDCTextField(element);
+    return new MDCTextField(element);
 });
 
 const tooltips = [].map.call(document.querySelectorAll('.mdc-tooltip'), function(element) {
-    const tooltip = new mdc.tooltip.MDCTooltip(element);
+    const tooltip = new MDCTooltip(element);
     tooltip.setShowDelay(500);
     tooltip.setHideDelay(0);
     return tooltip;
