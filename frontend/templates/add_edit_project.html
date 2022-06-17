@@ -101,16 +101,6 @@
 {% endblock %}
 
 {% block script %}
-<!--<script type="module">
-    import { addEditProject } from "../static/src/add_edit_project.js";
-
-    const project_id = {{ project_id|tojson }};
-    const mode = {{ mode|tojson }};
-
-    entrypoint(() => {
-        addEditProject(project_id, mode);
-    });
-</script>-->
 <script>
 const project_id = {{ project_id|tojson }};
 const mode = {{ mode|tojson }};
