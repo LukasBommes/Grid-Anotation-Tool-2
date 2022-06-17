@@ -1,0 +1,18 @@
+.alert-banner {
+  padding: 4px 20px;
+  margin-bottom: 20px;
+  border: 1px solid #b00020;
+  background-color: #b000201f;
+  color: #b00020;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.alert-banner > h2 {
+  width: 100%;
+}
+
+.alert-banner > i {
+  cursor: pointer;
+}

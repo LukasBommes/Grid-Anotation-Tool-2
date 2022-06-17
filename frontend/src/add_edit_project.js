@@ -1,3 +1,5 @@
+import './css/add_edit_projects.css';
+
 import { MDCTextField } from '@material/textfield';
 import { MDCSnackbar } from '@material/snackbar';
 

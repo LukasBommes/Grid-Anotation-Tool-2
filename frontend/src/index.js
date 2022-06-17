@@ -1,4 +1,5 @@
 import './index.scss';
+import './css/index.css';
 
 import { MDCTextField } from '@material/textfield';
 import { MDCRipple } from '@material/ripple';

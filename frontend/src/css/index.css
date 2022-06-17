@@ -30,21 +30,18 @@ body {
   white-space: nowrap; /* prevent line break in button text */
 }
 
-.alert-banner {
-  padding: 4px 20px;
-  margin-bottom: 20px;
-  border: 1px solid #b00020;
-  background-color: #b000201f;
-  color: #b00020;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
+.main-container {
+    padding: 20px;
 }
 
-.alert-banner > h2 {
-  width: 100%;
+.main-container .form-row {
+    padding-top: 10px;
 }
 
-.alert-banner > i {
-  cursor: pointer;
+.main-container .form-row .mdc-text-field {
+    width: 100%;
+}
+
+input[type="file"] {
+    display: none;
 }

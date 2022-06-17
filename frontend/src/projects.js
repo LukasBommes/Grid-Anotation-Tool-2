@@ -1,3 +1,5 @@
+import './css/projects.css';
+
 import { MDCDialog } from '@material/dialog';
 import { MDCRipple } from '@material/ripple';
 import { MDCMenu } from '@material/menu';
