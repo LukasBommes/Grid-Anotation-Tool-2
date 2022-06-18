@@ -10,7 +10,10 @@ models.Base.metadata.create_all(bind=engine)
 
 
 def create_app(settings):
-    app = FastAPI(docs_url=f"{settings.DOCS_URL_PREFIX}/docs", openapi_url=f"{settings.DOCS_URL_PREFIX}/openapi.json")
+    app = FastAPI(
+        docs_url=f"{settings.DOCS_URL_PREFIX}/docs",
+        openapi_url=f"{settings.DOCS_URL_PREFIX}/openapi.json",
+    )
     app.state.config = settings
 
     app.add_middleware(
@@ -23,14 +26,18 @@ def create_app(settings):
     )
 
     app.include_router(users.create_router(settings), prefix="/api", tags=["users"])
-    app.include_router(authentication.create_router(settings), prefix="/api", tags=["authentication"])
-    app.include_router(projects.create_router(settings), prefix="/api", tags=["projects"])
+    app.include_router(
+        authentication.create_router(settings), prefix="/api", tags=["authentication"]
+    )
+    app.include_router(
+        projects.create_router(settings), prefix="/api", tags=["projects"]
+    )
     app.include_router(images.create_router(settings), prefix="/api", tags=["images"])
-    app.include_router(annotations.create_router(settings), prefix="/api", tags=["annotations"])    
+    app.include_router(
+        annotations.create_router(settings), prefix="/api", tags=["annotations"]
+    )
 
     return app
 
 
 app = create_app(settings)
-
-

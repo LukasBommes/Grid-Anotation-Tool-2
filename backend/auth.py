@@ -46,26 +46,40 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.ACCESS_TOKEN_SECRET_KEY, algorithm=settings.ACCESS_TOKEN_ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode,
+        settings.ACCESS_TOKEN_SECRET_KEY,
+        algorithm=settings.ACCESS_TOKEN_ALGORITHM,
+    )
     return encoded_jwt
 
 
 def token_valid(token: str):
     try:
-        jwt.decode(token, settings.ACCESS_TOKEN_SECRET_KEY, algorithms=[settings.ACCESS_TOKEN_ALGORITHM])
+        jwt.decode(
+            token,
+            settings.ACCESS_TOKEN_SECRET_KEY,
+            algorithms=[settings.ACCESS_TOKEN_ALGORITHM],
+        )
     except JWTError:
         return False
     return True
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, settings.ACCESS_TOKEN_SECRET_KEY, algorithms=[settings.ACCESS_TOKEN_ALGORITHM])
+        payload = jwt.decode(
+            token,
+            settings.ACCESS_TOKEN_SECRET_KEY,
+            algorithms=[settings.ACCESS_TOKEN_ALGORITHM],
+        )
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
@@ -78,7 +92,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 
-async def get_current_active_user(current_user: schemas.User = Depends(get_current_user)):
+async def get_current_active_user(
+    current_user: schemas.User = Depends(get_current_user),
+):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user

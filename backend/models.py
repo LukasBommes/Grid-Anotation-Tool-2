@@ -12,7 +12,7 @@ class User(Base):
     email = Column(String)
     full_name = Column(String)
     disabled = Column(Boolean)
-    
+
     projects = relationship("Project", backref="user", cascade="all, delete")
 
 
@@ -35,7 +35,9 @@ class Image(Base):
     project_id = Column(Integer, ForeignKey("projects.id"))
     username = Column(String, ForeignKey("users.username"))
 
-    annotation = relationship("Annotation", uselist=False, backref="image", cascade="all, delete")
+    annotation = relationship(
+        "Annotation", uselist=False, backref="image", cascade="all, delete"
+    )
 
 
 class Annotation(Base):

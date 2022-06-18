@@ -11,14 +11,12 @@ from ..auth import authenticate_user, create_access_token, token_valid
 
 
 def create_router(settings):
-    
+
     router = APIRouter()
-    
-    
+
     @router.post("/token", response_model=schemas.Token)
     async def login_for_access_token(
-        form_data: OAuth2PasswordRequestForm = Depends(), 
-        db: Session = Depends(get_db)
+        form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
     ):
         user = authenticate_user(db, form_data.username, form_data.password)
         if not user:
@@ -33,10 +31,8 @@ def create_router(settings):
         )
         return {"access_token": access_token, "token_type": "bearer"}
 
-
     @router.get("/isvalid/{token}")
-    async def check_token_validity(token: str):        
+    async def check_token_validity(token: str):
         return {"isvalid": token_valid(token)}
 
-    
     return router
