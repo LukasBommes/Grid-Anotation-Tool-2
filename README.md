@@ -1,4 +1,6 @@
-# Grid Annotation Tool
+# Grid Annotation Tool 2
+
+This is an updated version of the old [Grid Annotation Tool](https://github.com/LukasBommes/Grid-Annotation-Tool).
 
 A web app for annotating grid structures in images for computer vision research and applications. For some applications you may want to annotate a grid structure to train, for example, an instance segmentation model, such as Mask R-CNN.
 
@@ -59,7 +61,7 @@ sudo docker-compose build
 
 #### Deploy the Grid Annotation Tool
 
-The deployment configuration for Docker Compose is provided in `docker-compose.yml`. The default configuration runs the backend and frontend components of the Grid Annotation Tool, a PostgreSQL database, and a Traefik reverse proxy that acts as a load balancer. By default, HTTP is used. If you require HTTPS, you can alter the Traefik configuration as stated in the Treafik documentation.
+The deployment configuration for Docker Compose is provided in `docker-compose.yml`. The default configuration runs the backend and frontend components of the Grid Annotation Tool, a PostgreSQL database, and a Traefik reverse proxy that acts as a load balancer. By default, HTTP is used. If you require HTTPS, you can alter the Traefik configuration as stated in the official Treafik documentation.
 
 Before you can deploy the app, make sure you created the secrets as described above.
 
@@ -152,8 +154,7 @@ The grid annotation tool relies on the [2D.js](http://www.kevlindev.com/geometry
 
 #### Running tests
 
-Make sure the Grid Annotation Tool is running. Then, from project root, run
-
+Make sure the Grid Annotation Tool is running, i.e., all containers are up. Then, from project root, run
 ```
 sudo docker exec -it grid-annotation-tool-v3_backend_1 pytest
 ```
