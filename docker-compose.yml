@@ -61,7 +61,7 @@ services:
       - BACKEND_ACCESS_TOKEN_SECRET_KEY_FILE=/run/secrets/backend_access_token_secret_key
       - BACKEND_DATABASE_URL_FILE=/run/secrets/backend_database_url
       - BACKEND_MEDIA_ROOT=/images
-      - BACKEND_CORS_ORIGINS=["http://127.0.0.1", "http://172.18.1.59"]
+      - BACKEND_CORS_ORIGINS=["http://127.0.0.1"]
       - BACKEND_ACCESS_TOKEN_EXPIRE_MINUTES=120
       - BACKEND_DOCS_URL_PREFIX=/api
     secrets:
