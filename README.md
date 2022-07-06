@@ -108,7 +108,7 @@ You can also import a project from the zip archive downloaded in the previous st
 
 Follow these instructions to annotate grid instances in an image. In the annotation editor you can select from the following tools:
 
-![screenshot of toolbar buttons](docs/toolbar_buttons.png)
+![screenshot of toolbar icons](docs/toolbar_icons.png)
 
 1. Draw auxiliary lines / auxiliary curves by clicking on "Draw Auxiliary Line" / "Draw Auxiliary Curve" and placing two / three points by clicking into the image. These lines should outline the grid lines between individual grid cells.
 2. Click on "Get Intersections" to compute the intersection points between auxiliary lines and curves.
@@ -148,7 +148,7 @@ The annotation file format is as follows, i.e., each image has a list of grid ce
 
 ### Known Bugs
 
-The grid annotation tool relies on the [2D.js](http://www.kevlindev.com/geometry/2D/intersections/index.htm) library for calculating intersection points between auxiliary lines. It has a known bug, which causes it to miss some intersections between pairs of curves. In this case, please add the missed intersections manually by first clicking "Add Corners" and then clicking on the image.
+The grid annotation tool relies on the [kld-intersections](https://github.com/thelonious/kld-intersections) library for calculating intersection points between auxiliary lines. This library has a known bug, which causes it to miss some intersections between pairs of curves. In this case, please add the missed intersections manually by first clicking "Add Corners" and then clicking on the image.
 
 ### For Developers
 
