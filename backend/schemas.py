@@ -44,7 +44,9 @@ class Image(ImageBase):
 
 class ProjectBase(BaseModel):
     name: constr(strip_whitespace=True, min_length=1, max_length=1024, strict=True)
-    description: Optional[constr(strip_whitespace=True, max_length=9999, strict=True)] = None
+    description: Optional[
+        constr(strip_whitespace=True, max_length=9999, strict=True)
+    ] = None
 
 
 class ProjectCreate(ProjectBase):
@@ -77,10 +79,10 @@ class User(BaseModel):
     full_name: constr(min_length=1, max_length=1024, strict=True)
     disabled: bool = False
 
-    @validator('username')
+    @validator("username")
     def username_valid(cls, value):
         if not value.isalnum():
-            raise ValueError('must be alphanumeric')
+            raise ValueError("must be alphanumeric")
         return value
 
 
@@ -88,16 +90,16 @@ class UserCreate(User):
     password: constr(min_length=8, max_length=1024, strict=True)
     password_repeated: constr(min_length=8, max_length=1024, strict=True)
 
-    @validator('password')
+    @validator("password")
     def password_valid(cls, value):
         if value.isalnum():
-            raise ValueError('must contain at least one special character')
+            raise ValueError("must contain at least one special character")
         return value
 
-    @validator('password_repeated')
+    @validator("password_repeated")
     def passwords_match(cls, value, values, **kwargs):
-        if 'password' in values and value != values['password']:
-            raise ValueError('passwords do not match')
+        if "password" in values and value != values["password"]:
+            raise ValueError("passwords do not match")
         return value
 
 

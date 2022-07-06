@@ -1,9 +1,5 @@
 {% extends "index.html" %}
 
-{% block head %}
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/projects.css') }}">
-{% endblock %}
-
 {% block content %}
 <div class="mdc-layout-grid">
     <div class="mdc-layout-grid__inner">
@@ -101,14 +97,9 @@
 {% endblock %}
 
 {% block script %}
-<script type="module">
-    import { addEditProject } from "../static/src/add_edit_project.js";
-
-    const project_id = {{ project_id|tojson }};
-    const mode = {{ mode|tojson }};
-
-    entrypoint(() => {
-        addEditProject(project_id, mode);
-    });
+<script>
+const project_id = {{ project_id|tojson }};
+const mode = {{ mode|tojson }};
 </script>
+<script src="{{ url_for('static', path='dist/project/index.bundle.js') }}"></script>
 {% endblock %}

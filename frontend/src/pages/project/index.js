@@ -1,3 +1,18 @@
+import './style.css';
+
+import { MDCTextField } from '@material/textfield';
+import { MDCSnackbar } from '@material/snackbar';
+
+import { apiService } from '../../api.js';
+import { 
+    entrypoint,
+	redirectToLogin,
+	uuidv4,
+	htmlToElements,
+	parseValidationErrors,
+	getImageUrl,
+} from '../../utils.js';
+
 // TODOS:
 // - images list pagination
 // - button to select all images for deletion
@@ -6,15 +21,20 @@
 // - enable a detail-view of the image
 // - show snackbar when redirecting to projects page
 
+entrypoint(() => {
+    addEditProject(project_id, mode);
+});
+
 async function addEditProject(project_id, mode) {
 
     const project_save_success_msg = "Project saved successfully.";
     const project_save_error_msg = "Failed to save project."
 
+    const snackbar = new MDCSnackbar(document.querySelector('.mdc-snackbar'));
     const textFieldsProject = {
-        name: new mdc.textField.MDCTextField(document.querySelector('#text-field-name')),
-        description: new mdc.textField.MDCTextField(document.querySelector('#text-field-description'))
-    }
+        name: new MDCTextField(document.querySelector('#text-field-name')),
+        description: new MDCTextField(document.querySelector('#text-field-description'))
+    }    
 
     var image_ids_to_upload = [];
     var image_files_to_upload = {};

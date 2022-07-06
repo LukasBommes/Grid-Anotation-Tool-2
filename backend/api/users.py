@@ -8,10 +8,10 @@ from ..auth import pwd_context
 
 
 def create_router(settings):
-    
+
     router = APIRouter()
 
-    # TODO: 
+    # TODO:
     # - update and delete user
     # - tests
     #   - user creation
@@ -19,14 +19,21 @@ def create_router(settings):
     #   - user deletion
     #   - deleting user deletes project
     #   - different users can have different projects
-    
+
     @router.post("/users/", response_model=schemas.UserInDB, status_code=201)
     def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         user_dict = user.dict()
         # raise error if user already exists
-        db_user = db.query(models.User).filter(models.User.username == user_dict['username']).first()
+        db_user = (
+            db.query(models.User)
+            .filter(models.User.username == user_dict["username"])
+            .first()
+        )
         if db_user:
-            raise HTTPException(status_code=409, detail=f"User with username {user_dict['username']} already exists")
+            raise HTTPException(
+                status_code=409,
+                detail=f"User with username {user_dict['username']} already exists",
+            )
         # else create new user
         password = user_dict.get("password")
         del user_dict["password"]
@@ -38,27 +45,27 @@ def create_router(settings):
         db.refresh(db_user)
         return db_user
 
-
     @router.delete("/current_user/", response_model=schemas.UserInDB, status_code=200)
     def delete_current_user(
-        db: Session = Depends(get_db), 
-        current_user: schemas.User = Depends(get_current_active_user)
+        db: Session = Depends(get_db),
+        current_user: schemas.User = Depends(get_current_active_user),
     ):
         username = current_user.username
         db_user = db.query(models.User).filter(models.User.username == username).first()
         if not db_user:
-            raise HTTPException(status_code=404, detail=f"User with username {username} not found")
+            raise HTTPException(
+                status_code=404, detail=f"User with username {username} not found"
+            )
         else:
             db.delete(db_user)
             db.commit()
         return db_user
 
-
     @router.put("/current_user/", response_model=schemas.UserInDB, status_code=200)
     def update_current_user(
         user: schemas.UserCreate,
-        db: Session = Depends(get_db), 
-        current_user: schemas.User = Depends(get_current_active_user)
+        db: Session = Depends(get_db),
+        current_user: schemas.User = Depends(get_current_active_user),
     ):
         username = current_user.username
         db_user_query = db.query(models.User).filter(
@@ -66,7 +73,9 @@ def create_router(settings):
         )
         db_user = db_user_query.first()
         if not db_user:
-            raise HTTPException(status_code=404, detail=f"User with username {username} not found")
+            raise HTTPException(
+                status_code=404, detail=f"User with username {username} not found"
+            )
         else:
             user_dict = user.dict()
             user_dict["hashed_password"] = pwd_context.hash(user_dict["password"])
@@ -76,13 +85,11 @@ def create_router(settings):
             db.commit()
         return db_user
 
-
     # @router.get("/users/")
     # def get_users(
-    #     db: Session = Depends(get_db), 
+    #     db: Session = Depends(get_db),
     # ):
     #     db_users = db.query(models.User).all()
     #     return db_users
-
 
     return router

@@ -2,14 +2,12 @@
 <html>
 
 <head>
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/main.css') }}">
   <link rel="shortcut icon" href="{{ url_for('static', path='favicon.ico') }}">
 
-  <!-- Imports for Material Web -->
-  <link rel="stylesheet" href="{{ url_for('static', path='material-components-web/material-components-web.min.css') }}">
-  <script src="{{ url_for('static', path='material-components-web/material-components-web.min.js') }}"></script>
-  <link rel="stylesheet" href="{{ url_for('static', path='material-components-web/google-material-icons.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', path='material-components-web/google-fonts-roboto.css') }}">
+  <!-- Material Web -->
+  <link rel="stylesheet" href="{{ url_for('static', path='dist/bundle.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='google-material-icons.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='google-fonts-roboto.css') }}">
   {% block head %}{% endblock %}
 
   <title>{% block title %}Grid Annotation Tool{% endblock %}</title>
@@ -21,17 +19,17 @@
     <header class=" mdc-top-app-bar mdc-top-app-bar--fixed">
       <div class="mdc-top-app-bar__row">
       <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
-          <span class="mdc-top-app-bar__title" onclick="homeButtonClicked()">Grid Annotation Tool</span>
+          <span class="mdc-top-app-bar__title" id="app-bar-home-button">Grid Annotation Tool</span>
       </section>
       <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
         {% block appbar_buttons %}{% endblock %}
-        <a id="login-button" class="mdc-button mdc-button--icon-leading login-button" onclick="loginButtonClicked()">
+        <a id="app-bar-login-button" class="mdc-button mdc-button--icon-leading login-button">
           <span class="mdc-button__ripple"></span>
           <span class="mdc-button__focus-ring"></span>
-          <i id="login-button-icon" class="material-icons mdc-button__icon" aria-hidden="true">
+          <i id="app-bar-login-button-icon" class="material-icons mdc-button__icon" aria-hidden="true">
               login
           </i>
-          <span id="login-button-label" class="mdc-button__label">Login</span>
+          <span id="app-bar-login-button-label" class="mdc-button__label">Login</span>
         </a>
         <a class="mdc-button login-button" href="{{ url_for('registration') }}">
           <span class="mdc-button__ripple"></span>
@@ -63,7 +61,6 @@
 
   {% block tooltips %}{% endblock %}
 
-  <!--<script src="{{ url_for('static', path='main.js') }}"></script>-->
   <script>
     const API_URL = {{ api_url|tojson }};
 
@@ -75,7 +72,7 @@
         login: "{{ url_for('login') }}"
     }
   </script>
-  <script src="{{ url_for('static', path='src/index.js') }}"></script>
+  <script src="{{ url_for('static', path='dist/index.bundle.js') }}"></script>
   
   {% block script %}{% endblock %}
 </body>

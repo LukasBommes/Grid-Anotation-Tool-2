@@ -1,0 +1,35 @@
+@use "@material/layout-grid/mdc-layout-grid";
+
+@use "@material/snackbar/mdc-snackbar";
+@use "@material/ripple";
+
+@use '@material/button/mdc-button';
+@use '@material/button';
+
+@use "@material/icon-button/styles";
+
+@use "@material/list/mdc-list";
+@use "@material/menu-surface/mdc-menu-surface";
+@use "@material/menu/mdc-menu";
+
+@use "@material/elevation/mdc-elevation";
+
+@use "@material/dialog";
+
+@use "@material/list";
+
+@use "@material/floating-label/mdc-floating-label";
+@use "@material/line-ripple/mdc-line-ripple";
+@use "@material/notched-outline/mdc-notched-outline";
+@use "@material/textfield";
+
+@use "@material/icon-button";
+@use "@material/top-app-bar/mdc-top-app-bar";
+
+@use "@material/typography/mdc-typography";
+
+@use "@material/tooltip/styles" as tooltip-style;
+
+@include dialog.core-styles;
+@include textfield.core-styles;
+@include list.deprecated-core-styles;
