@@ -40,7 +40,7 @@ You can also run the Grid Annotation Tool locally on your machine. Simply follow
 
 In your shell navigate to the preferred installation directory and clone the repository
 ```
-git clone https://github.com/LukasBommes/Grid-Anotation-Tool-v3
+git clone https://github.com/LukasBommes/Grid-Anotation-Tool-2
 ```
 
 #### Create Secrets
@@ -158,7 +158,7 @@ The grid annotation tool relies on the [kld-intersections](https://github.com/th
 
 Make sure the Grid Annotation Tool is running, i.e., all containers are up. Then, from project root, run
 ```
-sudo docker exec -it grid-annotation-tool-v3_backend_1 pytest
+sudo docker exec -it grid-annotation-tool-2_backend_1 pytest
 ```
 
 #### Building frontend
