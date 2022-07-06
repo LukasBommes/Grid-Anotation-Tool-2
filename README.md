@@ -106,9 +106,11 @@ You can also import a project from the zip archive downloaded in the previous st
 
 #### Annotating an Image
 
-Follow these instructions to annotate grid instances in an image. In the annotation editor you can select from the following tools:
+In the annotation editor you can select from the following tools.
 
 ![screenshot of toolbar icons](docs/toolbar_icons.png)
+
+With these tools you can annotate grid instances in an image as follows:
 
 1. Draw auxiliary lines / auxiliary curves by clicking on "Draw Auxiliary Line" / "Draw Auxiliary Curve" and placing two / three points by clicking into the image. These lines should outline the grid lines between individual grid cells.
 2. Click on "Get Intersections" to compute the intersection points between auxiliary lines and curves.
