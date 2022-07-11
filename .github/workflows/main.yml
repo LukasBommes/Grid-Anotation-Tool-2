@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  # runs only after merging a PR into master
+  # 'pull_request' event would also trigger on dismising or closing a PR even without merging it
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Create secrets
+      run: |
+        chmod +x make_secrets.sh
+        ./make_secrets.sh
+
+    - name: Build and start containers
+      run: docker compose up -d --build
+
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+
+    - name: Install Node dependencies
+      run: cd ./frontend && npm install
+
+    - name: Bundle frontend code
+      run: cd ./frontend && npm run build
+
+    - name: Run backend tests
+      run: docker exec -it gat2_backend pytest
+
+    - name: 
+
+    # TODO:
+    # copy code into containers
+    # push containers into registry
+
+    # test containers
+
+    - name: Stop containers
+      if: always()
+      run: docker compose down
+
+    #- name: Set up Docker Buildx
+    #  uses: docker/setup-buildx-action@v2
+
+    # build docker compose stack
+
+    # use containers to run tests
+
+    # push containers to registry
+
+    #- name: Build
+    #  uses: docker/build-push-action@v3
+    #  with:
+    #    context: .
+    #    load: true
+    #    tags: myimage:latest

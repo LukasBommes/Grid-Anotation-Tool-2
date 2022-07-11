@@ -4,11 +4,12 @@ services:
 
   reverse-proxy:
     image: traefik:v2.8
+    container_name: gat2_traefik
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=grid_anotation_tool"
+      - "--providers.docker.network=gat2_network"
       - "--entrypoints.web.address=:80"
     ports:
       - "80:80"
@@ -16,10 +17,11 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
-      - grid_anotation_tool
+      - gat2_network
 
   db:
     image: postgres:14.3
+    container_name: gat2_postgres
     restart: always
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -32,18 +34,20 @@ services:
       - db_postgres_password
       - db_postgres_db
     networks:
-      - grid_anotation_tool
+      - gat2_network
 
   adminer:
     image: adminer
+    container_name: gat2_adminer
     restart: always
     ports:
       - 8888:8080
     networks:
-      - grid_anotation_tool
+      - gat2_network
 
   backend:
     build: docker
+    container_name: gat2_backend
     expose:
       - "8000"
     volumes:
@@ -70,7 +74,7 @@ services:
     command: /start-reload.sh  # production: /start.sh
     restart: always
     networks:
-      - grid_anotation_tool
+      - gat2_network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`127.0.0.1`) && PathPrefix(`/api`)"
@@ -78,6 +82,7 @@ services:
 
   frontend:
     build: docker
+    container_name: gat2_frontend
     expose:
       - "9999"
     volumes:
@@ -95,7 +100,7 @@ services:
     command: /start-reload.sh  # production: /start.sh
     restart: always
     networks:
-      - grid_anotation_tool
+      - gat2_network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`127.0.0.1`)"
@@ -120,5 +125,5 @@ volumes:
   media:
 
 networks:
-  grid_anotation_tool:
-    name: grid_anotation_tool
+  gat2_network:
+    name: gat2_network
