@@ -1,5 +1,11 @@
 # Grid Annotation Tool 2
 
+![build workflow](https://github.com/LukasBommes/Grid-Anotation-Tool-2/actions/workflows/main.yml/badge.svg)
+![issues badge](	https://img.shields.io/github/issues/LukasBommes/Grid-Anotation-Tool-2)
+![license badge](https://img.shields.io/github/license/LukasBommes/Grid-Anotation-Tool-2)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+
 This is an updated version of the old [Grid Annotation Tool](https://github.com/LukasBommes/Grid-Annotation-Tool).
 
 A web app for annotating grid structures in images for computer vision research and applications. For some applications you may want to annotate a grid structure to train, for example, an instance segmentation model, such as Mask R-CNN.
