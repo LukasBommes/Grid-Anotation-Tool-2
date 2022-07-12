@@ -6,3 +6,5 @@ docker/secrets/
 backend/tests/images/
 frontend/node_modules/
 *.LICENSE.txt
+coverage.xml
+.coverage

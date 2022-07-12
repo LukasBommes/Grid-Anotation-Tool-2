@@ -66,12 +66,12 @@ jobs:
         push: true
 
     - name: Run backend tests
-      run: docker exec -t gat2_backend pytest --cov=./ --cov-report=xml
+      run: docker exec -t gat2_backend pytest --cov=./ --cov-report=xml:/backend/backend/tests/coverage.xml
 
     - name: Upload coverage
       uses: codecov/codecov-action@v3
       with:       
-        files: ./backend/coverage.xml
+        files: ./backend/tests/coverage.xml
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: true
