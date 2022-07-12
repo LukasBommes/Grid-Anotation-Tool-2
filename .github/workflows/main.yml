@@ -73,12 +73,12 @@ jobs:
       run: docker exec -t gat2_backend bash -c "cd /backend/backend/tests && coverage-badge -f -o coverage.svg"
 
     - name: Commit changes if any
-     uses: EndBug/add-and-commit@v9
-     with:
-       add: '**/coverage.svg'
-       message: 'Coverage badge generated'
-       default_author: github_actions
-       push: true
+      uses: EndBug/add-and-commit@v9
+      with:
+        add: '**/coverage.svg'
+        message: 'Coverage badge generated'
+        default_author: github_actions
+        push: true
 
     # - name: Commit changes if any
     #   run: |
