@@ -8,7 +8,9 @@ on:
 jobs:
   run:
     name: Build, lint and test
-    
+
+    if: github.event.pull_request.merged == true  # prevent execution on closed or dismissed PR
+
     runs-on: ubuntu-latest
 
     steps:
@@ -17,6 +19,7 @@ jobs:
       with:
         repository: ${{ github.event.pull_request.head.repo.full_name }}
         ref: ${{ github.event.pull_request.head.ref }}
+        token: ${{ secrets.pat }}
 
     - name: Create secrets
       run: |
@@ -71,13 +74,26 @@ jobs:
     - name: Generate coverage badge
       run: docker exec -t gat2_backend bash -c "cd /backend/backend/tests && coverage-badge -f -o coverage.svg"
 
+    #- name: Commit changes if any
+    #  uses: EndBug/add-and-commit@v9
+    #  with:
+    #    add: '**/coverage.svg'
+    #    message: 'Coverage badge generated'
+    #    default_author: github_actions
+    #    push: true
+
     - name: Commit changes if any
-      uses: EndBug/add-and-commit@v9
-      with:
-        add: '**/coverage.svg'
-        message: 'Coverage badge generated'
-        default_author: github_actions
-        push: true
+      run: |
+        date >generated.txt
+        user=$(gh api /user)
+        user_name=$(jq -r '.login' <<<"$user")
+        user_email=$(jq -r ".email | \"$user_name@users.noreply.github.com\"" <<<"$user")
+        git config user.name "$user_name"
+        git config user.email "$user_email"
+        git add --all .
+        git commit --message 'Coverage badge generated'
+        git push
+      shell: bash
 
     # TODO:
     # Download bundled frontend code into repository
