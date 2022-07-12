@@ -9,8 +9,6 @@ jobs:
   run:
     name: Build, lint and test
 
-    if: github.event.pull_request.merged == true  # prevent execution on closed or dismissed PR
-
     runs-on: ubuntu-latest
 
     steps:
