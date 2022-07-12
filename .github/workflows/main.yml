@@ -65,14 +65,11 @@ jobs:
         default_author: github_actions
         push: true
 
-    - name: Run backend tests
-      run: docker exec -t gat2_backend coverage run --data-file=/backend/backend/tests/.coverage -m pytest
-
-    - name: Install coverage
-      run: pip install coverage-badge
+    - name: Run backend tests with coverage
+      run: docker exec -t gat2_backend bash -c "pip install coverage pytest coverage-badge && coverage run --data-file=/backend/backend/tests/.coverage -m pytest"
 
     - name: Generate coverage badge
-      run: cd ./backend/tests && coverage-badge -o coverage.svg
+      run: docker exec -t gat2_backend bash -c "cd /backend/backend/tests && coverage-badge -f -o coverage.svg"
 
     - name: Commit changes if any
       uses: EndBug/add-and-commit@v9
