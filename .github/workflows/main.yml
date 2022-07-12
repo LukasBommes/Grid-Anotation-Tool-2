@@ -10,6 +10,7 @@ jobs:
     name: Build, lint and test
 
     runs-on: ubuntu-latest
+    if: github.actor != 'github-actions'  # prevent infinite loop due to commit with personal access token
 
     steps:
     - name: Checkout
