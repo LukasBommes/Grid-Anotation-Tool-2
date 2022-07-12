@@ -70,12 +70,11 @@ jobs:
 
     - name: Upload coverage
       uses: codecov/codecov-action@v3
-      with:
-        fail_ci_if_error: true
+      with:       
         files: ./backend/coverage.xml
         flags: unittests
         name: codecov-umbrella
-        path_to_write_report: ./codecov_report.txt
+        fail_ci_if_error: true
         verbose: true
 
     # TODO:
