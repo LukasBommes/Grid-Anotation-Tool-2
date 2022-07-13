@@ -57,11 +57,14 @@ jobs:
     - name: Format Python code with black 
       run: black ./backend ./frontend --verbose
 
+    - name: Format frontend code with prettier
+      run: cd ./frontend && npm run format
+
     - name: Commit changes if any
       uses: EndBug/add-and-commit@v9
       with:
         add: '*.py'
-        message: 'Code formatted with black'
+        message: 'Code formatted'
         default_author: github_actions
         push: true
 

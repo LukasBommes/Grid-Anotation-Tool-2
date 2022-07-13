@@ -1,4 +1,4 @@
-html  {
+html {
   min-height: 100%;
   position: relative;
 }
@@ -31,17 +31,17 @@ body {
 }
 
 .main-container {
-    padding: 20px;
+  padding: 20px;
 }
 
 .main-container .form-row {
-    padding-top: 10px;
+  padding-top: 10px;
 }
 
 .main-container .form-row .mdc-text-field {
-    width: 100%;
+  width: 100%;
 }
 
 input[type="file"] {
-    display: none;
+  display: none;
 }

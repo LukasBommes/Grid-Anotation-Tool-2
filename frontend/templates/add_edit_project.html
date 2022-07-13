@@ -1,105 +1,154 @@
-{% extends "index.html" %}
-
-{% block content %}
+{% extends "index.html" %} {% block content %}
 <div class="mdc-layout-grid">
-    <div class="mdc-layout-grid__inner">
-        <div class="mdc-layout-grid__cell--span-2"></div>
-        <div class="mdc-layout-grid__cell--span-8">                                
-            <div class="mdc-elevation--z4">
-                <div class="main-container">
-                    <h1 class="mdc-typography--button">{% if mode == 'add' %}New Project{% else %}Edit Project{% endif %}</h1>
+  <div class="mdc-layout-grid__inner">
+    <div class="mdc-layout-grid__cell--span-2"></div>
+    <div class="mdc-layout-grid__cell--span-8">
+      <div class="mdc-elevation--z4">
+        <div class="main-container">
+          <h1 class="mdc-typography--button">
+            {% if mode == 'add' %}New Project{% else %}Edit Project{% endif %}
+          </h1>
 
-                    <!-- Name Textfield -->
-                    <div class="form-row">
-                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-name">
-                            <input class="mdc-text-field__input" id="text-field-name-input">
-                            <div class="mdc-notched-outline">
-                                <div class="mdc-notched-outline__leading"></div>
-                                <div class="mdc-notched-outline__notch">
-                                    <label for="text-field-name-input" class="mdc-floating-label" id="text-field-name-label">Name</label>
-                                </div>
-                                <div class="mdc-notched-outline__trailing"></div>
-                            </div>
-                        </div>
-                        <div class="mdc-text-field-helper-line">
-                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-name-error" aria-hidden="true"></div>
-                        </div>
-                    </div>
-
-                    <!-- Description Textarea -->
-                    <div class="form-row">
-                        <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea" id="text-field-description">
-                            <span class="mdc-notched-outline">
-                            <span class="mdc-notched-outline__leading"></span>
-                            <div class="mdc-notched-outline__notch">
-                                <label for="text-field-description-input" class="mdc-floating-label" id="text-field-description-label">Description</label>
-                            </div>
-                            <span class="mdc-notched-outline__trailing"></span>
-                            </span>
-                            <span class="mdc-text-field__resizer">
-                            <textarea class="mdc-text-field__input" rows="4" cols="40" aria-label="Label" id="text-field-description-input"></textarea>
-                            </span>
-                        </label>
-                        <div class="mdc-text-field-helper-line">
-                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-description-error" aria-hidden="true"></div>
-                        </div>
-                    </div>
-
-                    <!-- Image Upload -->
-                    <div class="form-row">                       
-                        <label for="image-upload-input" class="mdc-button mdc-button--outlined mdc-button--icon-leading image-upload-button">
-                            <span class="mdc-button__ripple"></span>
-                            <span class="mdc-button__focus-ring"></span>
-                            <i class="material-icons mdc-button__icon" aria-hidden="true">add</i>
-                            <span class="mdc-button__label">Add Images</span>
-                        </label>
-                        <input type="file" id="image-upload-input" accept="image/*" multiple>
-                    </div>
-
-                    <!-- Image List -->
-                    <div class="form-row">
-                        <h1 class="mdc-typography--subtitle1" id="image-list-title" style="display: none;">Images</h1>
-                        <div class="image-list" id="images-list">
-                        </div>
-                    </div>
-
-                    <!-- Buttons -->
-                    <div class="form-row">
-                        <button class="mdc-button mdc-button--outlined" id="edit-project-cancel-button">
-                            <span class="mdc-button__ripple"></span>
-                            <span class="mdc-button__focus-ring"></span>
-                            <span class="mdc-button__label">Cancel</span>
-                        </button>
-                        <button class="mdc-button mdc-button--raised mdc-button--icon-leading" id="edit-project-submit-button">
-                            <span class="mdc-button__ripple"></span>
-                            <span class="mdc-button__focus-ring"></span>
-                            <i class="material-icons mdc-button__icon" aria-hidden="true">
-                                save
-                            </i>
-                            <span class="mdc-button__label">{% if mode == 'add' %}Create Project{% else %}Save Changes{% endif %}</span>
-                        </button>
-                    </div>
-
+          <!-- Name Textfield -->
+          <div class="form-row">
+            <div
+              class="mdc-text-field mdc-text-field--outlined"
+              id="text-field-name"
+            >
+              <input class="mdc-text-field__input" id="text-field-name-input" />
+              <div class="mdc-notched-outline">
+                <div class="mdc-notched-outline__leading"></div>
+                <div class="mdc-notched-outline__notch">
+                  <label
+                    for="text-field-name-input"
+                    class="mdc-floating-label"
+                    id="text-field-name-label"
+                    >Name</label
+                  >
                 </div>
+                <div class="mdc-notched-outline__trailing"></div>
+              </div>
             </div>
-        </div>
-        <div class="mdc-layout-grid__cell--span-2"></div>
-    </div>
-</div>
-{% endblock %}
+            <div class="mdc-text-field-helper-line">
+              <div
+                class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
+                id="text-field-name-error"
+                aria-hidden="true"
+              ></div>
+            </div>
+          </div>
 
-{% block tooltips %}
+          <!-- Description Textarea -->
+          <div class="form-row">
+            <label
+              class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea"
+              id="text-field-description"
+            >
+              <span class="mdc-notched-outline">
+                <span class="mdc-notched-outline__leading"></span>
+                <div class="mdc-notched-outline__notch">
+                  <label
+                    for="text-field-description-input"
+                    class="mdc-floating-label"
+                    id="text-field-description-label"
+                    >Description</label
+                  >
+                </div>
+                <span class="mdc-notched-outline__trailing"></span>
+              </span>
+              <span class="mdc-text-field__resizer">
+                <textarea
+                  class="mdc-text-field__input"
+                  rows="4"
+                  cols="40"
+                  aria-label="Label"
+                  id="text-field-description-input"
+                ></textarea>
+              </span>
+            </label>
+            <div class="mdc-text-field-helper-line">
+              <div
+                class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
+                id="text-field-description-error"
+                aria-hidden="true"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Image Upload -->
+          <div class="form-row">
+            <label
+              for="image-upload-input"
+              class="mdc-button mdc-button--outlined mdc-button--icon-leading image-upload-button"
+            >
+              <span class="mdc-button__ripple"></span>
+              <span class="mdc-button__focus-ring"></span>
+              <i class="material-icons mdc-button__icon" aria-hidden="true"
+                >add</i
+              >
+              <span class="mdc-button__label">Add Images</span>
+            </label>
+            <input
+              type="file"
+              id="image-upload-input"
+              accept="image/*"
+              multiple
+            />
+          </div>
+
+          <!-- Image List -->
+          <div class="form-row">
+            <h1
+              class="mdc-typography--subtitle1"
+              id="image-list-title"
+              style="display: none"
+            >
+              Images
+            </h1>
+            <div class="image-list" id="images-list"></div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="form-row">
+            <button
+              class="mdc-button mdc-button--outlined"
+              id="edit-project-cancel-button"
+            >
+              <span class="mdc-button__ripple"></span>
+              <span class="mdc-button__focus-ring"></span>
+              <span class="mdc-button__label">Cancel</span>
+            </button>
+            <button
+              class="mdc-button mdc-button--raised mdc-button--icon-leading"
+              id="edit-project-submit-button"
+            >
+              <span class="mdc-button__ripple"></span>
+              <span class="mdc-button__focus-ring"></span>
+              <i class="material-icons mdc-button__icon" aria-hidden="true">
+                save
+              </i>
+              <span class="mdc-button__label"
+                >{% if mode == 'add' %}Create Project{% else %}Save Changes{%
+                endif %}</span
+              >
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mdc-layout-grid__cell--span-2"></div>
+  </div>
+</div>
+{% endblock %} {% block tooltips %}
 <!--<div id="tooltip-delete-image" class="mdc-tooltip" role="tooltip" aria-hidden="true">
     <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
         Mark image for deletion
     </div>
 </div>-->
-{% endblock %}
-
-{% block script %}
+{% endblock %} {% block script %}
 <script>
-const project_id = {{ project_id|tojson }};
-const mode = {{ mode|tojson }};
+  const project_id = {{ project_id|tojson }};
+  const mode = {{ mode|tojson }};
 </script>
 <script src="{{ url_for('static', path='dist/project/index.bundle.js') }}"></script>
 {% endblock %}

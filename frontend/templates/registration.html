@@ -1,105 +1,181 @@
-{% extends "index.html" %}
-
-{% block content %}
+{% extends "index.html" %} {% block content %}
 <div class="mdc-layout-grid">
-    <div class="mdc-layout-grid__inner">
-        <div class="mdc-layout-grid__cell--span-2"></div>
-        <div class="mdc-layout-grid__cell--span-8">                                
-            <div class="mdc-elevation--z4">
-                <div class="main-container">
-                    <h1 class="mdc-typography--button">Registration</h1>
+  <div class="mdc-layout-grid__inner">
+    <div class="mdc-layout-grid__cell--span-2"></div>
+    <div class="mdc-layout-grid__cell--span-8">
+      <div class="mdc-elevation--z4">
+        <div class="main-container">
+          <h1 class="mdc-typography--button">Registration</h1>
 
-                    <!-- Resgitration form -->
-                    <div class="form-row">                       
-                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-username">                            
-                            <input class="mdc-text-field__input" id="text-field-username-input">
-                            <div class="mdc-notched-outline">
-                                <div class="mdc-notched-outline__leading"></div>
-                                <div class="mdc-notched-outline__notch">
-                                    <label for="text-field-username-input" class="mdc-floating-label" id="text-field-username-label">Username</label>
-                                </div>
-                                <div class="mdc-notched-outline__trailing"></div>
-                            </div>
-                        </div>
-                        <div class="mdc-text-field-helper-line">
-                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-username-error" aria-hidden="true"></div>
-                        </div>                                            
-                    </div>
-                    <div class="form-row">
-                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-fullname">
-                            <input class="mdc-text-field__input" id="text-field-fullname-input">
-                            <div class="mdc-notched-outline">
-                                <div class="mdc-notched-outline__leading"></div>
-                                <div class="mdc-notched-outline__notch">
-                                    <label for="text-field-fullname-input" class="mdc-floating-label" id="text-field-fullname-label">Full Name</label>
-                                </div>
-                                <div class="mdc-notched-outline__trailing"></div>
-                            </div>
-                        </div>
-                        <div class="mdc-text-field-helper-line">
-                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-fullname-error" aria-hidden="true"></div>
-                        </div> 
-                    </div>   
-                    <div class="form-row">
-                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-email">
-                            <input class="mdc-text-field__input" id="text-field-email-input">
-                            <div class="mdc-notched-outline">
-                                <div class="mdc-notched-outline__leading"></div>
-                                <div class="mdc-notched-outline__notch">
-                                    <label for="text-field-email-input" class="mdc-floating-label" id="text-field-email-label">Email Address</label>
-                                </div>
-                                <div class="mdc-notched-outline__trailing"></div>
-                            </div>
-                        </div>
-                        <div class="mdc-text-field-helper-line">
-                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-email-error" aria-hidden="true"></div>
-                        </div> 
-                    </div>                       
-                    <div class="form-row">
-                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-password">
-                            <input type="password" class="mdc-text-field__input" id="text-field-password-input">
-                            <div class="mdc-notched-outline">
-                                <div class="mdc-notched-outline__leading"></div>
-                                <div class="mdc-notched-outline__notch">
-                                    <label for="text-field-password-input" class="mdc-floating-label" id="text-field-password-label">Password</label>
-                                </div>
-                                <div class="mdc-notched-outline__trailing"></div>
-                            </div>
-                        </div>
-                        <div class="mdc-text-field-helper-line">
-                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-password-error" aria-hidden="true"></div>
-                        </div> 
-                    </div>
-                    <div class="form-row">
-                        <div class="mdc-text-field mdc-text-field--outlined" id="text-field-password-repeated">
-                            <input type="password" class="mdc-text-field__input" id="text-field-password-repeated-input">
-                            <div class="mdc-notched-outline">
-                                <div class="mdc-notched-outline__leading"></div>
-                                <div class="mdc-notched-outline__notch">
-                                    <label for="text-field-password-repeated-input" class="mdc-floating-label" id="text-field-password-repeated-label">Repeat Password</label>
-                                </div>
-                                <div class="mdc-notched-outline__trailing"></div>
-                            </div>
-                        </div>
-                        <div class="mdc-text-field-helper-line">
-                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg" id="text-field-password-repeated-error" aria-hidden="true"></div>
-                        </div> 
-                    </div>
-                    <div class="form-row">
-                        <button class="mdc-button mdc-button--raised" id="registration-form-submit-button">
-                            <span class="mdc-button__ripple"></span>
-                            <span class="mdc-button__focus-ring"></span>
-                            <span class="mdc-button__label">Create Account</span>
-                        </button>
-                    </div>
+          <!-- Resgitration form -->
+          <div class="form-row">
+            <div
+              class="mdc-text-field mdc-text-field--outlined"
+              id="text-field-username"
+            >
+              <input
+                class="mdc-text-field__input"
+                id="text-field-username-input"
+              />
+              <div class="mdc-notched-outline">
+                <div class="mdc-notched-outline__leading"></div>
+                <div class="mdc-notched-outline__notch">
+                  <label
+                    for="text-field-username-input"
+                    class="mdc-floating-label"
+                    id="text-field-username-label"
+                    >Username</label
+                  >
                 </div>
+                <div class="mdc-notched-outline__trailing"></div>
+              </div>
             </div>
+            <div class="mdc-text-field-helper-line">
+              <div
+                class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
+                id="text-field-username-error"
+                aria-hidden="true"
+              ></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div
+              class="mdc-text-field mdc-text-field--outlined"
+              id="text-field-fullname"
+            >
+              <input
+                class="mdc-text-field__input"
+                id="text-field-fullname-input"
+              />
+              <div class="mdc-notched-outline">
+                <div class="mdc-notched-outline__leading"></div>
+                <div class="mdc-notched-outline__notch">
+                  <label
+                    for="text-field-fullname-input"
+                    class="mdc-floating-label"
+                    id="text-field-fullname-label"
+                    >Full Name</label
+                  >
+                </div>
+                <div class="mdc-notched-outline__trailing"></div>
+              </div>
+            </div>
+            <div class="mdc-text-field-helper-line">
+              <div
+                class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
+                id="text-field-fullname-error"
+                aria-hidden="true"
+              ></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div
+              class="mdc-text-field mdc-text-field--outlined"
+              id="text-field-email"
+            >
+              <input
+                class="mdc-text-field__input"
+                id="text-field-email-input"
+              />
+              <div class="mdc-notched-outline">
+                <div class="mdc-notched-outline__leading"></div>
+                <div class="mdc-notched-outline__notch">
+                  <label
+                    for="text-field-email-input"
+                    class="mdc-floating-label"
+                    id="text-field-email-label"
+                    >Email Address</label
+                  >
+                </div>
+                <div class="mdc-notched-outline__trailing"></div>
+              </div>
+            </div>
+            <div class="mdc-text-field-helper-line">
+              <div
+                class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
+                id="text-field-email-error"
+                aria-hidden="true"
+              ></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div
+              class="mdc-text-field mdc-text-field--outlined"
+              id="text-field-password"
+            >
+              <input
+                type="password"
+                class="mdc-text-field__input"
+                id="text-field-password-input"
+              />
+              <div class="mdc-notched-outline">
+                <div class="mdc-notched-outline__leading"></div>
+                <div class="mdc-notched-outline__notch">
+                  <label
+                    for="text-field-password-input"
+                    class="mdc-floating-label"
+                    id="text-field-password-label"
+                    >Password</label
+                  >
+                </div>
+                <div class="mdc-notched-outline__trailing"></div>
+              </div>
+            </div>
+            <div class="mdc-text-field-helper-line">
+              <div
+                class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
+                id="text-field-password-error"
+                aria-hidden="true"
+              ></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div
+              class="mdc-text-field mdc-text-field--outlined"
+              id="text-field-password-repeated"
+            >
+              <input
+                type="password"
+                class="mdc-text-field__input"
+                id="text-field-password-repeated-input"
+              />
+              <div class="mdc-notched-outline">
+                <div class="mdc-notched-outline__leading"></div>
+                <div class="mdc-notched-outline__notch">
+                  <label
+                    for="text-field-password-repeated-input"
+                    class="mdc-floating-label"
+                    id="text-field-password-repeated-label"
+                    >Repeat Password</label
+                  >
+                </div>
+                <div class="mdc-notched-outline__trailing"></div>
+              </div>
+            </div>
+            <div class="mdc-text-field-helper-line">
+              <div
+                class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
+                id="text-field-password-repeated-error"
+                aria-hidden="true"
+              ></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <button
+              class="mdc-button mdc-button--raised"
+              id="registration-form-submit-button"
+            >
+              <span class="mdc-button__ripple"></span>
+              <span class="mdc-button__focus-ring"></span>
+              <span class="mdc-button__label">Create Account</span>
+            </button>
+          </div>
         </div>
-        <div class="mdc-layout-grid__cell--span-2"></div>
+      </div>
     </div>
+    <div class="mdc-layout-grid__cell--span-2"></div>
+  </div>
 </div>
-{% endblock %}
-
-{% block script %}
+{% endblock %} {% block script %}
 <script src="{{ url_for('static', path='dist/registration/index.bundle.js') }}"></script>
 {% endblock %}
