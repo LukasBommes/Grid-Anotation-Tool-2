@@ -1,91 +1,176 @@
-{% extends "index.html" %}
-
-{% block appbar_buttons %}
-<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Export Project" aria-describedby="tooltip-export-project" id="export-project-button">
-    <div class="mdc-icon-button__ripple"></div>
-    file_download
+{% extends "index.html" %} {% block appbar_buttons %}
+<button
+  class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button"
+  aria-label="Export Project"
+  aria-describedby="tooltip-export-project"
+  id="export-project-button"
+>
+  <div class="mdc-icon-button__ripple"></div>
+  file_download
 </button>
-<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button" aria-label="Setup Project" aria-describedby="tooltip-setup-project" id="setup-project-button">
-    <div class="mdc-icon-button__ripple"></div>
-    build
+<button
+  class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button"
+  aria-label="Setup Project"
+  aria-describedby="tooltip-setup-project"
+  id="setup-project-button"
+>
+  <div class="mdc-icon-button__ripple"></div>
+  build
 </button>
-{% endblock %}
-
-{% block content %}
-<div class="mdc-elevation--z4" id="images-selection-container" style="width: 200px; margin-bottom: 50px; position: absolute; z-index: 1000; background-color: white;">
-  <ul id="images-selection-list" class="mdc-deprecated-list mdc-deprecated-list--dense" role="listbox"></ul>
+{% endblock %} {% block content %}
+<div
+  class="mdc-elevation--z4"
+  id="images-selection-container"
+  style="
+    width: 200px;
+    margin-bottom: 50px;
+    position: absolute;
+    z-index: 1000;
+    background-color: white;
+  "
+>
+  <ul
+    id="images-selection-list"
+    class="mdc-deprecated-list mdc-deprecated-list--dense"
+    role="listbox"
+  ></ul>
 </div>
 
 <div class="btn-group" id="drawing-actions">
-  <button id='btn-draw-auxline' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-draw-auxline">
+  <button
+    id="btn-draw-auxline"
+    class="mdc-icon-button material-icons editor-button"
+    aria-describedby="tooltip-draw-auxline"
+  >
     <span class="mdc-icon-button__focus-ring"></span>
     remove
   </button>
-  <button id='btn-draw-auxcurve' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-draw-auxcurve">
+  <button
+    id="btn-draw-auxcurve"
+    class="mdc-icon-button material-icons editor-button"
+    aria-describedby="tooltip-draw-auxcurve"
+  >
     <span class="mdc-icon-button__focus-ring"></span>
     gesture
   </button>
-  <button id='btn-get-intersects' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-get-intersects">
+  <button
+    id="btn-get-intersects"
+    class="mdc-icon-button material-icons editor-button"
+    aria-describedby="tooltip-get-intersects"
+  >
     <span class="mdc-icon-button__focus-ring"></span>
     auto_fix_high
   </button>
-  <button id='btn-add-corner' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-add-corner">
+  <button
+    id="btn-add-corner"
+    class="mdc-icon-button material-icons editor-button"
+    aria-describedby="tooltip-add-corner"
+  >
     <span class="mdc-icon-button__focus-ring"></span>
     scatter_plot
   </button>
-  <button id='btn-create-module' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-create-module">
+  <button
+    id="btn-create-module"
+    class="mdc-icon-button material-icons editor-button"
+    aria-describedby="tooltip-create-module"
+  >
     <span class="mdc-icon-button__focus-ring"></span>
     apps
   </button>
-  <button id='btn-create-module-manual' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-create-module-manual">
+  <button
+    id="btn-create-module-manual"
+    class="mdc-icon-button material-icons editor-button"
+    aria-describedby="tooltip-create-module-manual"
+  >
     <span class="mdc-icon-button__focus-ring"></span>
     app_registration
   </button>
-  <button id='btn-mark-module-partially-visible' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-mark-module-partially-visible">
+  <button
+    id="btn-mark-module-partially-visible"
+    class="mdc-icon-button material-icons editor-button"
+    aria-describedby="tooltip-mark-module-partially-visible"
+  >
     <span class="mdc-icon-button__focus-ring"></span>
     visibility
   </button>
-  <button id='btn-erase' class="mdc-icon-button material-icons editor-button" aria-describedby="tooltip-erase">
+  <button
+    id="btn-erase"
+    class="mdc-icon-button material-icons editor-button"
+    aria-describedby="tooltip-erase"
+  >
     <span class="mdc-icon-button__focus-ring"></span>
     delete
   </button>
 </div>
 
 <svg id="current_image"></svg>
-{% endblock %}
-
-{% block tooltips %}
-<div id="tooltip-draw-auxline" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+{% endblock %} {% block tooltips %}
+<div
+  id="tooltip-draw-auxline"
+  class="mdc-tooltip"
+  role="tooltip"
+  aria-hidden="true"
+>
   <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
     Draw auxiliary line
   </div>
 </div>
-<div id="tooltip-draw-auxcurve" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+<div
+  id="tooltip-draw-auxcurve"
+  class="mdc-tooltip"
+  role="tooltip"
+  aria-hidden="true"
+>
   <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
     Draw auxiliary curve
   </div>
 </div>
-<div id="tooltip-get-intersects" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+<div
+  id="tooltip-get-intersects"
+  class="mdc-tooltip"
+  role="tooltip"
+  aria-hidden="true"
+>
   <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
     Get intersections of auxiliary lines/curves as grid cell corners
   </div>
 </div>
-<div id="tooltip-add-corner" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+<div
+  id="tooltip-add-corner"
+  class="mdc-tooltip"
+  role="tooltip"
+  aria-hidden="true"
+>
   <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
     Add grid cell corners manually
   </div>
 </div>
-<div id="tooltip-create-module" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+<div
+  id="tooltip-create-module"
+  class="mdc-tooltip"
+  role="tooltip"
+  aria-hidden="true"
+>
   <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
     Create grid cell automatically
   </div>
 </div>
-<div id="tooltip-create-module-manual" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+<div
+  id="tooltip-create-module-manual"
+  class="mdc-tooltip"
+  role="tooltip"
+  aria-hidden="true"
+>
   <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
     Create grid cell manually by clicking four corners
   </div>
 </div>
-<div id="tooltip-mark-module-partially-visible" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+<div
+  id="tooltip-mark-module-partially-visible"
+  class="mdc-tooltip"
+  role="tooltip"
+  aria-hidden="true"
+>
   <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
     Mark grid cell as partially visible
   </div>
@@ -95,19 +180,27 @@
     Erase items
   </div>
 </div>
-<div id="tooltip-export-project" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+<div
+  id="tooltip-export-project"
+  class="mdc-tooltip"
+  role="tooltip"
+  aria-hidden="true"
+>
   <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
     Export project
   </div>
 </div>
-<div id="tooltip-setup-project" class="mdc-tooltip" role="tooltip" aria-hidden="true">
+<div
+  id="tooltip-setup-project"
+  class="mdc-tooltip"
+  role="tooltip"
+  aria-hidden="true"
+>
   <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
     Setup project
   </div>
 </div>
-{% endblock %}
-
-{% block script %}
+{% endblock %} {% block script %}
 <script>
   const project_id = {{ project_id|tojson }};
 </script>

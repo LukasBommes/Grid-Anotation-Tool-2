@@ -1,110 +1,167 @@
-{% extends "index.html" %}
-
-{% block content %}
+{% extends "index.html" %} {% block content %}
 <div class="mdc-layout-grid">
-    <div class="mdc-layout-grid__inner">
-        <div class="mdc-layout-grid__cell--span-2"></div>
-        <div class="mdc-layout-grid__cell--span-8">                                
-            <div class="mdc-elevation--z4">
-                <div class="main-container">
-                    <div class="main-container-title">
-                        <h1 class="mdc-typography--button">Projects</h1>
+  <div class="mdc-layout-grid__inner">
+    <div class="mdc-layout-grid__cell--span-2"></div>
+    <div class="mdc-layout-grid__cell--span-8">
+      <div class="mdc-elevation--z4">
+        <div class="main-container">
+          <div class="main-container-title">
+            <h1 class="mdc-typography--button">Projects</h1>
 
-                        <!-- Buttons -->
-                        <div class="main-container-title-buttons">
-                            <label for="import-project-input" class="mdc-button mdc-button- mdc-button--icon-leading import-project-button">
-                                <span class="mdc-button__ripple"></span>
-                                <span class="mdc-button__focus-ring"></span>
-                                <i class="material-icons mdc-button__icon" aria-hidden="true">
-                                    upload
-                                </i>
-                                <span class="mdc-button__label">Import Project</span>
-                            </label>
-                            <input type="file" id="import-project-input" accept="zip,application/octet-stream,application/zip,application/x-zip,application/x-zip-compressed">
-                            <button class="mdc-button mdc-button--icon-leading" id="new-project-button">
-                                <span class="mdc-button__ripple"></span>
-                                <span class="mdc-button__focus-ring"></span>
-                                <i class="material-icons mdc-button__icon" aria-hidden="true">
-                                    add
-                                </i>
-                                <span class="mdc-button__label">New Project</span>
-                            </button>
+            <!-- Buttons -->
+            <div class="main-container-title-buttons">
+              <label
+                for="import-project-input"
+                class="mdc-button mdc-button- mdc-button--icon-leading import-project-button"
+              >
+                <span class="mdc-button__ripple"></span>
+                <span class="mdc-button__focus-ring"></span>
+                <i class="material-icons mdc-button__icon" aria-hidden="true">
+                  upload
+                </i>
+                <span class="mdc-button__label">Import Project</span>
+              </label>
+              <input
+                type="file"
+                id="import-project-input"
+                accept="zip,application/octet-stream,application/zip,application/x-zip,application/x-zip-compressed"
+              />
+              <button
+                class="mdc-button mdc-button--icon-leading"
+                id="new-project-button"
+              >
+                <span class="mdc-button__ripple"></span>
+                <span class="mdc-button__focus-ring"></span>
+                <i class="material-icons mdc-button__icon" aria-hidden="true">
+                  add
+                </i>
+                <span class="mdc-button__label">New Project</span>
+              </button>
 
-                            <div id="orderby-menu-container" class="mdc-menu-surface--anchor">
-                                <button class="mdc-button mdc-button--icon-leading" id="orderby-menu-open-button">
-                                    <span class="mdc-button__ripple"></span>
-                                    <span class="mdc-button__focus-ring"></span>
-                                    <i class="material-icons mdc-button__icon" aria-hidden="true">
-                                        sort
-                                    </i>
-                                    <span class="mdc-button__label">Order By</span>
-                                </button>
-                                <div id="orderby-menu" class="mdc-menu mdc-menu-surface">
-                                    <ul class="mdc-deprecated-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
-                                        <li class="mdc-deprecated-list-item" role="menuitem" id="orderby-menu-name-asc">
-                                            <span class="mdc-deprecated-list-item__ripple"></span>
-                                            <span class="mdc-deprecated-list-item__text">Name (A-Z)</span>
-                                        </li>
-                                        <li class="mdc-deprecated-list-item" role="menuitem" id="orderby-menu-name-desc">
-                                            <span class="mdc-deprecated-list-item__ripple"></span>
-                                            <span class="mdc-deprecated-list-item__text">Name (Z-A)</span>
-                                        </li>
-                                        <li class="mdc-deprecated-list-item" role="menuitem" id="orderby-menu-created-asc">
-                                            <span class="mdc-deprecated-list-item__ripple"></span>
-                                            <span class="mdc-deprecated-list-item__text">Created (Old projects first)</span>
-                                        </li>
-                                        <li class="mdc-deprecated-list-item" role="menuitem" id="orderby-menu-created-desc">
-                                            <span class="mdc-deprecated-list-item__ripple"></span>
-                                            <span class="mdc-deprecated-list-item__text">Created (Recent projects first)</span>
-                                        </li>
-                                        <li class="mdc-deprecated-list-item" role="menuitem" id="orderby-menu-edited-asc">
-                                            <span class="mdc-deprecated-list-item__ripple"></span>
-                                            <span class="mdc-deprecated-list-item__text">Last Edited (Old edits first)</span>
-                                        </li>
-                                        <li class="mdc-deprecated-list-item" role="menuitem" id="orderby-menu-edited-desc">
-                                            <span class="mdc-deprecated-list-item__ripple"></span>
-                                            <span class="mdc-deprecated-list-item__text">Last Edited (Recent edits first)</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                              </div>
-                        </div>
-                    </div>
-
-                    <!-- Project List -->
-                    <ul class="mdc-list" id="projects-list"></ul>
-
-                    <!-- Pagination -->
-                    <div id="pagination-projects" class="pagination-container">
-                        <span class="pagination-first">
-                            <button class="mdc-button button-pagination" id="button-pagination-first">
-                                <span class="mdc-button__ripple"></span>
-                                <span class="mdc-button__focus-ring"></span>
-                                <span class="mdc-button__label">&#10092;</span>
-                            </button>
-                            <div class="mdc-button button-pagination pagination-dots-left">
-                                <span class="mdc-button__label">...</span>
-                            </div>
-                        </span>                   
-                        <span class="pagination-main">
-                        </span>                                                
-                        <span class="pagination-last">
-                            <div class="mdc-button button-pagination pagination-dots-right">
-                                <span class="mdc-button__label">...</span>
-                            </div>
-                            <button class="mdc-button button-pagination" id="button-pagination-last">
-                                <span class="mdc-button__ripple"></span>
-                                <span class="mdc-button__focus-ring"></span>
-                                <span class="mdc-button__label">&#10093;</span>
-                            </button>
-                        </span>
-                    </div>
-
+              <div id="orderby-menu-container" class="mdc-menu-surface--anchor">
+                <button
+                  class="mdc-button mdc-button--icon-leading"
+                  id="orderby-menu-open-button"
+                >
+                  <span class="mdc-button__ripple"></span>
+                  <span class="mdc-button__focus-ring"></span>
+                  <i class="material-icons mdc-button__icon" aria-hidden="true">
+                    sort
+                  </i>
+                  <span class="mdc-button__label">Order By</span>
+                </button>
+                <div id="orderby-menu" class="mdc-menu mdc-menu-surface">
+                  <ul
+                    class="mdc-deprecated-list"
+                    role="menu"
+                    aria-hidden="true"
+                    aria-orientation="vertical"
+                    tabindex="-1"
+                  >
+                    <li
+                      class="mdc-deprecated-list-item"
+                      role="menuitem"
+                      id="orderby-menu-name-asc"
+                    >
+                      <span class="mdc-deprecated-list-item__ripple"></span>
+                      <span class="mdc-deprecated-list-item__text"
+                        >Name (A-Z)</span
+                      >
+                    </li>
+                    <li
+                      class="mdc-deprecated-list-item"
+                      role="menuitem"
+                      id="orderby-menu-name-desc"
+                    >
+                      <span class="mdc-deprecated-list-item__ripple"></span>
+                      <span class="mdc-deprecated-list-item__text"
+                        >Name (Z-A)</span
+                      >
+                    </li>
+                    <li
+                      class="mdc-deprecated-list-item"
+                      role="menuitem"
+                      id="orderby-menu-created-asc"
+                    >
+                      <span class="mdc-deprecated-list-item__ripple"></span>
+                      <span class="mdc-deprecated-list-item__text"
+                        >Created (Old projects first)</span
+                      >
+                    </li>
+                    <li
+                      class="mdc-deprecated-list-item"
+                      role="menuitem"
+                      id="orderby-menu-created-desc"
+                    >
+                      <span class="mdc-deprecated-list-item__ripple"></span>
+                      <span class="mdc-deprecated-list-item__text"
+                        >Created (Recent projects first)</span
+                      >
+                    </li>
+                    <li
+                      class="mdc-deprecated-list-item"
+                      role="menuitem"
+                      id="orderby-menu-edited-asc"
+                    >
+                      <span class="mdc-deprecated-list-item__ripple"></span>
+                      <span class="mdc-deprecated-list-item__text"
+                        >Last Edited (Old edits first)</span
+                      >
+                    </li>
+                    <li
+                      class="mdc-deprecated-list-item"
+                      role="menuitem"
+                      id="orderby-menu-edited-desc"
+                    >
+                      <span class="mdc-deprecated-list-item__ripple"></span>
+                      <span class="mdc-deprecated-list-item__text"
+                        >Last Edited (Recent edits first)</span
+                      >
+                    </li>
+                  </ul>
                 </div>
+              </div>
             </div>
+          </div>
+
+          <!-- Project List -->
+          <ul class="mdc-list" id="projects-list"></ul>
+
+          <!-- Pagination -->
+          <div id="pagination-projects" class="pagination-container">
+            <span class="pagination-first">
+              <button
+                class="mdc-button button-pagination"
+                id="button-pagination-first"
+              >
+                <span class="mdc-button__ripple"></span>
+                <span class="mdc-button__focus-ring"></span>
+                <span class="mdc-button__label">&#10092;</span>
+              </button>
+              <div class="mdc-button button-pagination pagination-dots-left">
+                <span class="mdc-button__label">...</span>
+              </div>
+            </span>
+            <span class="pagination-main"> </span>
+            <span class="pagination-last">
+              <div class="mdc-button button-pagination pagination-dots-right">
+                <span class="mdc-button__label">...</span>
+              </div>
+              <button
+                class="mdc-button button-pagination"
+                id="button-pagination-last"
+              >
+                <span class="mdc-button__ripple"></span>
+                <span class="mdc-button__focus-ring"></span>
+                <span class="mdc-button__label">&#10093;</span>
+              </button>
+            </span>
+          </div>
         </div>
-        <div class="mdc-layout-grid__cell--span-2"></div>
+      </div>
     </div>
+    <div class="mdc-layout-grid__cell--span-2"></div>
+  </div>
 </div>
 
 <!-- Menu Items for Project List -->
@@ -112,31 +169,40 @@
 
 <!-- Delete Project Alert -->
 <div class="mdc-dialog" id="delete-project-dialog">
-    <div class="mdc-dialog__container">
-      <div class="mdc-dialog__surface"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="my-dialog-title"
-        aria-describedby="my-dialog-content">
-        <div class="mdc-dialog__content" id="my-dialog-content">
-          Are you sure you want to delete the project?
-        </div>
-        <div class="mdc-dialog__actions">
-          <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel">
-            <div class="mdc-button__ripple"></div>
-            <span class="mdc-button__label">No, Cancel</span>
-          </button>
-          <button type="button" class="mdc-button mdc-dialog__button" id="delete-project-dialog-button" data-mdc-dialog-action="ok">
-            <div class="mdc-button__ripple"></div>
-            <span class="mdc-button__label">Yes, Delete</span>
-          </button>
-        </div>
+  <div class="mdc-dialog__container">
+    <div
+      class="mdc-dialog__surface"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="my-dialog-title"
+      aria-describedby="my-dialog-content"
+    >
+      <div class="mdc-dialog__content" id="my-dialog-content">
+        Are you sure you want to delete the project?
+      </div>
+      <div class="mdc-dialog__actions">
+        <button
+          type="button"
+          class="mdc-button mdc-dialog__button"
+          data-mdc-dialog-action="cancel"
+        >
+          <div class="mdc-button__ripple"></div>
+          <span class="mdc-button__label">No, Cancel</span>
+        </button>
+        <button
+          type="button"
+          class="mdc-button mdc-dialog__button"
+          id="delete-project-dialog-button"
+          data-mdc-dialog-action="ok"
+        >
+          <div class="mdc-button__ripple"></div>
+          <span class="mdc-button__label">Yes, Delete</span>
+        </button>
       </div>
     </div>
-    <div class="mdc-dialog__scrim"></div>
   </div>
-{% endblock %}
-
-{% block script %}
+  <div class="mdc-dialog__scrim"></div>
+</div>
+{% endblock %} {% block script %}
 <script src="{{ url_for('static', path='dist/projects/index.bundle.js') }}"></script>
 {% endblock %}

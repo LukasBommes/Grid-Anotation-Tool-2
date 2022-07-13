@@ -1,79 +1,111 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
+  <head>
+    <link
+      rel="shortcut icon"
+      href="{{ url_for('static', path='favicon.ico') }}"
+    />
 
-<head>
-  <link rel="shortcut icon" href="{{ url_for('static', path='favicon.ico') }}">
+    <!-- Material Web -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='dist/bundle.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='google-material-icons.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='google-fonts-roboto.css') }}"
+    />
+    {% block head %}{% endblock %}
 
-  <!-- Material Web -->
-  <link rel="stylesheet" href="{{ url_for('static', path='dist/bundle.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', path='google-material-icons.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', path='google-fonts-roboto.css') }}">
-  {% block head %}{% endblock %}
+    <title>{% block title %}Grid Annotation Tool{% endblock %}</title>
+  </head>
 
-  <title>{% block title %}Grid Annotation Tool{% endblock %}</title>
-</head>
-
-<body class="mdc-typography">
-  <div class="top-app-bar__frame">
-
-    <header class=" mdc-top-app-bar mdc-top-app-bar--fixed">
-      <div class="mdc-top-app-bar__row">
-      <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
-          <span class="mdc-top-app-bar__title" id="app-bar-home-button">Grid Annotation Tool</span>
-      </section>
-      <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
-        {% block appbar_buttons %}{% endblock %}
-        <a id="app-bar-login-button" class="mdc-button mdc-button--icon-leading login-button">
-          <span class="mdc-button__ripple"></span>
-          <span class="mdc-button__focus-ring"></span>
-          <i id="app-bar-login-button-icon" class="material-icons mdc-button__icon" aria-hidden="true">
-              login
-          </i>
-          <span id="app-bar-login-button-label" class="mdc-button__label">Login</span>
-        </a>
-        <a class="mdc-button login-button" href="{{ url_for('registration') }}">
-          <span class="mdc-button__ripple"></span>
-          <span class="mdc-button__label">Register</span>
-        </a>
-      </section>
-      </div>
-    </header>
-
-    <div class="mdc-top-app-bar--fixed-adjust">
-      {% block content %}{% endblock %}
-
-      <!-- Snackbar -->
-      <aside class="mdc-snackbar">
-        <div class="mdc-snackbar__surface" role="status" aria-relevant="additions">
-          <div class="mdc-snackbar__label" aria-atomic="false">
-            Snackbar Text.
-          </div>
-          <div class="mdc-snackbar__actions" aria-atomic="true">
-            <button type="button" class="mdc-button mdc-snackbar__action">
-              <div class="mdc-button__ripple"></div>
-              <span class="mdc-button__label">OK</span>
-            </button>
-          </div>
+  <body class="mdc-typography">
+    <div class="top-app-bar__frame">
+      <header class="mdc-top-app-bar mdc-top-app-bar--fixed">
+        <div class="mdc-top-app-bar__row">
+          <section
+            class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start"
+          >
+            <span class="mdc-top-app-bar__title" id="app-bar-home-button"
+              >Grid Annotation Tool</span
+            >
+          </section>
+          <section
+            class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end"
+          >
+            {% block appbar_buttons %}{% endblock %}
+            <a
+              id="app-bar-login-button"
+              class="mdc-button mdc-button--icon-leading login-button"
+            >
+              <span class="mdc-button__ripple"></span>
+              <span class="mdc-button__focus-ring"></span>
+              <i
+                id="app-bar-login-button-icon"
+                class="material-icons mdc-button__icon"
+                aria-hidden="true"
+              >
+                login
+              </i>
+              <span id="app-bar-login-button-label" class="mdc-button__label"
+                >Login</span
+              >
+            </a>
+            <a
+              class="mdc-button login-button"
+              href="{{ url_for('registration') }}"
+            >
+              <span class="mdc-button__ripple"></span>
+              <span class="mdc-button__label">Register</span>
+            </a>
+          </section>
         </div>
-      </aside>
+      </header>
+
+      <div class="mdc-top-app-bar--fixed-adjust">
+        {% block content %}{% endblock %}
+
+        <!-- Snackbar -->
+        <aside class="mdc-snackbar">
+          <div
+            class="mdc-snackbar__surface"
+            role="status"
+            aria-relevant="additions"
+          >
+            <div class="mdc-snackbar__label" aria-atomic="false">
+              Snackbar Text.
+            </div>
+            <div class="mdc-snackbar__actions" aria-atomic="true">
+              <button type="button" class="mdc-button mdc-snackbar__action">
+                <div class="mdc-button__ripple"></div>
+                <span class="mdc-button__label">OK</span>
+              </button>
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
-  </div>
 
-  {% block tooltips %}{% endblock %}
+    {% block tooltips %}{% endblock %}
 
-  <script>
-    const API_URL = {{ api_url|tojson }};
+    <script>
+      const API_URL = {{ api_url|tojson }};
 
-    const FRONTEND_URLS = {
-        projects: "{{ url_for('projects') }}",
-        getEditorUrl: "{{ url_for('get_editor_url') }}",
-        addProject: "{{ url_for('add_project') }}",
-        getEditProjectUrl: "{{ url_for('get_edit_project_url') }}",
-        login: "{{ url_for('login') }}"
-    }
-  </script>
-  <script src="{{ url_for('static', path='dist/index.bundle.js') }}"></script>
-  
-  {% block script %}{% endblock %}
-</body>
+      const FRONTEND_URLS = {
+          projects: "{{ url_for('projects') }}",
+          getEditorUrl: "{{ url_for('get_editor_url') }}",
+          addProject: "{{ url_for('add_project') }}",
+          getEditProjectUrl: "{{ url_for('get_edit_project_url') }}",
+          login: "{{ url_for('login') }}"
+      }
+    </script>
+    <script src="{{ url_for('static', path='dist/index.bundle.js') }}"></script>
+
+    {% block script %}{% endblock %}
+  </body>
 </html>
