@@ -10,7 +10,6 @@ jobs:
     name: Build, lint and test
 
     runs-on: ubuntu-latest
-    #if: github.event.head_commit.author.name != 'github-actions'  # prevent infinite loop due to commit with personal access token
 
     steps:
     - name: Checkout 
@@ -18,94 +17,67 @@ jobs:
       with:
         repository: ${{ github.event.pull_request.head.repo.full_name }}
         ref: ${{ github.event.pull_request.head.ref }}
-        #token: ${{ secrets.pat }}
 
     - name: Create secrets
       run: |
-        rand=$(openssl rand -hex 32)
-        echo "$rand" > rand.txt
+        chmod +x make_secrets.sh
+        ./make_secrets.sh
 
-    # - name: Create secrets
-    #   run: |
-    #     chmod +x make_secrets.sh
-    #     ./make_secrets.sh
+    - name: Build and start containers
+      run: docker compose up -d --build
 
-    # - name: Build and start containers
-    #   run: docker compose up -d --build
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
 
-    # - name: Setup Node
-    #   uses: actions/setup-node@v3
-    #   with:
-    #     node-version: 16
+    - name: Install Node dependencies
+      run: cd ./frontend && npm install
 
-    # - name: Install Node dependencies
-    #   run: cd ./frontend && npm install
-
-    # - name: Bundle frontend code
-    #   run: cd ./frontend && npm run build
-
-    # - name: Commit changes if any
-    #   uses: EndBug/add-and-commit@v9
-    #   with:
-    #     add: './frontend/**'
-    #     message: 'Code formatted with black'
-    #     default_author: github_actions
-    #     push: true
-
-    # - name: Setup Python
-    #   uses: actions/setup-python@v4
-    #   with:
-    #     python-version: '3.x'
-    #     architecture: 'x64'
-
-    # - name: Install Black 
-    #   run: pip install black
-
-    # - name: Format Python code with black 
-    #   run: black ./backend ./frontend --verbose
-
-    # - name: Commit changes if any
-    #   uses: EndBug/add-and-commit@v9
-    #   with:
-    #     add: '*.py'
-    #     message: 'Code formatted with black'
-    #     default_author: github_actions
-    #     push: true
-
-    # - name: Run backend tests with coverage
-    #   run: docker exec -t gat2_backend bash -c "pip install coverage pytest coverage-badge && coverage run --data-file=/backend/backend/tests/.coverage -m pytest"
-
-    # - name: Generate coverage badge
-    #   run: docker exec -t gat2_backend bash -c "cd /backend/backend/tests && coverage-badge -f -o coverage.svg"
-
-    # - name: Commit changes if any
-    #   uses: EndBug/add-and-commit@v9
-    #   with:
-    #     add: '**/coverage.svg'
-    #     message: 'Coverage badge generated'
-    #     default_author: github_actions
-    #     push: true
+    - name: Bundle frontend code
+      run: cd ./frontend && npm run build
 
     - name: Commit changes if any
       uses: EndBug/add-and-commit@v9
       with:
-        add: '.'
-        message: 'CI workflow autocommit'
+        add: './frontend/**'
+        message: 'Built frontend'
         default_author: github_actions
         push: true
 
-    # - name: Commit changes if any
-    #   run: |
-    #     date >generated.txt
-    #     user=$(gh api /user)
-    #     user_name=$(jq -r '.login' <<<"$user")
-    #     user_email=$(jq -r ".email | \"$user_name@users.noreply.github.com\"" <<<"$user")
-    #     git config user.name "$user_name"
-    #     git config user.email "$user_email"
-    #     git add --all .
-    #     git commit --message 'Coverage badge generated'
-    #     git push
-    #   shell: bash
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+        architecture: 'x64'
+
+    - name: Install Black 
+      run: pip install black
+
+    - name: Format Python code with black 
+      run: black ./backend ./frontend --verbose
+
+    - name: Commit changes if any
+      uses: EndBug/add-and-commit@v9
+      with:
+        add: '*.py'
+        message: 'Code formatted with black'
+        default_author: github_actions
+        push: true
+
+    - name: Run backend tests with coverage
+      run: docker exec -t gat2_backend bash -c "pip install coverage pytest coverage-badge && coverage run --data-file=/backend/backend/tests/.coverage -m pytest"
+
+    - name: Generate coverage badge
+      run: docker exec -t gat2_backend bash -c "cd /backend/backend/tests && coverage-badge -f -o coverage.svg"
+
+    - name: Commit changes if any
+      uses: EndBug/add-and-commit@v9
+      with:
+        add: '**/coverage.svg'
+        message: 'Coverage badge generated'
+        default_author: github_actions
+        push: true
 
     # TODO:
     # Download bundled frontend code into repository
