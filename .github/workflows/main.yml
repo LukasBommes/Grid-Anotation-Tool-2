@@ -13,7 +13,7 @@ jobs:
     #if: github.event.head_commit.author.name != 'github-actions'  # prevent infinite loop due to commit with personal access token
 
     steps:
-    - name: Checkout
+    - name: Checkout 
       uses: actions/checkout@v3
       with:
         repository: ${{ github.event.pull_request.head.repo.full_name }}
