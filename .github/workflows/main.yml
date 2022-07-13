@@ -22,22 +22,27 @@ jobs:
 
     - name: Create secrets
       run: |
-        chmod +x make_secrets.sh
-        ./make_secrets.sh
+        rand=$(openssl rand -hex 32)
+        echo "$rand" > rand.txt
 
-    - name: Build and start containers
-      run: docker compose up -d --build
+    # - name: Create secrets
+    #   run: |
+    #     chmod +x make_secrets.sh
+    #     ./make_secrets.sh
 
-    - name: Setup Node
-      uses: actions/setup-node@v3
-      with:
-        node-version: 16
+    # - name: Build and start containers
+    #   run: docker compose up -d --build
 
-    - name: Install Node dependencies
-      run: cd ./frontend && npm install
+    # - name: Setup Node
+    #   uses: actions/setup-node@v3
+    #   with:
+    #     node-version: 16
 
-    - name: Bundle frontend code
-      run: cd ./frontend && npm run build
+    # - name: Install Node dependencies
+    #   run: cd ./frontend && npm install
+
+    # - name: Bundle frontend code
+    #   run: cd ./frontend && npm run build
 
     # - name: Commit changes if any
     #   uses: EndBug/add-and-commit@v9
@@ -47,17 +52,17 @@ jobs:
     #     default_author: github_actions
     #     push: true
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-        architecture: 'x64'
+    # - name: Setup Python
+    #   uses: actions/setup-python@v4
+    #   with:
+    #     python-version: '3.x'
+    #     architecture: 'x64'
 
-    - name: Install Black 
-      run: pip install black
+    # - name: Install Black 
+    #   run: pip install black
 
-    - name: Format Python code with black 
-      run: black ./backend ./frontend --verbose
+    # - name: Format Python code with black 
+    #   run: black ./backend ./frontend --verbose
 
     # - name: Commit changes if any
     #   uses: EndBug/add-and-commit@v9
@@ -67,11 +72,11 @@ jobs:
     #     default_author: github_actions
     #     push: true
 
-    - name: Run backend tests with coverage
-      run: docker exec -t gat2_backend bash -c "pip install coverage pytest coverage-badge && coverage run --data-file=/backend/backend/tests/.coverage -m pytest"
+    # - name: Run backend tests with coverage
+    #   run: docker exec -t gat2_backend bash -c "pip install coverage pytest coverage-badge && coverage run --data-file=/backend/backend/tests/.coverage -m pytest"
 
-    - name: Generate coverage badge
-      run: docker exec -t gat2_backend bash -c "cd /backend/backend/tests && coverage-badge -f -o coverage.svg"
+    # - name: Generate coverage badge
+    #   run: docker exec -t gat2_backend bash -c "cd /backend/backend/tests && coverage-badge -f -o coverage.svg"
 
     # - name: Commit changes if any
     #   uses: EndBug/add-and-commit@v9
