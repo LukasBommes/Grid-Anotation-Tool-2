@@ -163,10 +163,19 @@ The grid annotation tool relies on the [kld-intersections](https://github.com/th
 
 #### Running tests
 
-Make sure the Grid Annotation Tool is running, i.e., all containers are up. Then, from project root, run
+Make sure the Grid Annotation Tool is running, i.e., all containers are up. Then, from project root, start an interactive Docker session with
 ```
-sudo docker exec -it gat2_backend pytest
+sudo docker exec -it gat2_backend /entrypoint.sh bash
 ```
+Then, install pytest with
+```
+pip install pytest
+```
+And run the tests with
+```
+pytest
+```
+Note, that the pytest installtion is only persisted for the duration of the interactive Docker session.
 
 #### Building frontend
 
