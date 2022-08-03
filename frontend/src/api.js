@@ -40,7 +40,10 @@ var apiService = (function () {
   let apiUrl = API_URL;
 
   let getProjects = function (skip, limit, orderby, orderdir) {
-    let url = `${apiUrl}/projects/?skip=${skip}&limit=${limit}&orderby=${orderby}&orderdir=${orderdir}`;
+    let url = `${apiUrl}/projects/?skip=${skip}&orderby=${orderby}&orderdir=${orderdir}`;
+    if (limit) {
+      url += `&limit=${limit}`;
+    }
     return fetchService.makeFetchRequest("GET", url, null, null, true);
   };
 
@@ -85,8 +88,11 @@ var apiService = (function () {
     );
   };
 
-  let getImages = function (projectId) {
-    let url = `${apiUrl}/project/${projectId}/images/`;
+  let getImages = function (projectId, skip, limit, orderby, orderdir) {
+    let url = `${apiUrl}/project/${projectId}/images/?skip=${skip}&orderby=${orderby}&orderdir=${orderdir}`;
+    if (limit) {
+      url += `&limit=${limit}`;
+    }
     return fetchService.makeFetchRequest("GET", url, null, null, true);
   };
 

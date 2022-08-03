@@ -8,7 +8,7 @@ import io
 import re
 
 from datetime import datetime
-from typing import List
+from typing import List, Union
 
 from fastapi import (
     APIRouter,
@@ -72,7 +72,7 @@ def create_router(settings):
     def get_projects(
         response: Response,
         skip: int = 0,
-        limit: int = 100,
+        limit: Union[int, None] = None,
         orderby: str = "name",
         orderdir: str = "asc",
         db: Session = Depends(get_db),
@@ -159,7 +159,6 @@ def create_router(settings):
         db: Session = Depends(get_db),
         current_user: schemas.User = Depends(get_current_active_user),
     ):
-
         # create temporary zip file
         temp_dir = tempfile.mkdtemp()
         filename = f"project_{project_id}.zip"
@@ -234,7 +233,7 @@ def create_router(settings):
                         ),
                     )
 
-                zip_file.testzip()
+            zip_file.testzip()
 
         background_tasks.add_task(cleanup, temp_dir)
         return FileResponse(

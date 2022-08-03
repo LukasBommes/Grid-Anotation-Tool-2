@@ -155,7 +155,15 @@ The annotation file format is as follows, i.e., each image has a list of grid ce
 }
 ```
 
-### Known Bugs
+### Known Limitations
+
+#### Long download times for export of projects with many images
+
+Currently, the project export is performed in a synchronous request, where all images and annotations are zipped and then returned to the client as a file response. This can take a long while. E.g. we measured 90 seconds for a project containing 270 images. Since there is currently no progress indicator, please be patient and wait a couple of minuted after clicking the "Export project" button.
+
+In the long term, the request should be handled asynchronously as background task (e.g. using Celery) and the progress should be send to the client via websockets (no polling).
+
+#### Automatic intersection of curves fails
 
 The grid annotation tool relies on the [kld-intersections](https://github.com/thelonious/kld-intersections) library for calculating intersection points between auxiliary lines. This library has a known bug, which causes it to miss some intersections between pairs of curves. In this case, please add the missed intersections manually by first clicking "Add Corners" and then clicking on the image.
 

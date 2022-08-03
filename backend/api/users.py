@@ -11,15 +11,6 @@ def create_router(settings):
 
     router = APIRouter()
 
-    # TODO:
-    # - update and delete user
-    # - tests
-    #   - user creation
-    #   - user update
-    #   - user deletion
-    #   - deleting user deletes project
-    #   - different users can have different projects
-
     @router.post("/users/", response_model=schemas.UserInDB, status_code=201)
     def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         user_dict = user.dict()

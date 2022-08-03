@@ -1,3 +1,7 @@
+performance:
+- move project export function into background process and visualize progress to user
+- make size of cursor and line width in editor configurable by user
+
 bug fixes:
 - prevent same names of projects, otherwise the ordering in sqlalchemy doesnot work if there are projects with same name
 - prevent browser from caching images, otherwise weird errors occur!
