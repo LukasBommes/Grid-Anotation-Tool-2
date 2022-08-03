@@ -59,8 +59,14 @@ async function editor(project_id) {
     .getElementById("setup-project-button")
     .addEventListener("click", setupProjectClicked.bind(null, project_id));
 
-  async function getImages(project_id) {
-    var response = await apiService.getImages(project_id);
+  async function getImages(
+    project_id, 
+    skip = 0,
+    limit = null,
+    orderby = "name",
+    orderdir = "asc"
+  ) {
+    var response = await apiService.getImages(project_id, skip, limit, orderby, orderdir);
 
     if (response.status == 200) {
       const data = await response.json();
