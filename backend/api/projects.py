@@ -152,14 +152,13 @@ def create_router(settings):
     def cleanup(filepath):
         shutil.rmtree(filepath)
 
-
     @router.get("/export/{project_id}", status_code=200)
     def export_project(
         project_id: int,
         background_tasks: BackgroundTasks,
         db: Session = Depends(get_db),
         current_user: schemas.User = Depends(get_current_active_user),
-    ):  
+    ):
         # create temporary zip file
         temp_dir = tempfile.mkdtemp()
         filename = f"project_{project_id}.zip"
@@ -236,7 +235,7 @@ def create_router(settings):
 
             zip_file.testzip()
 
-        background_tasks.add_task(cleanup, temp_dir)       
+        background_tasks.add_task(cleanup, temp_dir)
         return FileResponse(
             filepath,
             media_type="application/x-zip-compressed",
