@@ -13,6 +13,15 @@
   width: 100%;
 }
 
+#images-selection-container {
+  height: calc(100% - 40px);
+  width: 150px;
+  position: absolute;
+  z-index: 1000;
+  background-color: white;
+  overflow-y: auto;
+}
+
 .btn-group {
   z-index: 1;
   position: absolute;
