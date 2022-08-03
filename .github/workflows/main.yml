@@ -82,16 +82,6 @@ jobs:
         default_author: github_actions
         push: true
 
-    # TODO:
-    # Download bundled frontend code into repository
-    # Run code black (and later prettifier)
-    # Download formatted code into repository
-
-    # Deployment
-    # copy code into containers
-    # push containers into registry
-    # test containers
-
     - name: Stop containers
       if: always()
       run: docker compose down
