@@ -1,7 +1,7 @@
 import os
 import json
 import uuid
-from typing import List
+from typing import List, Union
 
 import filetype
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Response
@@ -48,8 +48,8 @@ def create_router(settings):
         response: Response,
         project_id: int,
         skip: int = 0,
-        limit: int = 100,
-        orderby: str = "id",
+        limit: Union[int, None] = None,
+        orderby: str = "name",
         orderdir: str = "asc",
         db: Session = Depends(get_db),
         current_user: schemas.User = Depends(get_current_active_user),
