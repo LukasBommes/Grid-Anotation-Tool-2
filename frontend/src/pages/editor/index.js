@@ -61,19 +61,27 @@ async function editor(project_id) {
     .addEventListener("click", setupProjectClicked.bind(null, project_id));
   document
     .getElementById("editor-settings-button")
-    .addEventListener("click", () => { window.location.href = FRONTEND_URLS.editorSettings; });
+    .addEventListener("click", () => {
+      window.location.href = FRONTEND_URLS.editorSettings;
+    });
 
   // read editor settings from local storage
   const editor_settings = getEditorSettings();
 
   async function getImages(
-    project_id, 
+    project_id,
     skip = 0,
     limit = null,
     orderby = "name",
     orderdir = "asc"
   ) {
-    var response = await apiService.getImages(project_id, skip, limit, orderby, orderdir);
+    var response = await apiService.getImages(
+      project_id,
+      skip,
+      limit,
+      orderby,
+      orderdir
+    );
 
     if (response.status == 200) {
       const data = await response.json();
@@ -288,7 +296,7 @@ async function editor(project_id) {
         .attr("id", "center-line-" + [i])
         .style("stroke", "magenta")
         .style("stroke-dasharray", "2, 2")
-        .style("stroke-width", 0.5*editor_settings.line_width)
+        .style("stroke-width", 0.5 * editor_settings.line_width)
         .style("stroke-opacity", 0);
     }
 
@@ -450,7 +458,7 @@ async function editor(project_id) {
         .style("fill", null)
         .style("fill-opacity", 0)
         .style("stroke", "red")
-        .style("stroke-width", 0.5*editor_settings.line_width);
+        .style("stroke-width", 0.5 * editor_settings.line_width);
       console.log("Switched to erase mode");
     } else if (btn.id == "btn-draw-auxline") {
       marker_mode = "auxline";
@@ -1123,7 +1131,7 @@ async function editor(project_id) {
           return "lawngreen";
         }
       })
-      .style("stroke-width", 0.5*editor_settings.line_width)
+      .style("stroke-width", 0.5 * editor_settings.line_width)
       .on("mousedown", erase_mousedown_handler)
       .on("click", mark_module_partially_visible_handler);
 
