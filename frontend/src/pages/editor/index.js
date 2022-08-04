@@ -288,7 +288,7 @@ async function editor(project_id) {
         .attr("id", "center-line-" + [i])
         .style("stroke", "magenta")
         .style("stroke-dasharray", "2, 2")
-        .style("stroke-width", 0.5)
+        .style("stroke-width", 0.5*editor_settings.line_width)
         .style("stroke-opacity", 0);
     }
 
@@ -298,7 +298,7 @@ async function editor(project_id) {
       .append("g")
       .append("circle")
       .attr("id", "cursor")
-      .attr("r", editor_settings.cursor_size)
+      .attr("r", editor_settings.cursor_radius)
       .style("fill", "magenta")
       .style("opacity", 0)
       .style("fill-opacity", 1)
@@ -450,7 +450,7 @@ async function editor(project_id) {
         .style("fill", null)
         .style("fill-opacity", 0)
         .style("stroke", "red")
-        .style("stroke-width", 0.5);
+        .style("stroke-width", 0.5*editor_settings.line_width);
       console.log("Switched to erase mode");
     } else if (btn.id == "btn-draw-auxline") {
       marker_mode = "auxline";
@@ -964,7 +964,7 @@ async function editor(project_id) {
       })
       .style("stroke", "magenta")
       .style("stroke-opacity", 0.5)
-      .style("stroke-width", 1)
+      .style("stroke-width", editor_settings.line_width)
       .on("mousedown", erase_mousedown_handler);
     svg_auxlines_enter
       .append("circle")
@@ -975,7 +975,7 @@ async function editor(project_id) {
       .attr("cy", function (d) {
         return d.y1;
       })
-      .style("r", 1.5)
+      .style("r", editor_settings.handle_radius)
       .style("fill", "magenta")
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxline_dragged));
@@ -988,7 +988,7 @@ async function editor(project_id) {
       .attr("cy", function (d) {
         return d.y2;
       })
-      .style("r", 1.5)
+      .style("r", editor_settings.handle_radius)
       .style("fill", "magenta")
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxline_dragged));
@@ -1016,7 +1016,7 @@ async function editor(project_id) {
       })
       .style("stroke", "magenta")
       .style("fill", "none")
-      .style("stroke-width", 1)
+      .style("stroke-width", editor_settings.line_width)
       .style("stroke-opacity", 0.5)
       .on("mousedown", erase_mousedown_handler);
     svg_auxcurves_enter
@@ -1028,7 +1028,7 @@ async function editor(project_id) {
       .attr("cy", function (d) {
         return d.points[0][1];
       })
-      .style("r", 1.5)
+      .style("r", editor_settings.handle_radius)
       .style("fill", "magenta")
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxcurve_dragged));
@@ -1041,7 +1041,7 @@ async function editor(project_id) {
       .attr("cy", function (d) {
         return d.points[1][1];
       })
-      .style("r", 1.5)
+      .style("r", editor_settings.handle_radius)
       .style("fill", "magenta")
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxcurve_dragged));
@@ -1054,7 +1054,7 @@ async function editor(project_id) {
       .attr("cy", function (d) {
         return d.points[2][1];
       })
-      .style("r", 1.5)
+      .style("r", editor_settings.handle_radius)
       .style("fill", "magenta")
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxcurve_dragged));
@@ -1079,7 +1079,7 @@ async function editor(project_id) {
       .attr("cy", function (d) {
         return d.y;
       })
-      .attr("r", 2)
+      .attr("r", editor_settings.handle_radius)
       .attr("fill", "magenta")
       .on("mousedown.1", erase_mousedown_handler)
       .on("mousedown.2", corner_mouseclick_handler)
@@ -1123,7 +1123,7 @@ async function editor(project_id) {
           return "lawngreen";
         }
       })
-      .style("stroke-width", 0.5)
+      .style("stroke-width", 0.5*editor_settings.line_width)
       .on("mousedown", erase_mousedown_handler)
       .on("click", mark_module_partially_visible_handler);
 
@@ -1140,7 +1140,7 @@ async function editor(project_id) {
       .attr("cy", function (d) {
         return d.center.y;
       })
-      .attr("r", 2)
+      .attr("r", editor_settings.handle_radius)
       .attr("fill", "black");
   };
 
