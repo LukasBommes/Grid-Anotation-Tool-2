@@ -1,0 +1,57 @@
+{% extends "index.html" %} {% block content %}
+<div class="mdc-layout-grid">
+  <div class="mdc-layout-grid__inner">
+    <div class="mdc-layout-grid__cell--span-2"></div>
+    <div class="mdc-layout-grid__cell--span-8">
+      <div class="mdc-elevation--z4">
+        <div class="main-container">
+          <div class="main-container-title">
+            <h1 class="mdc-typography--button">Editor Settings</h1>
+          </div>
+
+          <div class="mdc-slider" id="cursor-size-slider">
+            <input class="mdc-slider__input" type="range" min="1" max="50" value="2" name="cursor_size" aria-label="Cursor size">
+            <div class="mdc-slider__track">
+            <div class="mdc-slider__track--inactive"></div>
+            <div class="mdc-slider__track--active">
+                <div class="mdc-slider__track--active_fill"></div>
+            </div>
+            </div>
+            <div class="mdc-slider__thumb">
+            <div class="mdc-slider__thumb-knob"></div>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="form-row">
+            <button
+              class="mdc-button mdc-button--outlined"
+              id="editor-settings-cancel-button"
+            >
+              <span class="mdc-button__ripple"></span>
+              <span class="mdc-button__focus-ring"></span>
+              <span class="mdc-button__label">Cancel</span>
+            </button>
+            <button
+              class="mdc-button mdc-button--raised mdc-button--icon-leading"
+              id="editor-settings-submit-button"
+            >
+              <span class="mdc-button__ripple"></span>
+              <span class="mdc-button__focus-ring"></span>
+              <i class="material-icons mdc-button__icon" aria-hidden="true">
+                save
+              </i>
+              <span class="mdc-button__label">Save Changes</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="mdc-layout-grid__cell--span-2"></div>
+  </div>
+</div>
+
+{% endblock %} {% block script %}
+<script src="{{ url_for('static', path='dist/editor-settings/index.bundle.js') }}"></script>
+{% endblock %}

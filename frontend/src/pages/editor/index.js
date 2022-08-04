@@ -16,6 +16,7 @@ import {
   exportProjectClicked,
   getImageUrl,
 } from "../../utils.js";
+import { getEditorSettings } from "../editor-settings/index.js";
 
 // TODO:
 // - display project info (name, number of images, number of annotated images, last edited, created, description, etc.)
@@ -58,6 +59,12 @@ async function editor(project_id) {
   document
     .getElementById("setup-project-button")
     .addEventListener("click", setupProjectClicked.bind(null, project_id));
+  document
+    .getElementById("editor-settings-button")
+    .addEventListener("click", () => { window.location.href = FRONTEND_URLS.editorSettings; });
+
+  // read editor settings from local storage
+  const editor_settings = getEditorSettings();
 
   async function getImages(
     project_id, 
@@ -291,7 +298,7 @@ async function editor(project_id) {
       .append("g")
       .append("circle")
       .attr("id", "cursor")
-      .attr("r", 2)
+      .attr("r", editor_settings.cursor_size)
       .style("fill", "magenta")
       .style("opacity", 0)
       .style("fill-opacity", 1)

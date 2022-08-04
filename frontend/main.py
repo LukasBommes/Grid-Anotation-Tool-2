@@ -64,6 +64,14 @@ async def editor(request: Request, project_id: int):
     )
 
 
+@app.get("/editor-settings/", response_class=HTMLResponse)
+async def editor_settings(request: Request):
+    return templates.TemplateResponse(
+        "editor_settings.html",
+        {"request": request, "api_url": settings.API_URL},
+    )
+
+
 @app.get("/login/", response_class=HTMLResponse)
 async def login(request: Request):
     return templates.TemplateResponse(

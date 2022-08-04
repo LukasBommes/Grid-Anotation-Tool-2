@@ -36,6 +36,7 @@
     "@material/layout-grid": "^14.0.0",
     "@material/list": "^14.0.0",
     "@material/menu": "^14.0.0",
+    "@material/slider": "^14.0.0",
     "@material/snackbar": "^14.0.0",
     "@material/textfield": "^14.0.0",
     "@material/tooltip": "^14.0.0",
