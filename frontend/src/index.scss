@@ -28,6 +28,8 @@
 
 @use "@material/typography/mdc-typography";
 
+@use "@material/slider/styles" as slider-style;
+
 @use "@material/tooltip/styles" as tooltip-style;
 
 @include dialog.core-styles;

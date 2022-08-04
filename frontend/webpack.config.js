@@ -9,6 +9,7 @@ module.exports = {
     "login/index": "./src/pages/login/index.js",
     "registration/index": "./src/pages/registration/index.js",
     "editor/index": "./src/pages/editor/index.js",
+    "editor-settings/index": "./src/pages/editor-settings/index.js",
   },
   output: {
     filename: "[name].bundle.js",

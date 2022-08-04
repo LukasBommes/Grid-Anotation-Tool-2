@@ -101,7 +101,8 @@
           getEditorUrl: "{{ url_for('get_editor_url') }}",
           addProject: "{{ url_for('add_project') }}",
           getEditProjectUrl: "{{ url_for('get_edit_project_url') }}",
-          login: "{{ url_for('login') }}"
+          login: "{{ url_for('login') }}",
+          editorSettings: "{{ url_for('editor_settings') }}"
       }
     </script>
     <script src="{{ url_for('static', path='dist/index.bundle.js') }}"></script>

@@ -17,6 +17,15 @@
   <div class="mdc-icon-button__ripple"></div>
   build
 </button>
+<button
+  class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded app-bar-icon-button"
+  aria-label="Editor Settings"
+  aria-describedby="tooltip-editor-settings"
+  id="editor-settings-button"
+>
+  <div class="mdc-icon-button__ripple"></div>
+  settings
+</button>
 {% endblock %} {% block content %}
 <div
   class="mdc-elevation--z4"
@@ -193,6 +202,17 @@
     Setup project
   </div>
 </div>
+<div
+  id="tooltip-editor-settings"
+  class="mdc-tooltip"
+  role="tooltip"
+  aria-hidden="true"
+>
+  <div class="mdc-tooltip__surface mdc-tooltip__surface-animation">
+    Change editor settings
+  </div>
+</div>
+
 {% endblock %} {% block script %}
 <script>
   const project_id = {{ project_id|tojson }};
