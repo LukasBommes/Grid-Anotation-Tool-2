@@ -989,7 +989,7 @@ async function editor(project_id) {
       .attr("cy", function (d) {
         return d.y1;
       })
-      .style("r", editor_settings.handle_radius)
+      .attr("r", editor_settings.handle_radius)
       .style("fill", editor_settings.color_lines_handles)
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxline_dragged));
@@ -1002,7 +1002,7 @@ async function editor(project_id) {
       .attr("cy", function (d) {
         return d.y2;
       })
-      .style("r", editor_settings.handle_radius)
+      .attr("r", editor_settings.handle_radius)
       .style("fill", editor_settings.color_lines_handles)
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxline_dragged));
@@ -1042,7 +1042,7 @@ async function editor(project_id) {
       .attr("cy", function (d) {
         return d.points[0][1];
       })
-      .style("r", editor_settings.handle_radius)
+      .attr("r", editor_settings.handle_radius)
       .style("fill", editor_settings.color_lines_handles)
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxcurve_dragged));
@@ -1055,7 +1055,7 @@ async function editor(project_id) {
       .attr("cy", function (d) {
         return d.points[1][1];
       })
-      .style("r", editor_settings.handle_radius)
+      .attr("r", editor_settings.handle_radius)
       .style("fill", editor_settings.color_lines_handles)
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxcurve_dragged));
@@ -1068,7 +1068,7 @@ async function editor(project_id) {
       .attr("cy", function (d) {
         return d.points[2][1];
       })
-      .style("r", editor_settings.handle_radius)
+      .attr("r", editor_settings.handle_radius)
       .style("fill", editor_settings.color_lines_handles)
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxcurve_dragged));
