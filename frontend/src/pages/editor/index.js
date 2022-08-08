@@ -332,7 +332,11 @@ async function editor(project_id) {
 
   // parse translation and scale from the image transform
   function getTranslationScale(g_element) {
-    var matrix = g_element.transform.baseVal.consolidate().matrix;
+    var consolidated = g_element.transform.baseVal.consolidate();
+    if (!consolidated) {
+      return [0, 0, 1];
+    }
+    var matrix = consolidated.matrix;
     var img_offset_x = matrix.e;
     var img_offset_y = matrix.f;
     var img_scale = matrix.d;
