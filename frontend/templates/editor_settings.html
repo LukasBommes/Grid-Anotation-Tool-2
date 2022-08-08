@@ -9,17 +9,16 @@
             <h1 class="mdc-typography--button">Editor Settings</h1>
           </div>
 
+          <!-- Sliders -->
           <div class="form-row">
             <div class="mdc-slider-container">
-              <span class="mdc-typography--subtitle1 mdc-slider-label"
-                >Cursor Radius</span
-              >
+              <span class="mdc-typography--subtitle1">Cursor Radius</span>
               <div class="mdc-slider" id="cursor-radius-slider">
                 <input
                   class="mdc-slider__input"
                   type="range"
                   min="1"
-                  max="30"
+                  max="60"
                   value="2"
                   name="cursor_radius"
                   aria-label="Cursor radius"
@@ -35,17 +34,17 @@
                 </div>
               </div>
             </div>
+          </div>
 
+          <div class="form-row">
             <div class="mdc-slider-container">
-              <span class="mdc-typography--subtitle1 mdc-slider-label"
-                >Handle Radius</span
-              >
+              <span class="mdc-typography--subtitle1">Handle Radius</span>
               <div class="mdc-slider" id="handle-radius-slider">
                 <input
                   class="mdc-slider__input"
                   type="range"
                   min="1"
-                  max="30"
+                  max="60"
                   value="2"
                   name="handle_radius"
                   aria-label="Handle radius"
@@ -61,17 +60,17 @@
                 </div>
               </div>
             </div>
+          </div>
 
+          <div class="form-row">
             <div class="mdc-slider-container">
-              <span class="mdc-typography--subtitle1 mdc-slider-label"
-                >Line Width</span
-              >
+              <span class="mdc-typography--subtitle1">Line Width</span>
               <div class="mdc-slider" id="line-width-slider">
                 <input
                   class="mdc-slider__input"
                   type="range"
                   min="1"
-                  max="20"
+                  max="40"
                   value="1"
                   name="line_width"
                   aria-label="Line Width"
@@ -87,6 +86,70 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Color Pickers -->
+          <div class="form-row">
+            <span class="mdc-typography--subtitle1">Colors</span>
+            <div class="mdc-layout-grid">
+              <div class="mdc-layout-grid__inner">
+                <div class="mdc-layout-grid__cell--span-6">
+                  <div>
+                    <input
+                      type="color"
+                      id="colorpicker-lines-handles"
+                      name="colorpicker_lines_handles"
+                      value="#ff00ff"
+                    />
+                    <label for="head">Lines and Handles</label>
+                  </div>
+                </div>
+                <div class="mdc-layout-grid__cell--span-6">
+                  <div>
+                    <input
+                      type="color"
+                      id="colorpicker-cells-visible"
+                      name="colorpicker_cells_visible"
+                      value="#7cfc00"
+                    />
+                    <label for="head">Cells (visible)</label>
+                  </div>
+                </div>
+                <div class="mdc-layout-grid__cell--span-6">
+                  <input
+                    type="color"
+                    id="colorpicker-cells-invisible"
+                    name="colorpicker_cells_invisible"
+                    value="#ffff00"
+                  />
+                  <label for="head">Cells (invisible)</label>
+                </div>
+                <div class="mdc-layout-grid__cell--span-6">
+                  <input
+                    type="color"
+                    id="colorpicker-editor-background"
+                    name="colorpicker_editor_background"
+                    value="#ffffff"
+                  />
+                  <label for="head">Editor Background</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Revert to defaults -->
+          <div class="form-row">
+            <button
+              class="mdc-button mdc-button--icon-leading"
+              id="editor-setting-revert-default-button"
+            >
+              <span class="mdc-button__ripple"></span>
+              <span class="mdc-button__focus-ring"></span>
+              <i class="material-icons mdc-button__icon" aria-hidden="true">
+                undo
+              </i>
+              <span class="mdc-button__label">Revert to Defaults</span>
+            </button>
           </div>
 
           <!-- Buttons -->

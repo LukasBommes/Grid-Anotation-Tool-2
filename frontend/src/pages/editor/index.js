@@ -67,6 +67,8 @@ async function editor(project_id) {
 
   // read editor settings from local storage
   const editor_settings = getEditorSettings();
+  // set editor background color
+  document.body.style.background = editor_settings.color_editor_background;
 
   async function getImages(
     project_id,
@@ -294,7 +296,7 @@ async function editor(project_id) {
         .select("#g_element")
         .append("line")
         .attr("id", "center-line-" + [i])
-        .style("stroke", "magenta")
+        .style("stroke", editor_settings.color_lines_handles)
         .style("stroke-dasharray", "2, 2")
         .style("stroke-width", 0.5 * editor_settings.line_width)
         .style("stroke-opacity", 0);
@@ -307,7 +309,7 @@ async function editor(project_id) {
       .append("circle")
       .attr("id", "cursor")
       .attr("r", editor_settings.cursor_radius)
-      .style("fill", "magenta")
+      .style("fill", editor_settings.color_lines_handles)
       .style("opacity", 0)
       .style("fill-opacity", 1)
       .style("stroke", null);
@@ -330,7 +332,11 @@ async function editor(project_id) {
 
   // parse translation and scale from the image transform
   function getTranslationScale(g_element) {
-    var matrix = g_element.transform.baseVal.consolidate().matrix;
+    var consolidated = g_element.transform.baseVal.consolidate();
+    if (!consolidated) {
+      return [0, 0, 1];
+    }
+    var matrix = consolidated.matrix;
     var img_offset_x = matrix.e;
     var img_offset_y = matrix.f;
     var img_scale = matrix.d;
@@ -432,7 +438,7 @@ async function editor(project_id) {
       // change cursor
       svg
         .select("#cursor")
-        .style("fill", "magenta")
+        .style("fill", editor_settings.color_lines_handles)
         .style("fill-opacity", 1)
         .style("stroke", null);
       console.log("Switched to corner mode");
@@ -465,7 +471,7 @@ async function editor(project_id) {
       btn.classList.add("btn-active");
       svg
         .select("#cursor")
-        .style("fill", "magenta")
+        .style("fill", editor_settings.color_lines_handles)
         .style("fill-opacity", 1)
         .style("stroke", null);
       console.log("Switched to auxline mode");
@@ -474,7 +480,7 @@ async function editor(project_id) {
       btn.classList.add("btn-active");
       svg
         .select("#cursor")
-        .style("fill", "magenta")
+        .style("fill", editor_settings.color_lines_handles)
         .style("fill-opacity", 1)
         .style("stroke", null);
       console.log("Switched to auxcurve mode");
@@ -970,7 +976,7 @@ async function editor(project_id) {
       .attr("y2", function (d) {
         return d.y2;
       })
-      .style("stroke", "magenta")
+      .style("stroke", editor_settings.color_lines_handles)
       .style("stroke-opacity", 0.5)
       .style("stroke-width", editor_settings.line_width)
       .on("mousedown", erase_mousedown_handler);
@@ -984,7 +990,7 @@ async function editor(project_id) {
         return d.y1;
       })
       .style("r", editor_settings.handle_radius)
-      .style("fill", "magenta")
+      .style("fill", editor_settings.color_lines_handles)
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxline_dragged));
     svg_auxlines_enter
@@ -997,7 +1003,7 @@ async function editor(project_id) {
         return d.y2;
       })
       .style("r", editor_settings.handle_radius)
-      .style("fill", "magenta")
+      .style("fill", editor_settings.color_lines_handles)
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxline_dragged));
     var svg_auxlines_merged = svg_auxlines_enter.merge(svg_auxlines);
@@ -1022,7 +1028,7 @@ async function editor(project_id) {
       .attr("d", function (d) {
         return generate_auxcurve_data(d.points);
       })
-      .style("stroke", "magenta")
+      .style("stroke", editor_settings.color_lines_handles)
       .style("fill", "none")
       .style("stroke-width", editor_settings.line_width)
       .style("stroke-opacity", 0.5)
@@ -1037,7 +1043,7 @@ async function editor(project_id) {
         return d.points[0][1];
       })
       .style("r", editor_settings.handle_radius)
-      .style("fill", "magenta")
+      .style("fill", editor_settings.color_lines_handles)
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxcurve_dragged));
     svg_auxcurves_enter
@@ -1050,7 +1056,7 @@ async function editor(project_id) {
         return d.points[1][1];
       })
       .style("r", editor_settings.handle_radius)
-      .style("fill", "magenta")
+      .style("fill", editor_settings.color_lines_handles)
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxcurve_dragged));
     svg_auxcurves_enter
@@ -1063,7 +1069,7 @@ async function editor(project_id) {
         return d.points[2][1];
       })
       .style("r", editor_settings.handle_radius)
-      .style("fill", "magenta")
+      .style("fill", editor_settings.color_lines_handles)
       .on("mousedown", erase_mousedown_handler)
       .call(d3.drag().on("drag", auxcurve_dragged));
     var svg_auxcurves_merged = svg_auxcurves_enter.merge(svg_auxcurves);
@@ -1088,7 +1094,7 @@ async function editor(project_id) {
         return d.y;
       })
       .attr("r", editor_settings.handle_radius)
-      .attr("fill", "magenta")
+      .attr("fill", editor_settings.color_lines_handles)
       .on("mousedown.1", erase_mousedown_handler)
       .on("mousedown.2", corner_mouseclick_handler)
       .call(
@@ -1118,17 +1124,17 @@ async function editor(project_id) {
       })
       .style("fill", function (d) {
         if (d.truncated) {
-          return "yellow";
+          return editor_settings.color_cells_invisible;
         } else {
-          return "lawngreen";
+          return editor_settings.color_cells_visible;
         }
       })
       .style("fill-opacity", 0.5)
       .style("stroke", function (d) {
         if (d.truncated) {
-          return "yellow";
+          return editor_settings.color_cells_invisible;
         } else {
-          return "lawngreen";
+          return editor_settings.color_cells_visible;
         }
       })
       .style("stroke-width", 0.5 * editor_settings.line_width)
